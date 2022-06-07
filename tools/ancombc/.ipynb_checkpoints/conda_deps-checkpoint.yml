@@ -1,0 +1,9 @@
+name: ancombc
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - bioconductor-ancombc
+  - bioconductor-phyloseq
+  - r-tidyverse

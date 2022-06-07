@@ -1,0 +1,8 @@
+name: aldex2
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - bioconductor-aldex2
+  - r-tidyverse
