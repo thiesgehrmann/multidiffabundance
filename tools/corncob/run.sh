@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
+SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]:-$0}"; )" &> /dev/null && pwd 2> /dev/null; )";
 
 abundance="$1"
 metadata="$2"
 formula="$3"
-outfile="$4"
+outprefix="$4"
 
-Rscript run_corncob.R "$abundance" "$metadata" "$formula" "$outfile"
+Rscript "$SCRIPT_DIR/run_corncob.R" "$abundance" "$metadata" "$formula" "$outprefix"

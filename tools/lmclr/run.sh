@@ -6,4 +6,4 @@ metadata="$2"
 formula="$3"
 outprefix="$4"
 
-Rscript "$SCRIPT_DIR/run_limma.R" "$abundance" "$metadata" "$formula" "$outprefix"
+Rscript "$SCRIPT_DIR/run_lmclr.R" "$abundance" "$metadata" "$formula" "$outprefix"

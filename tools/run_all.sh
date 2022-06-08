@@ -6,9 +6,11 @@ formula_file="~/repos//multidiffabundance/tools/list_of_functions.txt"
 
 source "`dirname $CONDA_EXE`/../etc/profile.d/conda.sh"
 
-conda activate limma && aldex2/run.sh "$count_data" "$meta_data" "$formula_file" "output.aldex2.tsv"
-#conda activate ancom2 && ancombc/run.sh "$count_data" "$meta_data" "$formula_file" "output.ancombc.tsv"
-#conda activate deseq2 && deseq2/run.sh "$count_data" "$meta_data" "$formula_file" "output.deseq2.tsv"
-#conda activate limma && limma/run.sh "$count_data" "$meta_data" "$formula_file" "output.limma.tsv"
-#corncob/run.sh "$count_data" "$meta_data" "$formula_file" "output.corncob.tsv"
-#lmclr/run.sh "$count_data" "$meta_data" "$formula_file" "output.lmclr.tsv"
+#conda activate aldex2 && aldex2/run.sh "$count_data" "$meta_data" "$formula_file" "output.aldex2"
+#conda activate ancom2 && ancombc/run.sh "$count_data" "$meta_data" "$formula_file" "output.ancombc"
+#conda activate corncob && corncob/run.sh "$count_data" "$meta_data" "$formula_file" "output.corncob"
+
+#conda activate deseq2 && deseq2/run.sh "$count_data" "$meta_data" "$formula_file" "output.deseq2"
+#conda activate limma && limma/run.sh "$count_data" "$meta_data" "$formula_file" "output.limma"
+conda activate limma && lmclr/run.sh "$count_data" "$meta_data" "$formula_file" "output.lmclr"
+conda activate maaslin2 && maaslin2/run.sh "$count_data" "$meta_data" "$formula_file" "output.maaslin"

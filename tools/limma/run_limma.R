@@ -80,12 +80,13 @@ do <- function(f_idx){
 
 R <- lapply(1:length(D$formula$main_var), do)
 
-###############################################################################
-# Output
-
 res <- bind_rows(lapply(R, function(x){x$res}))
 res$qvalue <- p.adjust(res$pvalue, "fdr")
 res.full <- bind_rows(lapply(R, function(x){x$res.full}))
 
-write_tsv(res, D$outfile)
-write_tsv(res.full, paste0(c(D$outfile, ".full.tsv"), collapse=""))
+
+###############################################################################
+# Output
+
+write_tsv(res, paste0(c(D$outprefix, "results.tsv"), collapse=""))
+write_tsv(res.full, paste0(c(D$outprefix, "results.full.tsv"), collapse=""))

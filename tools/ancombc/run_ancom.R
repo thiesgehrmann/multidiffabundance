@@ -59,5 +59,5 @@ res.full <- bind_rows(lapply(R, function(x){x$res.full}))
 ###############################################################################
 # Output
 
-write_tsv(res, D$outfile)
-write_tsv(res.full, paste0(c(D$outfile, ".full.tsv"), collapse=""))
+write_tsv(res, paste0(c(D$outprefix, "results.tsv"), collapse=""))
+write_tsv(res.full, paste0(c(D$outprefix, "results.full.tsv"), collapse=""))

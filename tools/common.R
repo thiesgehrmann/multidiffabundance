@@ -9,7 +9,7 @@ mda.load <- function(args){
     abundance <- args[1]
     meta <- args[2]
     formula.data <- args[3]
-    outfile <- args[4]
+    outprefix <- args[4]
 
     ###############################################################################
     # Prepare formula
@@ -49,10 +49,7 @@ mda.load <- function(args){
     count_data <- as.data.frame(read_tsv(abundance))
     row.names(count_data) <- count_data[,1]
     count_data <- count_data[,-1]
-    
-    pseudocount_data <- mda.pseudocount(count_data)
-    ra_data <- mda.relative_abundance(count_data)
-    rap_data <- mda.relative_abundance(pseudocount_data)
+
     nonrare <- mda.nonrare_taxa(count_data, 0.1) 
 
     meta_data <- as.data.frame(read_tsv(meta))
@@ -65,13 +62,10 @@ mda.load <- function(args){
     
     dat <- c()
     dat$count_data  <- count_data
-    dat$pseudo_data <- pseudocount_data
-    dat$ra_data     <- ra_data
-    dat$rap_data    <- rap_data
     dat$nonrare     <- nonrare
     dat$meta_data   <- meta_data
     dat$formula     <- F
-    dat$outfile     <- outfile
+    dat$outprefix   <- outprefix
     
     return(dat)
     
@@ -99,6 +93,13 @@ mda.pseudocount <- function(count_data){
     pcount <- (rowSums(count_data) / max(rowSums(count_data)))
     pdata <- apply(count_data,2,function(x){x+pcount})
     return(pdata)
+}
+
+###############################################################################
+                                                      
+mda.clr <- function(df){
+    denom <- exp(rowMeans(log(df)))
+    df / denom
 }
 
 ###############################################################################
