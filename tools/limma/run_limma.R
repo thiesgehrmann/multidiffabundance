@@ -10,10 +10,6 @@ source(paste0(c(dirname(sub("--file=", "", commandArgs(trailingOnly = FALSE)[gre
 ###############################################################################
 # Read input variables
 
-#args <- c("~/repos//UA_isala/flow1_redo_revision/data/genus_level_counts.tsv",
-#          '~/repos//UA_isala/flow1_redo_revision/data/metadata.tsv',
-#          '~/repos//multidiffabundance/tools/list_of_functions.txt',
-#          'output.tsv')
 args = commandArgs(trailingOnly=TRUE)
 
 D <- mda.load(args)
@@ -32,9 +28,7 @@ if(is.na(summary_upper_quartile) | is.infinite(summary_upper_quartile)){
     message("Upper Quartile reference selection failed will use find sample with largest sqrt(read_depth) to use as reference")
     Ref_col <- which.max(colSums(sqrt(t(D$count_data))))
     DGE_LIST_Norm <- calcNormFactors(DGE_LIST, method = "TMM", refColumn = Ref_col)
-    fileConn<-file(args[[4]])
-    writeLines(c("Used max square root read depth to determine reference sample"), fileConn)
-    close(fileConn)
+    message("Used max square root read depth to determine reference sample")
 
 }else{
     DGE_LIST_Norm <- calcNormFactors(DGE_LIST, method="TMM")
@@ -47,12 +41,11 @@ do <- function(f_idx){
     mainvar <- D$formula$main_var[f_idx]
 
     ## make matrix for testing
-    mm <- model.matrix(f, D$meta_data)
-
-    voomfit <- voom(DGE_LIST_Norm, mm, plot=F)
-
-    fit <- lmFit(voomfit, mm)
-    fit <- eBayes(fit)
+    fit <- mda.cache_load_or_run_save(D$cacheprefix, "limma", f, 
+               {mm <- model.matrix(f, D$meta_data)
+                voomfit <- voom(DGE_LIST_Norm, mm, plot=F)
+                fit <- lmFit(voomfit, mm)
+                fit <- eBayes(fit)} )
 
     # Gather output
 

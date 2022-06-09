@@ -9,10 +9,6 @@ source(paste0(c(dirname(sub("--file=", "", commandArgs(trailingOnly = FALSE)[gre
 ###############################################################################
 # Read input variables
 
-#args <- c("~/repos//UA_isala/flow1_redo_revision/data/genus_level_counts.tsv",
-#          '~/repos//UA_isala/flow1_redo_revision/data/metadata.tsv',
-#          '~/repos//multidiffabundance/tools/list_of_functions.txt',
-#          'output.tsv')
 args = commandArgs(trailingOnly=TRUE)
 
 D <- mda.load(args)
@@ -49,8 +45,10 @@ do <- function(f_idx){
     f <- D$formula$norand[[f_idx]]
     print(f)
     mainvar <- D$formula$main_var[f_idx]
+    
+    res.full <- mda.cache_load_or_run_save(D$cacheprefix, "lmclr", f, lmclr(D$count_data, D$meta_data, f, mainvar, D$nonrare))
 
-    res.full <- lmclr(D$count_data, D$meta_data, f, mainvar, D$nonrare)
+    #res.full <- lmclr(D$count_data, D$meta_data, f, mainvar, D$nonrare)
     res.full$formula <- rep(format(f), dim(res.full)[1])
     res.full$method <- rep("lmclr", dim(res.full)[1])
     res.full$n <- rep(mda.meta.n(D, mainvar), dim(res.full)[1])
@@ -59,7 +57,6 @@ do <- function(f_idx){
     # Select only the relevant determinant ( taxa are selected already in lmclr )
     res <- res.full
     res <- res[startsWith(res$determinant, mainvar),]
-
 
     res$qvalue.withinformula <- p.adjust(res$pvalue, "fdr")
     res$determinant <- rep(mainvar, dim(res)[1])

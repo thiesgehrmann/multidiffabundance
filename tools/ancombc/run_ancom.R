@@ -21,10 +21,11 @@ do <- function(f_idx){
     print(f)
     mainvar <- D$formula$main_var[f_idx]
     
-    out = ancombc(phyloseq = phylo, formula = f, 
-              p_adj_method = "holm", zero_cut = 0.90, lib_cut = 1000, 
-              struc_zero = FALSE, global = FALSE, neg_lb = TRUE, tol = 1e-5, 
-              max_iter = 100, conserve = TRUE, alpha = 0.05)
+    out <- mda.cache_load_or_run_save(D$cacheprefix, "ancombc", f, 
+               ancombc(phyloseq = phylo, formula = f, 
+                       p_adj_method = "holm", zero_cut = 0.90, lib_cut = 1000, 
+                       struc_zero = FALSE, global = FALSE, neg_lb = TRUE, tol = 1e-5, 
+                       max_iter = 100, conserve = TRUE, alpha = 0.05) )
 
     fit = out$res
     

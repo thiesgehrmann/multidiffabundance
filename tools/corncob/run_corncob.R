@@ -29,13 +29,14 @@ do <- function(f_idx){
     print(f)
     mainvar <- D$formula$main_var[f_idx]
 
-    results <- corncob::differentialTest(formula= f,
-                                         phi.formula = f,
-                                         phi.formula_null = f,
-                                         formula_null = ~ 1,
-                                         test="Wald", data=phylo,
-                                         boot=F,
-                                         fdr_cutoff = 0.05)
+    results <- mda.cache_load_or_run_save(D$cacheprefix, "corncob", f,
+                   corncob::differentialTest(formula= f,
+                                             phi.formula = f,
+                                             phi.formula_null = f,
+                                             formula_null = ~ 1,
+                                             test="Wald", data=phylo,
+                                             boot=F,
+                                             fdr_cutoff = 0.05) )
 
     ram <- results$all_models
     ram <- lapply(1:length(ram), function(t_idx){

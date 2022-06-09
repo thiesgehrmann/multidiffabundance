@@ -27,13 +27,14 @@ do <- function(f_idx){
     print(f)
     mainvar <- D$formula$main_var[f_idx]
 
-    dds <- DESeq2::DESeqDataSetFromMatrix(countData = t(D$count_data),
-                                          colData = D$meta_data,
-                                          design = f)
-    dds_res <- DESeq2::DESeq(dds, sfType = "poscounts")
+    res.full <- mda.cache_load_or_run_save(D$cacheprefix, "deseq2", f, 
+                {dds <- DESeq2::DESeqDataSetFromMatrix(countData = t(D$count_data),
+                                                      colData = D$meta_data,
+                                                      design = f)
+                dds_res <- DESeq2::DESeq(dds, sfType = "poscounts")
 
-    res.full <- DESeq2::results(dds_res, name=DESeq2::resultsNames(dds_res)[startsWith(DESeq2::resultsNames(dds_res), mainvar)],
-                           tidy=T, format="DataFrame")
+                DESeq2::results(dds_res, name=DESeq2::resultsNames(dds_res)[startsWith(DESeq2::resultsNames(dds_res), mainvar)],
+                                tidy=T, format="DataFrame")} )
 
     names(res.full)[names(res.full)=="row"] <- "taxa"
     res.full$determinant <- rep(mainvar, dim(res.full)[1])

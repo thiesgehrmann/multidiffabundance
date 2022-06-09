@@ -25,9 +25,11 @@ do <- function(f_idx){
     print(f)
     mainvar <- D$formula$main_var[f_idx]
     
-    model_matrix <- model.matrix(f, D$meta_data)
-
-    out <- aldex(t(D$count_data), model_matrix, denom = "all", test="glm")
+    
+    out <- mda.cache_load_or_run_save(D$cacheprefix, "aldex2", f, {
+        model_matrix <- model.matrix(f, D$meta_data)
+        aldex(t(D$count_data), model_matrix, denom = "all", test="glm")
+    })
     
     res.full <- gather(as.data.frame(out) %>% rownames_to_column('taxa'), "measure", "value", 2:(dim(as.data.frame(out))[2]+1))
     

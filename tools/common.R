@@ -1,6 +1,14 @@
-library("tidyverse")
+###############################################################################
+# MDA Common R functions
+###############################################################################
+
+
+###############################################################################
+# Input processing function
 
 mda.load <- function(args){
+    require(tools)
+    require("tidyverse")
     
     if (length(args) != 4){
         stop("Too few arguments. There should be 4!")
@@ -17,7 +25,7 @@ mda.load <- function(args){
     raw.formula.data <- mda.load_formula_input(formula.data)
     if (!mda.verify_formula_input(raw.formula.data)){
         print("Error: Errors in processing formula input.")
-        exit(1)
+        quit(1)
     }
     FD <- mda.process_formula_input(raw.formula.data)
 
@@ -35,6 +43,8 @@ mda.load <- function(args){
     meta_data <- meta_data[,-1]
     numeric_meta <- colnames(meta_data)[unlist(lapply(colnames(meta_data), function(x)is.numeric(meta_data[,x])))]
     meta_data[,numeric_meta] <- scale(meta_data[,numeric_meta])
+                                                      
+    meta_data <- meta_data[rownames(count_data), ]
                                                         
     ###############################################################################
     
@@ -44,16 +54,28 @@ mda.load <- function(args){
     dat$meta_data   <- meta_data
     dat$formula     <- FD
     dat$outprefix   <- outprefix
+    dat$cacheprefix <- paste0(c(outprefix, "mda.cache", paste0(md5sum(c(abundance, meta)), collapse=".")), collapse="/")
+    print(dat$cacheprefix)
+    mda.mkdirp(dirname(dat$cacheprefix))
     
     return(dat)
     
 }
+                                                      
+mda.mkdirp <- function(dir){
+    parent <- dirname(dir)
+    if (! dir.exists(parent)){
+        mda.mkdirp(parent)
+    }
+    dir.create(dir)
+}
 
 ###############################################################################
-
+# Formula processing functions
+                                                      
 mda.load_formula_input <- function(formula_input){
   raw <- if (file.exists(formula_input)){
-    unlist(strsplit(read_file(formula_input), "\n"))
+    unlist(strsplit(readLines(formula_input), "\n"))
   } else {
     formula_input
   }
@@ -63,8 +85,8 @@ mda.verify_formula_input <- function(raw_formula){
   
   valids <- lapply(raw_formula, function(rs){
     tryCatch({as.formula(rs); TRUE},
-             warning=function(w){printf("ERROR: Formula '%s' is problematic", rs);FALSE},
-             error=function(r){printf("ERROR: Formula '%s' is invalid", rs); FALSE})
+             warning=function(w){FALSE},
+             error=function(r){FALSE})
   })
   all(unlist(valids))
 }
@@ -96,6 +118,7 @@ mda.process_formula_input <- function(raw_formula){
 }
 
 ###############################################################################
+# Abundance processing functions
 
 
 mda.nonrare_taxa <- function(table , cutoff_pct) {
@@ -103,24 +126,19 @@ mda.nonrare_taxa <- function(table , cutoff_pct) {
     nonzero <- colnames(table)[colSums(table > 0) >= cutoff]
     return(nonzero)
 }
-
-###############################################################################
-
+                                                      
 mda.relative_abundance <- function(count_data){
     depth <- rowSums(count_data)
     radata <- apply(count_data, 2, function(x){x/depth})
     return(radata)
 }
 
-###############################################################################
 
 mda.pseudocount <- function(count_data){
     pcount <- (rowSums(count_data) / max(rowSums(count_data)))
     pdata <- apply(count_data,2,function(x){x+pcount})
     return(pdata)
 }
-
-###############################################################################
                                                       
 mda.clr <- function(df){
     denom <- exp(rowMeans(log(df)))
@@ -128,12 +146,12 @@ mda.clr <- function(df){
 }
 
 ###############################################################################
-
+# Statistical counts functions
+                                                      
 mda.meta.n <- function(D, var){
     sum(unlist(lapply(D$meta_data[,var],function(x){!(is.na(x))})))
 }
 
-###############################################################################
 
 mda.meta.freq <- function(D, var){
     if(is.numeric(D$meta_data[,var])){
@@ -142,8 +160,11 @@ mda.meta.freq <- function(D, var){
         paste0(mapply(function(x,y){paste0(c(x,y), collapse=":")}, names(table(D$meta_data[,var])), as.character(table(D$meta_data[,var]))), collapse=", ")
     }
 }
-
-mda.get_cache_filename <- function(outprefix, method, form, suffix="tsv", collapse="."){
+                                                      
+###############################################################################
+# output cache functions
+                                                      
+mda.cache_filename <- function(outprefix, method, form, suffix="tsv", collapse="."){
   form.fmt <- tolower(format(form))
   form.fmt <- gsub("[~():._! ]", "", form.fmt)
   form.fmt <- gsub("[*]", "M", form.fmt)
@@ -153,16 +174,32 @@ mda.get_cache_filename <- function(outprefix, method, form, suffix="tsv", collap
   form.fmt <- gsub("[-]", "S", form.fmt)
   form.fmt
   
-  filename <- paste0(c(outprefix, paste0(c(method, form.fmt, suffix), collapse=collapse)), collapse="")
+  filename <- paste0(c(paste0(c(outprefix, method, form.fmt), collapse=collapse), suffix), collapse=".")
   filename
 }
 
-mda.savedata <- function(dat, outprefix, method, form, suffix="rds", ...){
+mda.cache_save <- function(dat, outprefix, method, form, suffix="rds", ...){
   filename <- mda.get_cache_filename(outprefix, method, form, ...)
   saveRDS(dat, filename)
 }
 
-mda.loaddata <- function(outprefix, method, form, suffix="rds"){
+mda.cache_load <- function(outprefix, method, form, suffix="rds"){
   filename <- mda.get_cache_filename(outprefix, method, form, ...)
   dat <- loadRDS(filename)
 }
+                                                      
+mda.cache_load_or_run_save <- function(outputprefix, method, form, expr) {
+    cache.file <- mda.cache_filename(outputprefix, method, form, suffix="rds")
+    data <- if (file.exists(cache.file)){
+        print(paste0(c("Loading:", cache.file, "for", method, ",", format(form)), collapse=" "))
+        loadRDS(cache.file)
+    } else{
+        data <- expr
+        print(paste0(c("Executing & storing:", cache.file, "for", method, ",", format(form)), collapse=" "))
+        saveRDS(data, cache.file)
+        data
+    }
+    data
+}
+                                                      
+###############################################################################
