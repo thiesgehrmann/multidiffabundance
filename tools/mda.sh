@@ -3,7 +3,7 @@
 #count_data="~/repos//UA_isala/flow1_redo_revision/data/genus_level_counts.tsv"
 #meta_data="~/repos//UA_isala/flow1_redo_revision/data/metadata.tsv"
 #formula="~/repos//multidiffabundance/tools/list_of_functions.txt"
-#formula="~ Reproductive.haschildren + Technical.dna_conc + General.Age"
+##formula="~ Reproductive.haschildren + Technical.dna_conc + General.Age"
 #./mda.sh "$count_data" "$meta_data" "$formula" "test_output"
 
 source "`dirname $CONDA_EXE`/../etc/profile.d/conda.sh"
@@ -146,30 +146,30 @@ fi
 
 if [ $ancombc -eq 1 ] ; then
     echo "RUN ANCOMBC"
-    #conda activate ancom2 && ancombc/run.sh "$count_data" "$meta_data" "$formula" "$outprefix/ancombc" > "$outprefix/ancombc.stdout" 2> "$outprefix/ancombc.stderr"
+    conda activate ancom2 && ancombc/run.sh "$count_data" "$meta_data" "$formula" "$outprefix/ancombc" > "$outprefix/ancombc.stdout" 2> "$outprefix/ancombc.stderr"
 fi
 
 if [ $corncob -eq 1 ] ; then
     echo "RUN CORNCOB"
-    #conda activate corncob && corncob/run.sh "$count_data" "$meta_data" "$formula" "$outprefix/corncob" > "$outprefix/corncob.stdout" 2> "$outprefix/corncob.stderr"
+    conda activate corncob && corncob/run.sh "$count_data" "$meta_data" "$formula" "$outprefix/corncob" > "$outprefix/corncob.stdout" 2> "$outprefix/corncob.stderr"
 fi
     
 if [ $deseq2 -eq 1 ] ; then
     echo "RUN DESEQ2"
-    #conda activate deseq2 && deseq2/run.sh "$count_data" "$meta_data" "$formula" "$outprefix/deseq2" > "$outprefix/deseq2.stdout" 2> "$outprefix/deseq2.stderr"
+    conda activate deseq2 && deseq2/run.sh "$count_data" "$meta_data" "$formula" "$outprefix/deseq2" > "$outprefix/deseq2.stdout" 2> "$outprefix/deseq2.stderr"
 fi
 
 if [ $limma -eq 1 ] ; then
     echo "RUN LIMMA"
-    #conda activate limma && limma/run.sh "$count_data" "$meta_data" "$formula" "$outprefix/limma" > "$outprefix/limma.stdout" 2> "$outprefix/limma.stderr"
+    conda activate limma && limma/run.sh "$count_data" "$meta_data" "$formula" "$outprefix/limma" > "$outprefix/limma.stdout" 2> "$outprefix/limma.stderr"
 fi
 
 if [ $lmclr -eq 1 ] ; then
     echo "RUN LMCLR"
-    #conda activate limma && lmclr/run.sh "$count_data" "$meta_data" "$formula" "$outprefix/lmclr" > "$outprefix/lmclr.stdout" 2> "$outprefix/lmclr.stderr"
+    conda activate limma && lmclr/run.sh "$count_data" "$meta_data" "$formula" "$outprefix/lmclr" > "$outprefix/lmclr.stdout" 2> "$outprefix/lmclr.stderr"
 fi
 
 if [ $maaslin2 -eq 1 ] ; then
     echo "RUN MAASLIN2"
-    #conda activate maaslin2 && maaslin2/run.sh "$count_data" "$meta_data" "$formula" "$outprefix/maaslin2" > "$outprefix/maaslin2.stdout" 2> "$outprefix/maaslin2.stderr"
+    conda activate maaslin2 && maaslin2/run.sh "$count_data" "$meta_data" "$formula" "$outprefix/maaslin2" > "$outprefix/maaslin2.stdout" 2> "$outprefix/maaslin2.stderr"
 fi
