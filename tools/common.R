@@ -14,34 +14,12 @@ mda.load <- function(args){
     ###############################################################################
     # Prepare formula
 
-    F <- c()
-
-    raw <- if (file.exists(formula.data)){
-        unlist(strsplit(read_file(formula.data), "\n"))
-    } else {
-        formula.data
+    raw.formula.data <- mda.load_formula_input(formula.data)
+    if (!mda.verify_formula_input(raw.formula.data)){
+        print("Error: Errors in processing formula input.")
+        exit(1)
     }
-
-    form <- lapply(raw, as.formula)
-
-    fterms <- lapply(form, function(x){labels(terms(x))})
-    fterms_fixed  <- lapply(fterms, function(x){ x[!grepl("\\|", x)]})
-    fterms_random <- lapply(fterms, function(x){ x[grepl("\\|", x)]})
-
-    F$raw <- raw
-    F$formula <- form
-    F$main_var <- unlist(lapply(fterms_fixed, function(x){unlist(x[1])}))
-    F$adj_vars <- unlist(lapply(fterms_fixed, function(x){paste0(x[-1], collapse="+")}))
-    F$rand_vars <- unlist(lapply(fterms_random, function(ftr){
-        paste0(lapply(ftr, function(x){paste0(c('(', x, ')'), collapse="")}), collapse="+")
-    }))
-    F$norand <- lapply(fterms_fixed, function(ftf){
-        as.formula(paste0(c("~",paste0(ftf, collapse="+")),collapse=""))
-    })
-
-    if (str_length(paste0(unlist(fterms_random), collapse="")) > 0){
-        print("No mixed effect terms are allowed in this implementation. Random effects will be ignored. Please format your random effects as fixed effects. Sorry.")
-    }
+    FD <- mda.process_formula_input(raw.formula.data)
 
     ###############################################################################
     # Load the data
@@ -64,7 +42,7 @@ mda.load <- function(args){
     dat$count_data  <- count_data
     dat$nonrare     <- nonrare
     dat$meta_data   <- meta_data
-    dat$formula     <- F
+    dat$formula     <- FD
     dat$outprefix   <- outprefix
     
     return(dat)
@@ -72,6 +50,53 @@ mda.load <- function(args){
 }
 
 ###############################################################################
+
+mda.load_formula_input <- function(formula_input){
+  raw <- if (file.exists(formula_input)){
+    unlist(strsplit(read_file(formula_input), "\n"))
+  } else {
+    formula_input
+  }
+  raw
+}
+mda.verify_formula_input <- function(raw_formula){
+  
+  valids <- lapply(raw_formula, function(rs){
+    tryCatch({as.formula(rs); TRUE},
+             warning=function(w){printf("ERROR: Formula '%s' is problematic", rs);FALSE},
+             error=function(r){printf("ERROR: Formula '%s' is invalid", rs); FALSE})
+  })
+  all(unlist(valids))
+}
+
+mda.process_formula_input <- function(raw_formula){
+  form <- lapply(raw_formula, as.formula)
+  
+  fterms <- lapply(form, function(x){labels(terms(x))})
+  fterms_fixed  <- lapply(fterms, function(x){ x[!grepl("\\|", x)]})
+  fterms_random <- lapply(fterms, function(x){ x[grepl("\\|", x)]})
+  
+  FD <- c()
+  FD$raw <- raw_formula
+  FD$formula <- form
+  FD$main_var <- unlist(lapply(fterms_fixed, function(x){unlist(x[1])}))
+  FD$adj_vars <- unlist(lapply(fterms_fixed, function(x){paste0(x[-1], collapse="+")}))
+  FD$rand_vars <- unlist(lapply(fterms_random, function(ftr){
+    paste0(lapply(ftr, function(x){paste0(c('(', x, ')'), collapse="")}), collapse="+")
+  }))
+  FD$norand <- lapply(fterms_fixed, function(ftf){
+    as.formula(paste0(c("~",paste0(ftf, collapse="+")),collapse=""))
+  })
+  
+  if (str_length(paste0(unlist(fterms_random), collapse="")) > 0){
+    print("WARNING: No mixed effect terms are allowed in this implementation. Random effects will be ignored. Please format your random effects as fixed effects. Sorry.")
+  }
+  
+  FD
+}
+
+###############################################################################
+
 
 mda.nonrare_taxa <- function(table , cutoff_pct) {
     cutoff  <- ceiling(cutoff_pct * nrow(table))
@@ -116,4 +141,28 @@ mda.meta.freq <- function(D, var){
     } else {
         paste0(mapply(function(x,y){paste0(c(x,y), collapse=":")}, names(table(D$meta_data[,var])), as.character(table(D$meta_data[,var]))), collapse=", ")
     }
+}
+
+mda.get_cache_filename <- function(outprefix, method, form, suffix="tsv", collapse="."){
+  form.fmt <- tolower(format(form))
+  form.fmt <- gsub("[~():._! ]", "", form.fmt)
+  form.fmt <- gsub("[*]", "M", form.fmt)
+  form.fmt <- gsub("[+]", "P", form.fmt)
+  form.fmt <- gsub("[:]", "I", form.fmt)
+  form.fmt <- gsub("[|]", "R", form.fmt)
+  form.fmt <- gsub("[-]", "S", form.fmt)
+  form.fmt
+  
+  filename <- paste0(c(outprefix, paste0(c(method, form.fmt, suffix), collapse=collapse)), collapse="")
+  filename
+}
+
+mda.savedata <- function(dat, outprefix, method, form, suffix="rds", ...){
+  filename <- mda.get_cache_filename(outprefix, method, form, ...)
+  saveRDS(dat, filename)
+}
+
+mda.loaddata <- function(outprefix, method, form, suffix="rds"){
+  filename <- mda.get_cache_filename(outprefix, method, form, ...)
+  dat <- loadRDS(filename)
 }
