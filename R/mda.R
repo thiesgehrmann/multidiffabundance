@@ -62,6 +62,11 @@ mda.load <- function(args){
     
 }
                                                       
+                                                      
+mda.create <- function(count_data, )
+###############################################################################
+# Filesystem functionality
+
 mda.mkdirp <- function(dir){
     if (!dir.exists(dir)){
         mda.mkdirp(dirname(dir))

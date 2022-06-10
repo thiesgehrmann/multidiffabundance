@@ -1,0 +1,10 @@
+---
+title: "Multi Differential Abundance testing (MDA)"
+author: "Thies Gehrmann"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{MDA}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---

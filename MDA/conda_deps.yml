@@ -1,0 +1,14 @@
+name: mda
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - bioconductor-aldex2
+  - bioconductor-ancombc
+  - bioconductor-phyloseq
+  - bioconductor-deseq2
+  - bioconductor-edger
+  - bioconductor-maaslin2
+  - r-corncob
+  - r-tidyverse
