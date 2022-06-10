@@ -63,7 +63,7 @@ mda.load <- function(args){
 }
                                                       
                                                       
-mda.create <- function(count_data, )
+#mda.create <- function(count_data, )
 ###############################################################################
 # Filesystem functionality
 

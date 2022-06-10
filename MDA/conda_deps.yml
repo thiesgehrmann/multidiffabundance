@@ -12,3 +12,4 @@ dependencies:
   - bioconductor-maaslin2
   - r-corncob
   - r-tidyverse
+  - r-devtools
