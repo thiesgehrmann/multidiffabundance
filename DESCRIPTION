@@ -15,8 +15,8 @@ biocViews:
     edgeR,
     Maaslin2
 Imports:
-    dplyr
-    readr
+    dplyr,
+    readr,
     digest
 VignetteBuilder: knitr
 RoxygenNote: 7.1.1
