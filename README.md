@@ -53,7 +53,7 @@ The input to MDA is the following:
  1. A table of samples x taxa (rows x columns, first column should be sample ID)
  2. A table of samples x metadata (rows x columns, first column should be sample ID)
  3. A formula, or a file with a list of formulas
- 4. A path to an output folder
+ 4. A path to an output folder (optional except in command line version)
 
 
 ## Running in R
@@ -61,11 +61,11 @@ The input to MDA is the following:
 (The interface to these functions in R will be improved in future versions)
 
 ```R
-    args <- c("data/moving-pics-abundance-cleaned.tsv",
-              "data/moving-pics-meta-cleaned.tsv",
-              "data/moving-pics-functions.txt",
-              "output_folder")
-    D <- mda.load(args)
+    library(multidiffabundance)
+    data("mda.example", package="multidiffabundance")
+    D <- mda.create(mda.example$count_data,
+                    mda.example$meta_data,
+                    mda.example$formulas)
     out <- mda.all(D)
     out$res # Relevant output data here
 ```
