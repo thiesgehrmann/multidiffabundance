@@ -7,5 +7,14 @@ Description: Tools to perform differential abundance testing with many different
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
+biocViews:
+    ALDEx2,
+    ANCOMBC,
+    phyloseq,
+    DESeq2,
+    edgeR,
+    Maaslin2
+Imports:
+    tidyverse
 VignetteBuilder: knitr
 RoxygenNote: 7.1.1

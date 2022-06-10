@@ -1,8 +1,0 @@
-name: maaslin2
-channels:
-  - conda-forge
-  - bioconda
-  - defaults
-dependencies:
-  - bioconductor-maaslin2
-  - r-tidyverse

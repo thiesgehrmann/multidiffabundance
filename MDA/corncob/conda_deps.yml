@@ -1,9 +1,0 @@
-name: corncob
-channels:
-  - conda-forge
-  - bioconda
-  - defaults
-dependencies:
-  - bioconductor-phyloseq
-  - r-corncob
-  - r-tidyverse

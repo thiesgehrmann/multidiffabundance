@@ -1,4 +1,3 @@
-name: mda
 channels:
   - conda-forge
   - bioconda

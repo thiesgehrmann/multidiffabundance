@@ -12,7 +12,7 @@ mda.maaslin2 <- function(mda.D){
         mas <- mda.cache_load_or_run_save(D$cacheprefix, "maaslin2", f, 
                     Maaslin2(input_data = D$count_data,
                              input_metadata = D$meta_data,
-                             output = paste0(c(D$outprefix, ".maaslin2.output.folder"), collapse=""),
+                             output = paste0(c(D$outprefix, "/maaslin2.output.folder"), collapse=""),
                              min_abundance = 0.0,
                              min_prevalence = 0.0,
                              normalization = "TSS",
@@ -24,8 +24,10 @@ mda.maaslin2 <- function(mda.D){
                              standardize = FALSE,
                              plot_heatmap = FALSE,
                              plot_scatter = FALSE,
+                             save_models = FALSE,
+                             save_scatter = FALSE,
                              cores = 1))
-        res.full <- as.tibble(as.data.frame(mas$results))
+        res.full <- as_tibble(as.data.frame(mas$results))
         res.full <- res.full[,c("feature","metadata","coef","stderr","pval")]
         res.full$formula <- rep(format(f), dim(res.full)[1])
         res.full$method <- rep("maaslin2", dim(res.full)[1])
