@@ -1,19 +1,4 @@
 ###############################################################################
-# LIMMA run script
-
-library(tidyverse)
-
-source(paste0(c(dirname(sub("--file=", "", commandArgs(trailingOnly = FALSE)[grep("--file=", commandArgs(trailingOnly = FALSE))])), '../common.R'), collapse="/"))
-
-
-###############################################################################
-# Read input variables
-
-args = commandArgs(trailingOnly=TRUE)
-
-D <- mda.load(args)
-
-###############################################################################
 # RUN LIMMA
 
 mda.limma <- function(mda.D){
