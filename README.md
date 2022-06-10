@@ -6,7 +6,7 @@ A toolkit for the testing of differential abundance with many different tools, e
 ## Installation of dependencies
 
  MDA has many dependencies (as it is a collection of so many tools).
- They (WILL BE) automatically installed when installing the package via github as below.
+ They (SHOULD BE) automatically installed when installing the package via github as below.
  However, you can also install the dependencies with conda:
  
 ```bash
@@ -39,7 +39,13 @@ A toolkit for the testing of differential abundance with many different tools, e
 ## Installation of the Docker/Singularity image
 
  We provide a wrapper for the docker image, in which all necessary dependencies are installed
- For this, you do not need to install the package
+ For this, you do not need to install anything (other than docker or singularity)
+ 
+```bash
+    wget https://raw.githubusercontent.com/thiesgehrmann/multidiffabundance/main/MDA/docker_mda.sh
+    chmod +x ./docker_mda.sh
+    sudo mv ./docker_mda.sh /usr/bin # not necessary
+```
 
 # Running the tool
 
@@ -86,6 +92,6 @@ The input to MDA is the following:
     meta_data="data/moving-pics-meta-cleaned.tsv"
     functions="data/moving-pics-functions.txt"
     outdir="output_folder"
-    docker_mda "$abundance" "$meta_data" "$functions" "$outdir" # Produces output in $outdir/results.tsv
+    docker_mda.sh "$abundance" "$meta_data" "$functions" "$outdir" # Produces output in $outdir/results.tsv
     
 ```

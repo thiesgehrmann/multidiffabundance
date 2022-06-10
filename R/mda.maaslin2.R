@@ -24,8 +24,6 @@ mda.maaslin2 <- function(mda.D){
                              standardize = FALSE,
                              plot_heatmap = FALSE,
                              plot_scatter = FALSE,
-                             save_models = FALSE,
-                             save_scatter = FALSE,
                              cores = 1))
         res.full <- as_tibble(as.data.frame(mas$results))
         res.full <- res.full[,c("feature","metadata","coef","stderr","pval")]

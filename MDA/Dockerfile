@@ -8,7 +8,7 @@ RUN chmod +x /usr/bin/mda && \
     conda update -n base -c defaults conda && \
     conda env update -n base --file /usr/mda_conda_deps.yml && \
     rm /usr/mda_conda_deps.yml && \
-    (echo "library(devtools); devtools::install_github('thiesgehrmann/multidiffabundance')" | R --no-save) && \
+    (echo "library(devtools); devtools::install_github('thiesgehrmann/multidiffabundance', dependencies=FALSE)" | R --no-save) && \
     conda clean -a
 
 LABEL maintainer="Thies Gehrmann"
