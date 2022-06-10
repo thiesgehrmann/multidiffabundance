@@ -69,24 +69,3 @@ mda.aldex2 <- function(mda.D){
     
     return(list(res=res, res.full=res.full))
 }
-
-###############################################################################
-# ALDEX2 run script
-
-if (!interactive()){
-
-    library(readr)
-
-    # Load the common MDA functions
-    source(paste0(c(dirname(sub("--file=", "", commandArgs(trailingOnly = FALSE)[grep("--file=", commandArgs(trailingOnly = FALSE))])), '../common.R'), collapse="/"))
-
-    ###############################################################################
-    # Read input variables
-    args = commandArgs(trailingOnly=TRUE)
-
-    D <- mda.load(args)
-    R <- mda.aldex2(D)
-
-    write_tsv(R$res, paste0(c(D$outprefix, "results.tsv"), collapse=""))
-    write_tsv(R$res.full, paste0(c(D$outprefix, "results.full.tsv"), collapse=""))
-}
