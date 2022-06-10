@@ -2,7 +2,7 @@
 
 #count_data="~/repos//UA_isala/flow1_redo_revision/data/genus_level_counts.tsv"
 #meta_data="~/repos//UA_isala/flow1_redo_revision/data/metadata.tsv"
-#formula="~/repos//multidiffabundance/tools/list_of_functions.txt"
+#formula="~/repos//multidiffabundance/example/list_of_functions.txt"
 ##formula="~ Reproductive.haschildren + Technical.dna_conc + General.Age"
 #./mda.sh "$count_data" "$meta_data" "$formula" "test_output"
 

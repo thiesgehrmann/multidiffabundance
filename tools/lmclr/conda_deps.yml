@@ -1,7 +1,0 @@
-name: limma
-channels:
-  - conda-forge
-  - bioconda
-  - defaults
-dependencies:
-  - r-tidyverse
