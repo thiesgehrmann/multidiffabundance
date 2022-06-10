@@ -50,8 +50,8 @@ A toolkit for the testing of differential abundance with many different tools, e
 # Running the tool
 
 The input to MDA is the following:
- 1. A table of samples x taxa (rows x columns)
- 2. A table of samples x metadata (rows x columns)
+ 1. A table of samples x taxa (rows x columns, first column should be sample ID)
+ 2. A table of samples x metadata (rows x columns, first column should be sample ID)
  3. A formula, or a file with a list of formulas
  4. A path to an output folder
 

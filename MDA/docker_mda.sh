@@ -129,11 +129,25 @@ fi
 
 docker_tag="thiesgehrmann/multidiffabundance:1"
 
-docker run \
-    --mount type=bind,source="$bindm_source/",target="$bindm_target" \
-    "$docker_tag" \
-    $args \
-    "$bindm_count_data" \
-    "$bindm_meta_data" \
-    "$bindm_formula" \
-    "$bindm_target/" | sed -e "s%$bindm_target%$bindm_source/%g"
+if [ "$singularity" -eq 1 ]; then
+    singularity exec \
+        --bind "$bindm_source/":"$bindm_target" \
+        --containall \
+        docker://"${docker_tag}" \
+        ${job_shell} \
+        $args \
+        "$bindm_count_data" \
+        "$bindm_meta_data" \
+        "$bindm_formula" \
+        "$bindm_target/" #| sed -e "s%$bindm_target%$bindm_source/%g"
+
+else 
+    docker run \
+        --mount type=bind,source="$bindm_source/",target="$bindm_target" \
+        "$docker_tag" \
+        $args \
+        "$bindm_count_data" \
+        "$bindm_meta_data" \
+        "$bindm_formula" \
+        "$bindm_target/" | sed -e "s%$bindm_target%$bindm_source/%g"
+fi

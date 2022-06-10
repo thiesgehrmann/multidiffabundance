@@ -16,5 +16,6 @@ biocViews:
     Maaslin2
 Imports:
     tidyverse
+    digest
 VignetteBuilder: knitr
 RoxygenNote: 7.1.1

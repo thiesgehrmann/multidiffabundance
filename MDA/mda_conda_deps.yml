@@ -12,3 +12,5 @@ dependencies:
   - r-corncob
   - r-tidyverse
   - r-devtools
+  - r-digest
+  

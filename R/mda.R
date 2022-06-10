@@ -4,7 +4,7 @@
 
 
 ###############################################################################
-# Input processing function
+# LEGACY INPUT LOADING CODE
 
 mda.load <- function(args){
     require(tools)
@@ -55,15 +55,105 @@ mda.load <- function(args){
     dat$formula     <- FD
     dat$outprefix   <- outprefix
     dat$cacheprefix <- paste0(c(outprefix, "mda.cache", paste0(md5sum(c(abundance, meta)), collapse=".")), collapse="/")
-    print(dat$cacheprefix)
+
     mda.mkdirp(dirname(dat$cacheprefix))
     
     return(dat)
     
 }
                                                       
+###############################################################################
+      
+mda.from_cmdargs <- function(args){
+    require(tools)
+    require("tidyverse")
+    
+    if (length(args) != 4){
+        stop("Too few arguments. There should be 4!")
+    }
+    
+    abundance <- args[1]
+    meta <- args[2]
+    formula.data <- args[3]
+    outprefix <- args[4]
+
+    mda.from_files(abundance, meta, formula.data, outprefix)
+}
                                                       
-#mda.create <- function(count_data, )
+mda.from_files <- function(abundance, meta, formula.data, outprefix=tempdir()){
+    # Prepare formula
+
+    raw.formula.data <- mda.load_formula_input(formula.data)
+    if (!mda.verify_formula_input(raw.formula.data)){
+        print("Error: Errors in processing formula input.")
+        quit(1)
+    }
+
+    ###############################################################################
+    # Load the data
+
+    count_data <- as.data.frame(read_tsv(abundance))
+    row.names(count_data) <- count_data[,1]
+    count_data <- count_data[,-1]
+
+    meta_data <- as.data.frame(read_tsv(meta))
+    row.names(meta_data) <- meta_data[,1]
+    meta_data <- meta_data[,-1]
+    numeric_meta <- colnames(meta_data)[unlist(lapply(colnames(meta_data), function(x)is.numeric(meta_data[,x])))]
+    meta_data[,numeric_meta] <- scale(meta_data[,numeric_meta])
+
+    common_samples <- intersect(rownames(count_data), rownames(meta_data))
+    meta_data <- meta_data[common_samples, ]
+                                                        
+    ###############################################################################
+    
+    dat <- mda.create(count_data, meta_data, raw.formula.data, outprefix)
+    
+    return(dat)
+}
+
+mda.from_tidyamplicons <- function(ta, formulas, output_dir=tempdir()){
+    require(dpylr)
+    meta_data <- as.data.frame(ta$samples)
+    rownames(meta_data) <- meta_data$sample_id
+    
+    count_data <- as.data.frame(pivot_wider(ta$abundances, id_cols="sample_id", names_from="taxon_id", values_from="abundance", values_fill=0))
+    rownames(count_data) <- count_data$sample_id
+    count_data <- count_data[,-1]
+    
+    dat <- mda.create(count_data, meta_data, formulas, output_dir)
+    dat$ta <- ta
+    
+    return(dat)
+}
+
+mda.from_phyloseq <- function(phys, formulas, output_dir=tempdir()){
+    message("UNIMPLEMENTED SO FAR")
+}
+                                                      
+mda.create <- function(count_data, meta_data, formulas, output_dir=tempdir()){
+    require(digest)
+    if (! all(rownames(count_data) == rownames(meta_data))) {
+        message("Error: Rownames of meta data and count data do not match!")
+        return(NULL)
+    }
+    
+    FD <- mda.process_formula_input(unlist(lapply(formulas, function(x){format(x)})))
+    nonrare <- mda.nonrare_taxa(count_data, 0.1) 
+
+    dat <- c()
+    dat$count_data  <- count_data
+    dat$nonrare     <- nonrare
+    dat$meta_data   <- meta_data
+    dat$formula     <- FD
+    dat$outprefix   <- output_dir
+    checksums <- unlist(lapply(list(count_data, meta_data), digest, algo="md5"))
+    dat$cacheprefix <- paste0(c(output_dir, "mda.cache", paste0(checksums), collapse="."), collapse="/")
+    mda.mkdirp(dirname(dat$cacheprefix))
+
+    return(dat)
+}
+
 ###############################################################################
 # Filesystem functionality
 
@@ -85,6 +175,7 @@ mda.load_formula_input <- function(formula_input){
   }
   raw
 }
+
 mda.verify_formula_input <- function(raw_formula){
   
   valids <- lapply(raw_formula, function(rs){
