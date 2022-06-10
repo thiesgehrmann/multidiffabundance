@@ -205,7 +205,7 @@ mda.process_formula_input <- function(raw_formula){
     as.formula(paste0(c("~",paste0(ftf, collapse="+")),collapse=""))
   })
   
-  if (str_length(paste0(unlist(fterms_random), collapse="")) > 0){
+  if (nchar(paste0(unlist(fterms_random), collapse="")) > 0){
     print("WARNING: No mixed effect terms are allowed in this implementation. Random effects will be ignored. Please format your random effects as fixed effects. Sorry.")
   }
   
