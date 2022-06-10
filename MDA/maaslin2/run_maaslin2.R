@@ -44,14 +44,16 @@ do <- function(f_idx){
     res.full$method <- rep("maaslin2", dim(res.full)[1])
     res.full$n <- rep(mda.meta.n(D, mainvar), dim(res.full)[1])
     res.full$freq <- rep(mda.meta.freq(D, mainvar), dim(res.full)[1])
+    res.full$stat <- rep(NA, dim(res.full)[1])
+
     names(res.full)[names(res.full)=="feature"] <- "taxa"
-    names(res.full)[names(res.full)=="metadata"] <- "determinant"
+    names(res.full)[names(res.full)=="metadata"] <- "variable"
     names(res.full)[names(res.full)=="coef"] <- "effectsize"
     names(res.full)[names(res.full)=="stderr"] <- "se"
     names(res.full)[names(res.full)=="pval"] <- "pvalue"
     
-    res <- res.full[(res.full$determinant == mainvar),]
-    res$determinant <- rep(mainvar, dim(res)[1])
+    res <- res.full[(res.full$variable == mainvar),]
+    res$variable <- rep(mainvar, dim(res)[1])
     res <- res[res$taxa %in% D$nonrare,]
 
     res$qvalue.withinformula <- p.adjust(res$pvalue, "fdr")
@@ -67,6 +69,9 @@ res.full <- bind_rows(lapply(R, function(x){x$res.full}))
 
 ###############################################################################
 # Output
+
+column.order <- c("taxa","variable","effectsize","se","stat","pvalue","qvalue.withinformula","qvalue","formula","method","n","freq")
+res <- res[,column.order]
 
 write_tsv(res, paste0(c(D$outprefix, "results.tsv"), collapse=""))
 write_tsv(res.full, paste0(c(D$outprefix, "results.full.tsv"), collapse=""))

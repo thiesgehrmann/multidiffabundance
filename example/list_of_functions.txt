@@ -1,2 +1,0 @@
-~ Reproductive.haschildren + Technical.dna_conc + General.Age
-~ General.Age + Technical.dna_conc

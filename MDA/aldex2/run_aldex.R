@@ -49,20 +49,20 @@ do <- function(f_idx){
     }
     res.full$feature <- unlist(lapply(res.full$measure, clean.feature))
     
-    clean.determinant <- function(v){
+    clean.variable <- function(v){
         gsub("^model.", "", gsub(".Estimate", "", gsub(".Pr...t..", "", gsub(".Pr...t...BH", "", gsub(".t.value", "", gsub(".Std..Error", "", v))))))
     }
-    res.full$determinant <- unlist(lapply(res.full$measure, clean.determinant))
+    res.full$variable <- unlist(lapply(res.full$measure, clean.variable))
     
-    res.full <- pivot_wider(res.full, id_cols=c("taxa", "determinant"), names_from=feature, values_from=value)
+    res.full <- pivot_wider(res.full, id_cols=c("taxa", "variable"), names_from=feature, values_from=value)
     res.full$formula <- rep(format(f), dim(res.full)[1])
     res.full$method <- rep("aldex2", dim(res.full)[1])
     res.full$n <- rep(mda.meta.n(D, mainvar), dim(res.full)[1])
     res.full$freq <- rep(mda.meta.freq(D, mainvar), dim(res.full)[1])
     
     
-    res <- res.full[startsWith(res.full$determinant, mainvar),]
-    res$determinant <- rep(mainvar, dim(res)[1])
+    res <- res.full[startsWith(res.full$variable, mainvar),]
+    res$variable <- rep(mainvar, dim(res)[1])
     res <- res[res$taxa %in% D$nonrare,]
 
     res$qvalue.withinformula <- p.adjust(res$pvalue, "fdr")
@@ -78,6 +78,9 @@ res.full <- bind_rows(lapply(R, function(x){x$res.full}))
 
 ###############################################################################
 # Output
+
+column.order <- c("taxa","variable","effectsize","se","stat","pvalue","qvalue.withinformula","qvalue","formula","method","n","freq")
+res <- res[,column.order]
 
 write_tsv(res, paste0(c(D$outprefix, "results.tsv"), collapse=""))
 write_tsv(res.full, paste0(c(D$outprefix, "results.full.tsv"), collapse=""))

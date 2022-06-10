@@ -37,7 +37,7 @@ do <- function(f_idx){
                                 tidy=T, format="DataFrame")} )
 
     names(res.full)[names(res.full)=="row"] <- "taxa"
-    res.full$determinant <- rep(mainvar, dim(res.full)[1])
+    res.full$variable <- rep(mainvar, dim(res.full)[1])
     res.full$formula <- rep(format(f), dim(res.full)[1])
     res.full$method <- rep("DESeq2", dim(res.full)[1])
     res.full$n <- rep(mda.meta.n(D, mainvar), dim(res.full)[1])
@@ -56,6 +56,7 @@ res <- bind_rows(lapply(R, function(x){x$res}))
 res$qvalue <- p.adjust(res$pvalue, "fdr")
 
 names(res)[names(res)=="log2FoldChange"] <- "effectsize"
+names(res)[names(res)=="lfcSE"] <- "se"
 
 
 res.full <- bind_rows(lapply(R, function(x){x$res.full}))
@@ -63,6 +64,9 @@ res.full <- bind_rows(lapply(R, function(x){x$res.full}))
 
 ###############################################################################
 # Output
+
+column.order <- c("taxa","variable","effectsize","se","stat","pvalue","qvalue.withinformula","qvalue","formula","method","n","freq")
+res <- res[,column.order]
 
 write_tsv(res, paste0(c(D$outprefix, "results.tsv"), collapse=""))
 write_tsv(res.full, paste0(c(D$outprefix, "results.full.tsv"), collapse=""))

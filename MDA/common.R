@@ -63,11 +63,10 @@ mda.load <- function(args){
 }
                                                       
 mda.mkdirp <- function(dir){
-    parent <- dirname(dir)
-    if (! dir.exists(parent)){
-        mda.mkdirp(parent)
+    if (!dir.exists(dir)){
+        mda.mkdirp(dirname(dir))
+        dir.create(dir)
     }
-    dir.create(dir)
 }
 
 ###############################################################################
@@ -185,14 +184,14 @@ mda.cache_save <- function(dat, outprefix, method, form, suffix="rds", ...){
 
 mda.cache_load <- function(outprefix, method, form, suffix="rds"){
   filename <- mda.get_cache_filename(outprefix, method, form, ...)
-  dat <- loadRDS(filename)
+  dat <- readRDS(filename)
 }
                                                       
 mda.cache_load_or_run_save <- function(outputprefix, method, form, expr) {
     cache.file <- mda.cache_filename(outputprefix, method, form, suffix="rds")
     data <- if (file.exists(cache.file)){
         print(paste0(c("Loading:", cache.file, "for", method, ",", format(form)), collapse=" "))
-        loadRDS(cache.file)
+        readRDS(cache.file)
     } else{
         data <- expr
         print(paste0(c("Executing & storing:", cache.file, "for", method, ",", format(form)), collapse=" "))

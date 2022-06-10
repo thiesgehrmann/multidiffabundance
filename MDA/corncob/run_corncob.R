@@ -47,7 +47,9 @@ do <- function(f_idx){
         ms <- as.data.frame(ms$coefficients)
         ms <- ms[startsWith(rownames(ms), "phi."),]
         ms$taxa <- rep(colnames(D$count_data)[t_idx], dim(ms)[1])
-        ms <- ms %>% rownames_to_column('determinant')
+        ms <- ms %>% rownames_to_column('variable')
+        ms$variable <- gsub("^phi[.]", "", ms$variable)
+
         names(ms)[names(ms)=="Estimate"] <- "effectsize"
         names(ms)[names(ms)=="Std. Error"] <- "se"
         names(ms)[names(ms)=="t value"] <- "stat"
@@ -62,11 +64,11 @@ do <- function(f_idx){
     res.full$freq <- rep(mda.meta.freq(D, mainvar), dim(res.full)[1])
     
     res <- res.full
-    res <- res[startsWith(res$determinant, mainvar),]
+    res <- res[startsWith(res$variable, mainvar),]
     res <- res[res$taxa %in% D$nonrare,]
 
     res$qvalue.withinformula <- p.adjust(res$pvalue, "fdr")
-    res$determinant <- rep(mainvar, dim(res)[1])
+    res$variable <- rep(mainvar, dim(res)[1])
 
     return(list(res=res, res.full=res.full))
     
@@ -80,6 +82,9 @@ res.full <- bind_rows(lapply(R, function(x){x$res.full}))
 
 ###############################################################################
 # Output
+
+column.order <- c("taxa","variable","effectsize","se","stat","pvalue","qvalue.withinformula","qvalue","formula","method","n","freq")
+res <- res[,column.order]
 
 write_tsv(res, paste0(c(D$outprefix, "results.tsv"), collapse=""))
 write_tsv(res.full, paste0(c(D$outprefix, "results.full.tsv"), collapse=""))

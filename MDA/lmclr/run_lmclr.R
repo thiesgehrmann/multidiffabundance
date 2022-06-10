@@ -27,12 +27,12 @@ lmclr <- function(count_data, meta_data, formula, mainvar, taxa=NULL){
         fit <- lm(f, data=meta_data, na.action = 'na.exclude')
         s <- as.data.frame(coefficients(summary(fit)))
         s$taxa <- rep(t, dim(s)[1])
-        s <- s %>% rownames_to_column("determinant")
+        s <- s %>% rownames_to_column("variable")
         s
     })
     res <- bind_rows(res)
 
-    names(res)[names(res)=="coefficient"] <- "effectsize"
+    names(res)[names(res)=="Estimate"] <- "effectsize"
     names(res)[names(res)=="Std. Error"] <- "se"
     names(res)[names(res)=="t value"] <- "stat"
     names(res)[names(res)=="Pr(>|t|)"] <- "pvalue"
@@ -54,12 +54,12 @@ do <- function(f_idx){
     res.full$n <- rep(mda.meta.n(D, mainvar), dim(res.full)[1])
     res.full$freq <- rep(mda.meta.freq(D, mainvar), dim(res.full)[1])
     
-    # Select only the relevant determinant ( taxa are selected already in lmclr )
+    # Select only the relevant variable ( taxa are selected already in lmclr )
     res <- res.full
-    res <- res[startsWith(res$determinant, mainvar),]
+    res <- res[startsWith(res$variable, mainvar),]
 
     res$qvalue.withinformula <- p.adjust(res$pvalue, "fdr")
-    res$determinant <- rep(mainvar, dim(res)[1])
+    res$variable <- rep(mainvar, dim(res)[1])
 
     return(list(res=res, res.full=res.full))
 }
@@ -73,6 +73,10 @@ res.full <- bind_rows(lapply(R, function(x){x$res.full}))
 
 ###############################################################################
 # Output
+
+column.order <- c("taxa","variable","effectsize","se","stat","pvalue","qvalue.withinformula","qvalue","formula","method","n","freq")
+res <- res[,column.order]
+
 
 write_tsv(res, paste0(c(D$outprefix, "results.tsv"), collapse=""))
 write_tsv(res.full, paste0(c(D$outprefix, "results.full.tsv"), collapse=""))

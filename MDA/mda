@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
-#count_data="~/repos//UA_isala/flow1_redo_revision/data/genus_level_counts.tsv"
-#meta_data="~/repos//UA_isala/flow1_redo_revision/data/metadata.tsv"
-#formula="~/repos//multidiffabundance/example/list_of_functions.txt"
+#count_data="~/repos/UA_isala/flow1_redo_revision/data/genus_level_counts.tsv"
+#meta_data="~/repos/UA_isala/flow1_redo_revision/data/metadata.tsv"
+#formula="~/repos/multidiffabundance/example/list_of_functions.txt"
 ##formula="~ Reproductive.haschildren + Technical.dna_conc + General.Age"
-#./mda.sh "$count_data" "$meta_data" "$formula" "test_output"
+#./mda -l "$count_data" "$meta_data" "$formula" "test_output"
 
 source "`dirname $CONDA_EXE`/../etc/profile.d/conda.sh"
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]:-$0}"; )" &> /dev/null && pwd 2> /dev/null; )";
@@ -153,46 +153,57 @@ mkdir -p "$outprefix"
 
 ###############################################################################
 
-result_files=()
+declare -a result_files
 
 if [ $aldex2 -eq 1 ] ; then
     echo "RUNNING ALDEX2..."
     mkdir -p "$outprefix/aldex2"
-    #conda activate aldex2 && "$SCRIPT_DIR/aldex2/run.sh" "$count_data" "$meta_data" "$formula" "$outprefix/aldex2/" > "$outprefix/aldex2/stdout" 2> "$outprefix/aldex2/stderr"
+    conda activate aldex2 && "$SCRIPT_DIR/aldex2/run.sh" "$count_data" "$meta_data" "$formula" "$outprefix/aldex2/" > "$outprefix/aldex2/stdout" 2> "$outprefix/aldex2/stderr"
+    result_files+=("$outprefix/aldex2/results.tsv")
 fi
 
 if [ $ancombc -eq 1 ] ; then
     echo "RUNNING ANCOMBC..."
     mkdir -p "$outprefix/ancombc"
-    #conda activate ancom2 && "$SCRIPT_DIR/ancombc/run.sh" "$count_data" "$meta_data" "$formula" "$outprefix/ancombc/" > "$outprefix/ancombc/stdout" 2> "$outprefix/ancombc/stderr"
+    conda activate ancom2 && "$SCRIPT_DIR/ancombc/run.sh" "$count_data" "$meta_data" "$formula" "$outprefix/ancombc/" > "$outprefix/ancombc/stdout" 2> "$outprefix/ancombc/stderr"
+    result_files+=("$outprefix/ancombc/results.tsv")
 fi
 
 if [ $corncob -eq 1 ] ; then
     echo "RUNNING CORNCOB..."
     mkdir -p "$outprefix/corncob"
-    #conda activate corncob && "$SCRIPT_DIR/corncob/run.sh" "$count_data" "$meta_data" "$formula" "$outprefix/corncob/" > "$outprefix/corncob/stdout" 2> "$outprefix/corncob/stderr"
+    conda activate corncob && "$SCRIPT_DIR/corncob/run.sh" "$count_data" "$meta_data" "$formula" "$outprefix/corncob/" > "$outprefix/corncob/stdout" 2> "$outprefix/corncob/stderr"
+    result_files+=("$outprefix/corncob/results.tsv")
 fi
     
 if [ $deseq2 -eq 1 ] ; then
     echo "RUNNING DESEQ2..."
     mkdir -p "$outprefix/deseq2"
-    #conda activate deseq2 && "$SCRIPT_DIR/deseq2/run.sh" "$count_data" "$meta_data" "$formula" "$outprefix/deseq2/" > "$outprefix/deseq2/stdout" 2> "$outprefix/deseq2/stderr"
+    conda activate deseq2 && "$SCRIPT_DIR/deseq2/run.sh" "$count_data" "$meta_data" "$formula" "$outprefix/deseq2/" > "$outprefix/deseq2/stdout" 2> "$outprefix/deseq2/stderr"
+    result_files+=("$outprefix/deseq2/results.tsv")
 fi
 
 if [ $limma -eq 1 ] ; then
     echo "RUNNING LIMMA..."
     mkdir -p "$outprefix/limma"
     conda activate limma && "$SCRIPT_DIR/limma/run.sh" "$count_data" "$meta_data" "$formula" "$outprefix/limma/" > "$outprefix/limma/stdout" 2> "$outprefix/limma/stderr"
+    result_files+=("$outprefix/limma/results.tsv")
 fi
 
 if [ $lmclr -eq 1 ] ; then
     echo "RUNNING LMCLR..."
     mkdir -p "$outprefix/lmclr"
-    #conda activate limma && "$SCRIPT_DIR/lmclr/run.sh" "$count_data" "$meta_data" "$formula" "$outprefix/lmclr/" > "$outprefix/lmclr/stdout" 2> "$outprefix/lmclr/stderr"
+    conda activate limma && "$SCRIPT_DIR/lmclr/run.sh" "$count_data" "$meta_data" "$formula" "$outprefix/lmclr/" > "$outprefix/lmclr/stdout" 2> "$outprefix/lmclr/stderr"
+    result_files+=("$outprefix/lmclr/results.tsv")
 fi
 
 if [ $maaslin2 -eq 1 ] ; then
     echo "RUNNING MAASLIN2..."
     mkdir -p "$outprefix/maaslin2"
-    #conda activate maaslin2 && "$SCRIPT_DIR/maaslin2/run.sh" "$count_data" "$meta_data" "$formula" "$outprefix/maaslin2/" > "$outprefix/maaslin2/stdout" 2> "$outprefix/maaslin2/stderr"
+    conda activate maaslin2 && "$SCRIPT_DIR/maaslin2/run.sh" "$count_data" "$meta_data" "$formula" "$outprefix/maaslin2/" > "$outprefix/maaslin2/stdout" 2> "$outprefix/maaslin2/stderr"
+    result_files+=("$outprefix/maaslin2/results.tsv")
 fi
+
+
+###############################################################################
+# Combine all the outputs into one single output
