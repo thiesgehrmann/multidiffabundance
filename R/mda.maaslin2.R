@@ -4,7 +4,7 @@
 mda.maaslin2 <- function(mda.D){
     D <- mda.D
     require(Maaslin2)
-    require(dpylr)
+    require(dplyr)
     require(tibble)
 
     do <- function(f_idx){
