@@ -1,6 +1,23 @@
 # MDA: multidiffabundance
 A toolkit for the testing of differential abundance with many different tools, each provided with a similar interface and a compatible output format.
 
+# Quickstart
+
+```R
+    # install.packages("devtools")
+    devtools::install_github("thiesgehrmann/multidiffabundance", dependencies=TRUE)
+
+    library(multidiffabundance)
+    data("mda.example", package="multidiffabundance")
+    D <- mda.create(mda.example$count_data,
+                    mda.example$meta_data,
+                    mda.example$formulas)
+    out <- mda.all(D)
+    out$res # Relevant output data here
+
+```
+
+
 # Installation
 
 ## Installation of dependencies
