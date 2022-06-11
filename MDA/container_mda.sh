@@ -15,7 +15,7 @@ function usage(){
     echo "    -m|--maaslin2 : Run Maaslin2"
     echo "    --complement  : run the complement of the current selection
                               (i.e. -c --complement would NOT run corncob)"
-    echo "    -S|--singularity : Use singularity instead of docker (unimplemented)"
+    echo "    --docker      : Use docker instead of singularity"
     echo "  Inputs:"
     echo "    count_data : File path to a sample*taxa (rows*columns) tab separated file.
                            First column is sample IDs"
@@ -31,20 +31,10 @@ function usage(){
 # PROCESS INPUTS
 
 
-ARGS=$(getopt -o 'aAcdlLm' --long 'aldex2,ancombc,corncob,deseq2,limma,lmclr,maaslin2,complement' -- "$@") || exit
+ARGS=$(getopt -o 'aAcdlLm' --long 'aldex2,ancombc,corncob,deseq2,limma,lmclr,maaslin2,complement,docker' -- "$@") || exit
 eval "set -- $ARGS"
 
-aldex2=0
-ancombc=0
-corncob=0
-deseq2=0
-limma=0
-lmclr=0
-maaslin2=0
-all=1
-complement=0
-
-singularity=0
+singularity=1
 
 args=""
 
@@ -66,8 +56,8 @@ while true; do
             args="$args -m"; shift;;
       (--complement)
             args="$args --complement"; shift;;
-      (-s|--singularity)
-            singularity=1; shift;;
+      (--docker)
+            singularity=0; shift;;
       (--)  shift; break;;
       (*)   usage $0; exit 1;;           # error
     esac
@@ -87,8 +77,6 @@ count_data=`realpath ${remaining[0]/#\~/$HOME}`
 meta_data=`realpath ${remaining[1]/#\~/$HOME}`
 formula=${remaining[2]}
 outprefix=`realpath ${remaining[3]/#\~/$HOME}`
-
-echo $count_data
 
 #############################
 # Prepare docker bind mount & soft link files to there
@@ -134,12 +122,12 @@ if [ "$singularity" -eq 1 ]; then
         --bind "$bindm_source/":"$bindm_target" \
         --containall \
         docker://"${docker_tag}" \
-        ${job_shell} \
+        /usr/bin/mda \
         $args \
         "$bindm_count_data" \
         "$bindm_meta_data" \
         "$bindm_formula" \
-        "$bindm_target/" #| sed -e "s%$bindm_target%$bindm_source/%g"
+        "$bindm_target/" | sed -e "s%$bindm_target%$bindm_source/%g"
 
 else 
     docker run \

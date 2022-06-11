@@ -151,7 +151,7 @@ function run_one_mda(){
     rcode="
         library(multidiffabundance);
         library(readr);
-        args = commandArgs(trailingOnly=TRUE);
+        args = mda.load_args(trailingOnly=TRUE);
         D <- mda.load(args);
         R <- mda.$method(D);
         write_tsv(R\$res, paste0(c(D\$outprefix, 'results.tsv'), collapse=''));
