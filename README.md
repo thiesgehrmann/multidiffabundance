@@ -1,5 +1,6 @@
 # MDA: multidiffabundance
 A toolkit for the testing of differential abundance with many different tools, each provided with a similar interface and a compatible output format.
+The following packages are currently supported (Only tools that allow for adjustment with other variables are selected): ALDEx2, ANCOMBC, Corncob, DESeq2, Limma(voom), lm CLR, and Maaslin2.
 
 # Quickstart
 
@@ -12,7 +13,7 @@ data("mda.example", package="multidiffabundance")
 D <- mda.create(mda.example$count_data,
                 mda.example$meta_data,
                 mda.example$formulas)
-out <- mda.all(D)
+out <- mda.all(D) # Runs all methods
 out$res # Relevant output data here
 ```
 
@@ -46,7 +47,7 @@ devtools::install_github("thiesgehrmann/multidiffabundance", dependencies=TRUE)
  To use the command line tool, you should have the R package installed.
  Then run the following commands:
  
-```bash
+```shell
 wget https://raw.githubusercontent.com/thiesgehrmann/multidiffabundance/main/MDA/mda ./
 chmod +x ./mda
 sudo mv ./mda /usr/bin # not necessary
@@ -57,7 +58,7 @@ sudo mv ./mda /usr/bin # not necessary
  We provide a wrapper for the docker image, in which all necessary dependencies are installed
  For this, you do not need to install anything (other than docker or singularity)
  
-```bash
+```shell
 wget https://raw.githubusercontent.com/thiesgehrmann/multidiffabundance/main/MDA/docker_mda.sh
 chmod +x ./docker_mda.sh
 sudo mv ./docker_mda.sh /usr/bin # not necessary
@@ -95,16 +96,14 @@ Other functions to create the MDA objects are:
 
 ## Running via the command line
 
-```bash
+```shell
 # Assumes R package is installed
 abundance="data/mda.example.count_data.tsv"
 meta_data="data/mda.example.meta_data.tsv"
 functions="data/mda.example.formulas.txt"
 outdir="output_folder"
 
-wget https://raw.githubusercontent.com/thiesgehrmann/multidiffabundance/main/MDA/mda ./
-chmod +x ./mda
-./mda "$abundance" \
+mda "$abundance" \
       "$meta_data" \
       "$functions" \
       "$outdir" # Produces output in $outdir/results.tsv
@@ -112,7 +111,7 @@ chmod +x ./mda
 
 ## Running via docker/singularity image
 
-```bash
+```shell
 # Assumes Docker or singularity is installed
 abundance="data/mda.example.count_data.tsv"
 meta_data="data/mda.example.meta_data.tsv"
