@@ -6,6 +6,7 @@ mda.deseq2 <- function(mda.D){
     D <- mda.D
     require("DESeq2")
     require(tidyr)
+    require(tibble)
 
 
     do <- function(f_idx){

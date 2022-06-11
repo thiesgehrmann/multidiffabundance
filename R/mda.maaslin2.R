@@ -5,6 +5,7 @@ mda.maaslin2 <- function(mda.D){
     D <- mda.D
     require(Maaslin2)
     require(dpylr)
+    require(tibble)
 
     do <- function(f_idx){
         f <- D$formula$norand[[f_idx]]

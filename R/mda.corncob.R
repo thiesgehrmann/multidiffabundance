@@ -6,6 +6,7 @@ mda.corncob <- function(mda.D){
     
     require(corncob)
     require(phyloseq)
+    require(tibble)
     
     OTU <- phyloseq::otu_table(t(D$count_data), taxa_are_rows = T)
     sampledata <- phyloseq::sample_data(D$meta_data, errorIfNULL = F)

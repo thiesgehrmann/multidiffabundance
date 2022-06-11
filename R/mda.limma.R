@@ -5,6 +5,7 @@ mda.limma <- function(mda.D){
     D <- mda.D
     library("edgeR")
     require(tidyr)
+    require(tibble)
 
 
     DGE_LIST <- DGEList(t(D$count_data))
