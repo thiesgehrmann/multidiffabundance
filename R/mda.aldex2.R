@@ -3,6 +3,7 @@
 
 mda.aldex2 <- function(mda.D){
     require("ALDEx2")
+    require(tidyr)
     D <- mda.D
 
     do <- function(f_idx){

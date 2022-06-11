@@ -4,7 +4,9 @@
 
 mda.deseq2 <- function(mda.D){
     D <- mda.D
-    library("DESeq2")
+    require("DESeq2")
+    require(tidyr)
+
 
     do <- function(f_idx){
 

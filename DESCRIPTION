@@ -16,6 +16,7 @@ biocViews:
     Maaslin2
 Imports:
     dplyr,
+    tidyr,
     readr,
     digest
 VignetteBuilder: knitr

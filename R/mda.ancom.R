@@ -4,6 +4,8 @@
 mda.ancombc <- function(mda.D){
     D <- mda.D
     require("ANCOMBC")
+    require(tidyr)
+
 
     OTU <- phyloseq::otu_table(t(D$count_data), taxa_are_rows = T)
     sampledata <- phyloseq::sample_data(D$meta_data, errorIfNULL = F)

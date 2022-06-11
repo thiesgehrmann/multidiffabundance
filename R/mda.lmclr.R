@@ -3,6 +3,8 @@
 
 mda.lmclr <- function(mda.D){
     D <- mda.D
+    
+    require(dplyr)
 
     lmclr <- function(count_data, meta_data, formula, mainvar, taxa=NULL){
         taxa <- if (is.null(taxa)) colnames(count_data) else taxa
