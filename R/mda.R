@@ -139,7 +139,7 @@ mda.create <- function(count_data, meta_data, formulas, output_dir=tempdir()){
         return(NULL)
     }
     
-    FD <- mda.process_formula_input(unlist(lapply(formulas, function(x){format(x)})))
+    FD <- mda.process_formula_input(unlist(lapply(formulas, function(x){deparse(x)})))
     nonrare <- mda.nonrare_taxa(count_data, 0.1) 
 
     dat <- c()
@@ -263,7 +263,7 @@ mda.meta.freq <- function(D, var){
 mda.cache_filename <- function(outprefix, method, form, suffix="tsv", collapse="."){
     require(digest)
     mainvar <- labels(terms(as.formula(form)))[1]
-    form.fmt <- tolower(format(form))
+    form.fmt <- tolower(mda.deparse(form))
     form.fmt <- gsub("[~()._!]", "", form.fmt)
     form.fmt <- gsub("[*]", "M", form.fmt)
     form.fmt <- gsub("[+]", "P", form.fmt)
@@ -292,15 +292,23 @@ mda.cache_load <- function(outprefix, method, form, suffix="rds"){
 mda.cache_load_or_run_save <- function(outputprefix, method, form, expr) {
     cache.file <- mda.cache_filename(outputprefix, method, form, suffix="rds")
     data <- if (file.exists(cache.file)){
-        print(paste0(c("Loading:", cache.file, "for", method, ",", format(form)), collapse=" "))
+        print(paste0(c("Loading:", cache.file, "for", method, ",", mda.deparse(form)), collapse=" "))
         readRDS(cache.file)
     } else{
         data <- expr
-        print(paste0(c("Executing & storing:", cache.file, "for", method, ",", format(form)), collapse=" "))
+        print(paste0(c("Executing & storing:", cache.file, "for", method, ",", mda.deparse(form)), collapse=" "))
         saveRDS(data, cache.file)
         data
     }
     data
+}
+                                                      
+mda.deparse <- function(form){
+    if (inherits(form, what="formula")){
+        return(deparse(form))
+    } else{
+        return(form)
+    }
 }
                                                       
 ###############################################################################

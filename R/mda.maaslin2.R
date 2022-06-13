@@ -29,7 +29,7 @@ mda.maaslin2 <- function(mda.D){
                              cores = 1))
         res.full <- as_tibble(as.data.frame(mas$results))
         res.full <- res.full[,c("feature","metadata","coef","stderr","pval")]
-        res.full$formula <- rep(format(f), dim(res.full)[1])
+        res.full$formula <- rep(mda.deparse(f), dim(res.full)[1])
         res.full$method <- rep("maaslin2", dim(res.full)[1])
         res.full$n <- rep(mda.meta.n(D, mainvar), dim(res.full)[1])
         res.full$freq <- rep(mda.meta.freq(D, mainvar), dim(res.full)[1])

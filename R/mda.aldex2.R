@@ -42,7 +42,7 @@ mda.aldex2 <- function(mda.D){
         res.full$variable <- unlist(lapply(res.full$measure, clean.variable))
 
         res.full <- pivot_wider(res.full, id_cols=c("taxa", "variable"), names_from=feature, values_from=value)
-        res.full$formula <- rep(format(f), dim(res.full)[1])
+        res.full$formula <- rep(mda.deparse(f), dim(res.full)[1])
         res.full$method <- rep("aldex2", dim(res.full)[1])
         res.full$n <- rep(mda.meta.n(D, mainvar), dim(res.full)[1])
         res.full$freq <- rep(mda.meta.freq(D, mainvar), dim(res.full)[1])

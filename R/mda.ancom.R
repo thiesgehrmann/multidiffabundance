@@ -13,7 +13,7 @@ mda.ancombc <- function(mda.D){
     phylo <- phyloseq::merge_phyloseq(OTU, sampledata)
 
     do <- function(f_idx){
-        f <- strsplit(format(D$formula$norand[[f_idx]]),"~")[[1]][2]
+        f <- strsplit(mda.deparse(D$formula$norand[[f_idx]]),"~")[[1]][2]
         print(f)
         mainvar <- D$formula$main_var[f_idx]
 
@@ -31,7 +31,7 @@ mda.ancombc <- function(mda.D){
         p.val <- gather(as.data.frame(fit$p_val) %>% rownames_to_column('taxa'), "variable", "pvalue", 2:(dim(as.data.frame(fit$p_val))[2]+1))
 
         res.full <- merge(merge(merge(coeff, se, by=c("taxa","variable")), stat, by=c("taxa","variable")), p.val, by=c("taxa","variable"))
-        res.full$formula <- rep(format(f), dim(res.full)[1])
+        res.full$formula <- rep(mda.deparse(f), dim(res.full)[1])
         res.full$method <- rep("ancombc", dim(res.full)[1])
         res.full$n <- rep(mda.meta.n(D, mainvar), dim(res.full)[1])
         res.full$freq <- rep(mda.meta.freq(D, mainvar), dim(res.full)[1])

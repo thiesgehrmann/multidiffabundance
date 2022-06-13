@@ -46,7 +46,7 @@ mda.corncob <- function(mda.D){
         })
 
         res.full <- bind_rows(ram)
-        res.full$formula <- rep(format(f), dim(res.full)[1])
+        res.full$formula <- rep(mda.deparse(f), dim(res.full)[1])
         res.full$method <- rep("corncob", dim(res.full)[1])
         res.full$n <- rep(mda.meta.n(D, mainvar), dim(res.full)[1])
         res.full$freq <- rep(mda.meta.freq(D, mainvar), dim(res.full)[1])

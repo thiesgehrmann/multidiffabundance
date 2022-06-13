@@ -1,4 +1,4 @@
-###############################################################################
+ ###############################################################################
 # LMCLR
 
 mda.lmclr <- function(mda.D){
@@ -40,7 +40,7 @@ mda.lmclr <- function(mda.D){
         res.full <- mda.cache_load_or_run_save(D$cacheprefix, "lmclr", f, lmclr(D$count_data, D$meta_data, f, mainvar, D$nonrare))
 
         #res.full <- lmclr(D$count_data, D$meta_data, f, mainvar, D$nonrare)
-        res.full$formula <- rep(format(f), dim(res.full)[1])
+        res.full$formula <- rep(mda.deparse(f), dim(res.full)[1])
         res.full$method <- rep("lmclr", dim(res.full)[1])
         res.full$n <- rep(mda.meta.n(D, mainvar), dim(res.full)[1])
         res.full$freq <- rep(mda.meta.freq(D, mainvar), dim(res.full)[1])

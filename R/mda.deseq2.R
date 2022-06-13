@@ -26,7 +26,7 @@ mda.deseq2 <- function(mda.D){
 
         names(res.full)[names(res.full)=="row"] <- "taxa"
         res.full$variable <- rep(mainvar, dim(res.full)[1])
-        res.full$formula <- rep(format(f), dim(res.full)[1])
+        res.full$formula <- rep(mda.deparse(f), dim(res.full)[1])
         res.full$method <- rep("DESeq2", dim(res.full)[1])
         res.full$n <- rep(mda.meta.n(D, mainvar), dim(res.full)[1])
         res.full$freq <- rep(mda.meta.freq(D, mainvar), dim(res.full)[1])

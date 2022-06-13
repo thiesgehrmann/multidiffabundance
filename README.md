@@ -87,7 +87,7 @@ out <- mda.all(D)
 out$res # Relevant output data here
 ```
 
-**The effect for the FIRST variable in the formula will be reported**, so make sure to format your formulas. `out$res.all` contains the output of all variables per method, but it is not cleaned!
+**The effect for the FIRST variable in the formula will be reported**, so make sure to format your formulas. `out$res.full` contains the output of all variables per method, but it is not cleaned!
 
 Functions to create the MDA objects are:
  1. `mda.create`: Takes loaded objects
