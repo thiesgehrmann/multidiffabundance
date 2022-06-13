@@ -133,6 +133,7 @@ else
     docker run \
         --mount type=bind,source="$bindm_source/",target="$bindm_target" \
         "$docker_tag" \
+        "/usr/bin/mda" \
         $args \
         "$bindm_count_data" \
         "$bindm_meta_data" \

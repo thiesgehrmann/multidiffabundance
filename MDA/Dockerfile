@@ -13,4 +13,4 @@ RUN chmod +x /usr/bin/mda && \
 
 LABEL maintainer="Thies Gehrmann"
 
-ENTRYPOINT ["/usr/bin/mda"]
+#ENTRYPOINT ["/usr/bin/mda"] # Do not provide entrypoint for now
