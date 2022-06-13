@@ -139,7 +139,7 @@ mda.create <- function(count_data, meta_data, formulas, output_dir=tempdir()){
         return(NULL)
     }
     
-    FD <- mda.process_formula_input(unlist(lapply(formulas, function(x){deparse(x)})))
+    FD <- mda.process_formula_input(unlist(lapply(formulas, function(x){mda.deparse(x)})))
     nonrare <- mda.nonrare_taxa(count_data, 0.1) 
 
     dat <- c()
