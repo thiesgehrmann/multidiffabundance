@@ -82,6 +82,7 @@ mda.from_cmdargs <- function(args){
                                                       
 mda.from_files <- function(abundance, meta, formula.data, outprefix=tempdir()){
     # Prepare formula
+    require(tidyverse)
 
     raw.formula.data <- mda.load_formula_input(formula.data)
     if (!mda.verify_formula_input(raw.formula.data)){
@@ -260,17 +261,22 @@ mda.meta.freq <- function(D, var){
 # output cache functions
                                                       
 mda.cache_filename <- function(outprefix, method, form, suffix="tsv", collapse="."){
-  form.fmt <- tolower(format(form))
-  form.fmt <- gsub("[~():._! ]", "", form.fmt)
-  form.fmt <- gsub("[*]", "M", form.fmt)
-  form.fmt <- gsub("[+]", "P", form.fmt)
-  form.fmt <- gsub("[:]", "I", form.fmt)
-  form.fmt <- gsub("[|]", "R", form.fmt)
-  form.fmt <- gsub("[-]", "S", form.fmt)
-  form.fmt
-  
-  filename <- paste0(c(paste0(c(outprefix, method, form.fmt), collapse=collapse), suffix), collapse=".")
-  filename
+    require(digest)
+    mainvar <- labels(terms(as.formula(form)))
+    form.fmt <- tolower(format(form))
+    form.fmt <- gsub("[~()._!]", "", form.fmt)
+    form.fmt <- gsub("[*]", "M", form.fmt)
+    form.fmt <- gsub("[+]", "P", form.fmt)
+    form.fmt <- gsub("[:]", "I", form.fmt)
+    form.fmt <- gsub("[|]", "R", form.fmt)
+    form.fmt <- gsub("[-]", "S", form.fmt)
+    form.fmt
+    
+    form.digest <- digest(form.fmt, algo="md5")
+    form.digest <- gsub("[~():._! |]", "", form.digest)
+    
+    filename <- paste0(c(paste0(c(outprefix, method, mainvar, form.digest), collapse=collapse), suffix), collapse=".")
+    filename
 }
 
 mda.cache_save <- function(dat, outprefix, method, form, suffix="rds", ...){
