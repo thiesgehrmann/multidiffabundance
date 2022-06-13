@@ -34,7 +34,6 @@ mda.lmclr <- function(mda.D){
     do <- function(f_idx){
 
         f <- D$formula$norand[[f_idx]]
-        print(f)
         mainvar <- D$formula$main_var[f_idx]
 
         res.full <- mda.cache_load_or_run_save(D$cacheprefix, "lmclr", f, lmclr(D$count_data, D$meta_data, f, mainvar, D$nonrare))
