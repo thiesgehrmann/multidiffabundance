@@ -305,8 +305,11 @@ mda.cache_load_or_run_save <- function(outputprefix, method, form, expr) {
                                                       
 mda.deparse <- function(form){
     if (inherits(form, what="formula")){
-        return(deparse(form))
-    } else{
+        # Taken from as.character.formula in formula.tools
+        form <- paste( deparse(form), collapse=" " )
+        form <- gsub( "\\s+", " ", form, perl=FALSE ) # remove multiple spaces
+        return(form)
+    } else { # Assume it is a string already
         return(form)
     }
 }
