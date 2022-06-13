@@ -262,7 +262,7 @@ mda.meta.freq <- function(D, var){
                                                       
 mda.cache_filename <- function(outprefix, method, form, suffix="tsv", collapse="."){
     require(digest)
-    mainvar <- labels(terms(as.formula(form)))
+    mainvar <- labels(terms(as.formula(form)))[1]
     form.fmt <- tolower(format(form))
     form.fmt <- gsub("[~()._!]", "", form.fmt)
     form.fmt <- gsub("[*]", "M", form.fmt)
