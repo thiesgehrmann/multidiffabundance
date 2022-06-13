@@ -13,12 +13,13 @@ mda.ancombc <- function(mda.D){
     phylo <- phyloseq::merge_phyloseq(OTU, sampledata)
 
     do <- function(f_idx){
-        f <- strsplit(mda.deparse(D$formula$norand[[f_idx]]),"~")[[1]][2]
-        print(f)
+        f <- D$formula$norand[[f_idx]]
+        f.ancombc <- strsplit(mda.deparse(f),"~")[[1]][2]
+        print(f.ancombc)
         mainvar <- D$formula$main_var[f_idx]
 
         out <- mda.cache_load_or_run_save(D$cacheprefix, "ancombc", f, 
-                   ancombc(phyloseq = phylo, formula = f, 
+                   ancombc(phyloseq = phylo, formula = f.ancombc, 
                            p_adj_method = "holm", zero_cut = 0.90, lib_cut = 1000, 
                            struc_zero = FALSE, global = FALSE, neg_lb = TRUE, tol = 1e-5, 
                            max_iter = 100, conserve = TRUE, alpha = 0.05) )
