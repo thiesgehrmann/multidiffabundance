@@ -54,6 +54,7 @@ mda.load <- function(args){
     dat$meta_data   <- meta_data
     dat$formula     <- FD
     dat$outprefix   <- outprefix
+    print(c(outprefix, "mda.cache", paste0(md5sum(c(abundance, meta)), collapse=".")))
     dat$cacheprefix <- paste0(c(outprefix, "mda.cache", paste0(md5sum(c(abundance, meta)), collapse=".")), collapse="/")
 
     mda.mkdirp(dirname(dat$cacheprefix))
