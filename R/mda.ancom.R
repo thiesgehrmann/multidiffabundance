@@ -15,7 +15,7 @@ mda.ancombc <- function(mda.D){
     do <- function(f_idx){
         f <- D$formula$norand[[f_idx]]
         f.ancombc <- strsplit(mda.deparse(f),"~")[[1]][2]
-        print(f.ancombc)
+
         mainvar <- D$formula$main_var[f_idx]
 
         out <- mda.cache_load_or_run_save(D$cacheprefix, "ancombc", f, 

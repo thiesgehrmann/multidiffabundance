@@ -169,7 +169,9 @@ mda.mkdirp <- function(dir){
 # Formula processing functions
                                                       
 mda.load_formula_input <- function(formula_input){
-  raw <- if (file.exists(formula_input)){
+  raw <- if inherits(formula_input, "formula") {
+      mda.deparse(formula_input)
+  } else if (file.exists(formula_input)){
     unlist(strsplit(readLines(formula_input), "\n"))
   } else {
     formula_input
@@ -261,6 +263,7 @@ mda.meta.freq <- function(D, var){
 # output cache functions
                                                       
 mda.cache_filename <- function(outprefix, method, form, suffix="tsv", collapse="."){
+    print(outprefix)
     require(digest)
     mainvar <- labels(terms(as.formula(form)))[1]
     form.fmt <- tolower(mda.deparse(form))
