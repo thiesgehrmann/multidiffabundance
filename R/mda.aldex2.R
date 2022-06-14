@@ -9,7 +9,6 @@ mda.aldex2 <- function(mda.D){
 
     do <- function(f_idx){
         f <- D$formula$norand[[f_idx]]
-        print(f)
         mainvar <- D$formula$main_var[f_idx]
 
 

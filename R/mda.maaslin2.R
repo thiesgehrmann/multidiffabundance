@@ -9,7 +9,6 @@ mda.maaslin2 <- function(mda.D){
 
     do <- function(f_idx){
         f <- D$formula$norand[[f_idx]]
-        print(f)
         mainvar <- D$formula$main_var[f_idx]
         mas <- mda.cache_load_or_run_save(D$cacheprefix, "maaslin2", f, 
                     Maaslin2(input_data = D$count_data,

@@ -145,7 +145,7 @@ mkdir -p "$outprefix"
 function run_one_mda(){
     method=$1
     
-    echo "[MDA `date`] RUNNING $method"
+    echo "[MDA] (`date`) RUNNING $method"
     mkdir -p "$outprefix/$method"
 
     rcode="
@@ -162,16 +162,16 @@ function run_one_mda(){
     errlog="$outprefix/$method/stderr"
     retlog="$outprefix/$method/retval"
     
-    rm "$stdlog" "$errlog" "retlog"
+    rm -f "$stdlog" "$errlog" "retlog"
 
     ((Rscript <(echo "$rcode") "$count_data" "$meta_data" "$formula" "$outprefix/$method/" ; echo >"$retlog" $?) | tee "$stdlog") 3>&1 1>&2 2>&3 | tee $errlog
     
     result=`cat "$retlog"`
 
     if [ $result -eq 0 ]; then
-        echo "[MDA `date`] COMPLETED $method. '$outprefix/$method/results.tsv'"
+        echo "[MDA] (`date`) COMPLETED $method. '$outprefix/$method/results.tsv'"
     else
-        echo "[MDA `date`] FAILED $method. See '$errlog'"
+        echo "[MDA] (`date`) FAILED $method. See '$errlog'"
     fi
     return $result
     
@@ -218,6 +218,6 @@ for idx in `seq 0 $((${#result_files[@]}-1))`; do
     tail -n+2 "${result_files[idx]}"
 done >> "$out_file"
 
-echo "[MDA `date`] OUTPUT '$out_file'"
+echo "[MDA] (`date`) OUTPUT '$out_file'"
 
 ###############################################################################

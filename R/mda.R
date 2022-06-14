@@ -1,76 +1,17 @@
 ###############################################################################
 # MDA Common R functions
 ###############################################################################
-
-
-###############################################################################
-# LEGACY INPUT LOADING CODE
-
-mda.load <- function(args){
-    require(tools)
-    require("tidyverse")
-    
-    if (length(args) != 4){
-        stop("Too few arguments. There should be 4!")
-    }
-    
-    abundance <- args[1]
-    meta <- args[2]
-    formula.data <- args[3]
-    outprefix <- args[4]
-
-    ###############################################################################
-    # Prepare formula
-
-    raw.formula.data <- mda.load_formula_input(formula.data)
-    if (!mda.verify_formula_input(raw.formula.data)){
-        print("Error: Errors in processing formula input.")
-        quit(1)
-    }
-    FD <- mda.process_formula_input(raw.formula.data)
-
-    ###############################################################################
-    # Load the data
-
-    count_data <- as.data.frame(read_tsv(abundance))
-    row.names(count_data) <- count_data[,1]
-    count_data <- count_data[,-1]
-
-    nonrare <- mda.nonrare_taxa(count_data, 0.1) 
-
-    meta_data <- as.data.frame(read_tsv(meta))
-    row.names(meta_data) <- meta_data[,1]
-    meta_data <- meta_data[,-1]
-    numeric_meta <- colnames(meta_data)[unlist(lapply(colnames(meta_data), function(x)is.numeric(meta_data[,x])))]
-    meta_data[,numeric_meta] <- scale(meta_data[,numeric_meta])
-                                                      
-    meta_data <- meta_data[rownames(count_data), ]
-                                                        
-    ###############################################################################
-    
-    dat <- c()
-    dat$count_data  <- count_data
-    dat$nonrare     <- nonrare
-    dat$meta_data   <- meta_data
-    dat$formula     <- FD
-    dat$outprefix   <- outprefix
-    print(c(outprefix, "mda.cache", paste0(md5sum(c(abundance, meta)), collapse=".")))
-    dat$cacheprefix <- paste0(c(outprefix, "mda.cache", paste0(md5sum(c(abundance, meta)), collapse=".")), collapse="/")
-
-    mda.mkdirp(dirname(dat$cacheprefix))
-    
-    return(dat)
-    
-}
                                                       
 ###############################################################################
-      
+# Input loading functions
+
 mda.from_cmdargs <- function(args){
     require(tools)
     require("tidyverse")
     
     if (length(args) != 4){
-        stop("Too few arguments. There should be 4!")
+        message("[MDA] mda.from_cmdargs ERROR: Too few arguments. There should be 4!")
+        quit(1)
     }
     
     abundance <- args[1]
@@ -87,7 +28,7 @@ mda.from_files <- function(abundance, meta, formula.data, outprefix=tempdir()){
 
     raw.formula.data <- mda.load_formula_input(formula.data)
     if (!mda.verify_formula_input(raw.formula.data)){
-        print("Error: Errors in processing formula input.")
+        message("[MDA] mda.from_files ERROR: Errors in processing formula input.")
         quit(1)
     }
 
@@ -130,13 +71,13 @@ mda.from_tidyamplicons <- function(ta, formulas, output_dir=tempdir()){
 }
 
 mda.from_phyloseq <- function(phys, formulas, output_dir=tempdir()){
-    message("UNIMPLEMENTED SO FAR")
+    message("[MDA] mda.from_phyloseq ERROR: UNIMPLEMENTED")
 }
                                                       
 mda.create <- function(count_data, meta_data, formulas, output_dir=tempdir()){
     require(digest)
     if (! all(rownames(count_data) == rownames(meta_data))) {
-        message("Error: Rownames of meta data and count data do not match!")
+        message("[MDA] mda.create ERROR: Rownames of meta data and count data do not match!")
         return(NULL)
     }
     
@@ -150,7 +91,7 @@ mda.create <- function(count_data, meta_data, formulas, output_dir=tempdir()){
     dat$formula     <- FD
     dat$outprefix   <- output_dir
     checksums <- unlist(lapply(list(count_data, meta_data), digest, algo="md5"))
-    dat$cacheprefix <- paste0(c(output_dir, "mda.cache", paste0(checksums), collapse="."), collapse="/")
+    dat$cacheprefix <- paste0(c(output_dir, "mda.cache", paste0(checksums, collapse=".")), collapse="/")
     mda.mkdirp(dirname(dat$cacheprefix))
 
     return(dat)
@@ -210,7 +151,7 @@ mda.process_formula_input <- function(raw_formula){
   })
   
   if (nchar(paste0(unlist(fterms_random), collapse="")) > 0){
-    print("WARNING: No mixed effect terms are allowed in this implementation. Random effects will be ignored. Please format your random effects as fixed effects. Sorry.")
+    message("[MDA] mda.process_formula_input WARNING: No mixed effect terms are allowed in this implementation. Random effects will be ignored. Please format your random effects as fixed effects. Sorry.")
   }
   
   FD
@@ -264,7 +205,6 @@ mda.meta.freq <- function(D, var){
 # output cache functions
                                                       
 mda.cache_filename <- function(outprefix, method, form, suffix="tsv", collapse="."){
-    print(outprefix)
     require(digest)
     mainvar <- labels(terms(as.formula(form)))[1]
     form.fmt <- tolower(mda.deparse(form))
@@ -296,11 +236,11 @@ mda.cache_load <- function(outprefix, method, form, suffix="rds"){
 mda.cache_load_or_run_save <- function(outputprefix, method, form, expr) {
     cache.file <- mda.cache_filename(outputprefix, method, form, suffix="rds")
     data <- if (file.exists(cache.file)){
-        print(paste0(c("Loading:", cache.file, "for", method, ",", mda.deparse(form)), collapse=" "))
+        message(paste0(c("[MDA] Loading:", cache.file, "for", method, ",", mda.deparse(form)), collapse=" "))
         readRDS(cache.file)
     } else{
         data <- expr
-        print(paste0(c("Executing & storing:", cache.file, "for", method, ",", mda.deparse(form)), collapse=" "))
+        message(paste0(c("[MDA] Executing & storing:", cache.file, "for", method, ",", mda.deparse(form)), collapse=" "))
         saveRDS(data, cache.file)
         data
     }

@@ -12,7 +12,6 @@ mda.deseq2 <- function(mda.D){
     do <- function(f_idx){
 
         f <- D$formula$norand[[f_idx]]
-        print(f)
         mainvar <- D$formula$main_var[f_idx]
 
         res.full <- mda.cache_load_or_run_save(D$cacheprefix, "deseq2", f, 
