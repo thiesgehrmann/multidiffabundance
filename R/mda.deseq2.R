@@ -13,10 +13,18 @@ mda.deseq2 <- function(mda.D){
 
         f <- D$formula$norand[[f_idx]]
         mainvar <- D$formula$main_var[f_idx]
+        
+        # We need to remove na rows
+        terms <- labels(terms(f))
+        variables <- terms[!grepl(':', terms)]
+        
+        meta_data.nona <- na.omit(D$meta_data[,variables])
+        count_data.nona <- D$count_data[rownames(meta_data.nona),]
+        
 
         res.full <- mda.cache_load_or_run_save(D$cacheprefix, "deseq2", f, 
-                    {dds <- DESeq2::DESeqDataSetFromMatrix(countData = t(D$count_data),
-                                                          colData = D$meta_data,
+                    {dds <- DESeq2::DESeqDataSetFromMatrix(countData = t(count_data.nona),
+                                                          colData = meta_data.nona,
                                                           design = f)
                     dds_res <- DESeq2::DESeq(dds, sfType = "poscounts")
 

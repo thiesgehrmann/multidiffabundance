@@ -33,7 +33,8 @@ mda.limma <- function(mda.D){
         ## make matrix for testing
         fit <- mda.cache_load_or_run_save(D$cacheprefix, "limma", f, 
                    {mm <- model.matrix(f, D$meta_data)
-                    voomfit <- voom(DGE_LIST_Norm, mm, plot=F)
+                    subset_dgelist <- DGE_LIST_Norm[, rownames(DGE_LIST_Norm$samples) %in% rownames(mm)]
+                    voomfit <- voom(subset_dgelist, mm, plot=FALSE)
                     fit <- lmFit(voomfit, mm)
                     fit <- eBayes(fit)} )
 

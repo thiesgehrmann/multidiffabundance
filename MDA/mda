@@ -164,7 +164,7 @@ function run_one_mda(){
     
     rm -f "$stdlog" "$errlog" "retlog"
 
-    ((Rscript <(echo "$rcode") "$count_data" "$meta_data" "$formula" "$outprefix/$method/" ; echo >"$retlog" $?) | tee "$stdlog") 3>&1 1>&2 2>&3 | tee $errlog
+    ((Rscript <(echo "$rcode") "$count_data" "$meta_data" "$formula" "$outprefix/$method/" ; echo >"$retlog" "$?") | tee "$stdlog") 3>&1 1>&2 2>&3 | tee $errlog
     
     result=`cat "$retlog"`
 

@@ -42,8 +42,6 @@ mda.from_files <- function(abundance, meta, formula.data, outprefix=tempdir()){
     meta_data <- as.data.frame(read_tsv(meta))
     row.names(meta_data) <- meta_data[,1]
     meta_data <- meta_data[,-1]
-    numeric_meta <- colnames(meta_data)[unlist(lapply(colnames(meta_data), function(x)is.numeric(meta_data[,x])))]
-    meta_data[,numeric_meta] <- scale(meta_data[,numeric_meta])
 
     common_samples <- intersect(rownames(count_data), rownames(meta_data))
     meta_data <- meta_data[common_samples, ]
@@ -84,6 +82,9 @@ mda.create <- function(count_data, meta_data, formulas, output_dir=tempdir()){
     FD <- mda.process_formula_input(unlist(lapply(formulas, function(x){mda.deparse(x)})))
     nonrare <- mda.nonrare_taxa(count_data, 0.1) 
 
+    numeric_meta <- colnames(meta_data)[unlist(lapply(colnames(meta_data), function(x)is.numeric(meta_data[,x])))]
+    meta_data[,numeric_meta] <- scale(meta_data[,numeric_meta])
+    
     dat <- c()
     dat$count_data  <- count_data
     dat$nonrare     <- nonrare
@@ -235,12 +236,13 @@ mda.cache_load <- function(outprefix, method, form, suffix="rds"){
                                                       
 mda.cache_load_or_run_save <- function(outputprefix, method, form, expr) {
     cache.file <- mda.cache_filename(outputprefix, method, form, suffix="rds")
+    mainvar <- labels(terms(as.formula(form)))[1]
     data <- if (file.exists(cache.file)){
-        message(paste0(c("[MDA] Loading:", cache.file, "for", method, ",", mda.deparse(form)), collapse=" "))
+        message(paste0(c("[MDA] CacheLoad: ", method, ", ", mainvar, " (", basename(cache.file), ")"), collapse=""))
         readRDS(cache.file)
     } else{
         data <- expr
-        message(paste0(c("[MDA] Executing & storing:", cache.file, "for", method, ",", mda.deparse(form)), collapse=" "))
+        message(paste0(c("[MDA] CacheStore: ", method, ", ", mainvar, " (", basename(cache.file), ")"), collapse=""))
         saveRDS(data, cache.file)
         data
     }

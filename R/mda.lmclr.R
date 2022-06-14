@@ -6,10 +6,11 @@ mda.lmclr <- function(mda.D){
     
     require(dplyr)
     require(tibble)
+    
+    clr_data <- as.data.frame(scale(mda.clr(mda.relative_abundance(mda.pseudocount(D$count_data)))))
 
     lmclr <- function(count_data, meta_data, formula, mainvar, taxa=NULL){
         taxa <- if (is.null(taxa)) colnames(count_data) else taxa
-        clr_data <- mda.clr(mda.pseudocount(count_data))
 
         f <- update(formula, clrtaxa ~ .)
 
