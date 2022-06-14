@@ -169,7 +169,7 @@ mda.mkdirp <- function(dir){
 # Formula processing functions
                                                       
 mda.load_formula_input <- function(formula_input){
-  raw <- if inherits(formula_input, "formula") {
+  raw <- if (inherits(formula_input, "formula")) {
       mda.deparse(formula_input)
   } else if (file.exists(formula_input)){
     unlist(strsplit(readLines(formula_input), "\n"))
