@@ -16,6 +16,8 @@ function usage(){
     echo "    --complement  : run the complement of the current selection
                               (i.e. -c --complement would NOT run corncob)"
     echo "    --nocache     : Do not use a cache"
+    echo "    --recache     : Re-do cached analyses"
+    echo "    --help        : Display this help message"
     echo "    --docker      : Use docker instead of singularity"
     echo "  Inputs:"
     echo "    count_data : File path to a sample*taxa (rows*columns) tab separated file.
@@ -59,6 +61,10 @@ while true; do
             args="$args --complement"; shift;;
       (--nocache)
             args="$args --nocache"; shift;;
+      (--recache)
+            args="$args --recache"; shift;;
+      (--help)
+            usage $0; exit 1;;
       (--docker)
             singularity=0; shift;;
       (--)  shift; break;;

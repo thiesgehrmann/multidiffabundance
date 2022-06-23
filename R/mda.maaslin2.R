@@ -20,10 +20,10 @@ mda.maaslin2 <- function(mda.D){
         if ( length(D$formula$rand_intercept[[f_idx]]) > 0 ){
             randvars <- D$formula$rand_intercept[[f_idx]]
             random_effects <- unlist(lapply(randvars, function(x){ trimws(gsub(")", "", unlist(strsplit(x, split="\\|"))[[2]]))}))
-            f.cache <- update.formula(f.cache, paste0(c(".~.+", paste0(D$formula$rand_intercept[[f_idx]], collapse="+")), collapse=""))
+            f.cache <- update.formula(f.cache, paste0(c("~.+", paste0(D$formula$rand_intercept[[f_idx]], collapse="+")), collapse=""))
         }
-        
-        mas <- mda.cache_load_or_run_save(D$cacheprefix, "maaslin2", f.cache, 
+
+        mas <- mda.cache_load_or_run_save(D, "maaslin2", f.cache, 
                     Maaslin2(input_data = D$count_data,
                              input_metadata = D$meta_data,
                              output = paste0(c(D$outprefix, "/maaslin2.output.folder"), collapse=""),
@@ -40,6 +40,7 @@ mda.maaslin2 <- function(mda.D){
                              plot_heatmap = FALSE,
                              plot_scatter = FALSE,
                              cores = 1))
+
         res.full <- as_tibble(as.data.frame(mas$results))
         res.full <- res.full[,c("feature","metadata","coef","stderr","pval")]
         res.full$formula <- rep(mda.deparse(f.cache), dim(res.full)[1])

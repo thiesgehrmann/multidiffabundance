@@ -73,7 +73,7 @@ mda.from_phyloseq <- function(phys, formulas, output_dir=tempdir(), ...){
     message("[MDA] mda.from_phyloseq ERROR: UNIMPLEMENTED")
 }
                                                       
-mda.create <- function(count_data, meta_data, formulas, output_dir=tempdir(), usecache=TRUE){
+mda.create <- function(count_data, meta_data, formulas, output_dir=tempdir(), usecache=TRUE, recache=FALSE){
     require(digest)
     if (! all(rownames(count_data) == rownames(meta_data))) {
         message("[MDA] mda.create ERROR: Rownames of meta data and count data do not match!")
@@ -92,7 +92,8 @@ mda.create <- function(count_data, meta_data, formulas, output_dir=tempdir(), us
     dat$meta_data   <- meta_data
     dat$formula     <- FD
     dat$outprefix   <- output_dir
-    dat$usecache       <- usecache
+    dat$usecache    <- usecache
+    dat$recache     <- recache
     checksums <- unlist(lapply(list(count_data, meta_data), digest, algo="md5"))
     dat$cacheprefix <- paste0(c(output_dir, "mda.cache", paste0(checksums, collapse=".")), collapse="/")
     if (usecache){
@@ -257,7 +258,7 @@ mda.cache_load_or_run_save <- function(mda.D, method, form, expr) {
     outputprefix <- D$cacheprefix
     cache.file <- mda.cache_filename(outputprefix, method, form, suffix="rds")
     mainvar <- labels(terms(as.formula(form)))[1]
-    data <- if (file.exists(cache.file) & D$usecache){
+    data <- if (file.exists(cache.file) & (D$usecache) & !(D$recache)){
         message(paste0(c("[MDA] CacheLoad: ", method, ", ", mainvar, " (", basename(cache.file), ")"), collapse=""))
         readRDS(cache.file)
     } else{
