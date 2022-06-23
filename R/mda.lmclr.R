@@ -31,13 +31,40 @@ mda.lmclr <- function(mda.D){
 
         res
     }
+    
+    lmerclr <- function(count_data, meta_data, formula, mainvar, taxa=NULL){
+        library(lmerTest)
+        taxa <- if (is.null(taxa)) colnames(count_data) else taxa
+
+        f <- update(formula, clrtaxa ~ .)
+
+        res <- lapply(taxa, function(t){
+            meta_data$clrtaxa <- clr_data[,t]
+            fit <- lmer(f, data=meta_data, na.action = 'na.exclude')
+            s <- as.data.frame(coefficients(summary(fit)))
+            s$taxa <- rep(t, dim(s)[1])
+            s <- s %>% rownames_to_column("variable")
+            s
+        })
+        res <- bind_rows(res)
+
+        names(res)[names(res)=="Estimate"] <- "effectsize"
+        names(res)[names(res)=="Std. Error"] <- "se"
+        names(res)[names(res)=="t value"] <- "stat"
+        names(res)[names(res)=="Pr(>|t|)"] <- "pvalue"
+
+        res
+    }
 
     do <- function(f_idx){
 
-        f <- D$formula$norand[[f_idx]]
+        method <- if ( (length(D$formula$rand_intercept[[f_idx]]) + length(D$formula$rand_slope[[f_idx]])) > 0 ){
+            lmerclr
+        } else { lmclr }
+        f <- D$formula$formula[[f_idx]]
         mainvar <- D$formula$main_var[f_idx]
 
-        res.full <- mda.cache_load_or_run_save(D$cacheprefix, "lmclr", f, lmclr(D$count_data, D$meta_data, f, mainvar, D$nonrare))
+        res.full <- mda.cache_load_or_run_save(D, "lmclr", f, method(D$count_data, D$meta_data, f, mainvar, D$nonrare))
 
         #res.full <- lmclr(D$count_data, D$meta_data, f, mainvar, D$nonrare)
         res.full$formula <- rep(mda.deparse(f), dim(res.full)[1])

@@ -15,6 +15,7 @@ function usage(){
     echo "    -m|--maaslin2 : Run Maaslin2"
     echo "    --complement  : run the complement of the current selection
                               (i.e. -c --complement would NOT run corncob)"
+    echo "    --nocache     : Do not use a cache"
     echo "    --docker      : Use docker instead of singularity"
     echo "  Inputs:"
     echo "    count_data : File path to a sample*taxa (rows*columns) tab separated file.
@@ -31,7 +32,7 @@ function usage(){
 # PROCESS INPUTS
 
 
-ARGS=$(getopt -o 'aAcdlLm' --long 'aldex2,ancombc,corncob,deseq2,limma,lmclr,maaslin2,complement,docker' -- "$@") || exit
+ARGS=$(getopt -o 'aAcdlLm' --long 'aldex2,ancombc,corncob,deseq2,limma,lmclr,maaslin2,complement,docker,nocache' -- "$@") || exit
 eval "set -- $ARGS"
 
 singularity=1
@@ -56,6 +57,8 @@ while true; do
             args="$args -m"; shift;;
       (--complement)
             args="$args --complement"; shift;;
+      (--nocache)
+            args="$args --nocache"; shift;;
       (--docker)
             singularity=0; shift;;
       (--)  shift; break;;

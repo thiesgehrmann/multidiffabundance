@@ -11,10 +11,14 @@ mda.aldex2 <- function(mda.D){
         f <- D$formula$norand[[f_idx]]
         mainvar <- D$formula$main_var[f_idx]
 
+        if ( (length(D$formula$rand_intercept[[f_idx]]) + length(D$formula$rand_slope[[f_idx]])) > 0 ){
+            message(paste0(c("[MDA] mda.aldex2: Formula ", f_idx, " contains random effects. ALDEx2 can not handle random effects. Run will continue without random effects.")))
+        }
 
-        out <- mda.cache_load_or_run_save(D$cacheprefix, "aldex2", f, {
-            model_matrix <- model.matrix(f, D$meta_data)
-            aldex(t(D$count_data), model_matrix, denom = "all", test="glm")
+        out <- mda.cache_load_or_run_save(D, "aldex2", f, {
+            mm <- model.matrix(f, D$meta_data)
+            counts <- t(D$count_data[rownames(mm),]) # Remove the NAs that have been removed by model.matrix
+            aldex(counts, mm, denom = "all", test="glm")
         })
 
         res.full <- gather(as.data.frame(out) %>% rownames_to_column('taxa'), "measure", "value", 2:(dim(as.data.frame(out))[2]+1))

@@ -5,6 +5,7 @@ mda.ancombc <- function(mda.D){
     D <- mda.D
     require("ANCOMBC")
     require(tidyr)
+    require(dplyr)
     require(tibble)
 
 
@@ -17,8 +18,12 @@ mda.ancombc <- function(mda.D){
         f.ancombc <- strsplit(mda.deparse(f),"~")[[1]][2]
 
         mainvar <- D$formula$main_var[f_idx]
+        
+        if ( (length(D$formula$rand_intercept[[f_idx]]) + length(D$formula$rand_slope[[f_idx]])) > 0 ){
+            message(paste0(c("[MDA] mda.ancombc: Formula ", f_idx, " contains random effects. ANCOM-BC can not handle random effects. Run will continue without random effects.")))
+        }
 
-        out <- mda.cache_load_or_run_save(D$cacheprefix, "ancombc", f, 
+        out <- mda.cache_load_or_run_save(D, "ancombc", f, 
                    ancombc(phyloseq = phylo, formula = f.ancombc, 
                            p_adj_method = "holm", zero_cut = 0.90, lib_cut = 1000, 
                            struc_zero = FALSE, global = FALSE, neg_lb = TRUE, tol = 1e-5, 

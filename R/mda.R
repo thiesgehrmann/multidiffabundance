@@ -5,7 +5,7 @@
 ###############################################################################
 # Input loading functions
 
-mda.from_cmdargs <- function(args){
+mda.from_cmdargs <- function(args, ...){
     require(tools)
     require("tidyverse")
     
@@ -22,7 +22,7 @@ mda.from_cmdargs <- function(args){
     mda.from_files(abundance, meta, formula.data, outprefix)
 }
                                                       
-mda.from_files <- function(abundance, meta, formula.data, outprefix=tempdir()){
+mda.from_files <- function(abundance, meta, formula.data, outprefix=tempdir(), ...){
     # Prepare formula
     require(tidyverse)
 
@@ -48,13 +48,14 @@ mda.from_files <- function(abundance, meta, formula.data, outprefix=tempdir()){
                                                         
     ###############################################################################
     
-    dat <- mda.create(count_data, meta_data, raw.formula.data, outprefix)
+    dat <- mda.create(count_data, meta_data, raw.formula.data, outprefix, ...)
     
     return(dat)
 }
 
-mda.from_tidyamplicons <- function(ta, formulas, output_dir=tempdir()){
+mda.from_tidyamplicons <- function(ta, formulas, output_dir=tempdir(), ...){
     require(dpylr)
+    require(tidyr)
     meta_data <- as.data.frame(ta$samples)
     rownames(meta_data) <- meta_data$sample_id
     
@@ -62,24 +63,24 @@ mda.from_tidyamplicons <- function(ta, formulas, output_dir=tempdir()){
     rownames(count_data) <- count_data$sample_id
     count_data <- count_data[,-1]
     
-    dat <- mda.create(count_data, meta_data, formulas, output_dir)
+    dat <- mda.create(count_data, meta_data, formulas, output_dir, ...)
     dat$ta <- ta
     
     return(dat)
 }
 
-mda.from_phyloseq <- function(phys, formulas, output_dir=tempdir()){
+mda.from_phyloseq <- function(phys, formulas, output_dir=tempdir(), ...){
     message("[MDA] mda.from_phyloseq ERROR: UNIMPLEMENTED")
 }
                                                       
-mda.create <- function(count_data, meta_data, formulas, output_dir=tempdir()){
+mda.create <- function(count_data, meta_data, formulas, output_dir=tempdir(), usecache=TRUE){
     require(digest)
     if (! all(rownames(count_data) == rownames(meta_data))) {
         message("[MDA] mda.create ERROR: Rownames of meta data and count data do not match!")
         return(NULL)
     }
     
-    FD <- mda.process_formula_input(unlist(lapply(formulas, function(x){mda.deparse(x)})))
+    FD <- mda.process_formula_input(unlist(lapply(c(formulas), function(x){mda.deparse(x)})))
     nonrare <- mda.nonrare_taxa(count_data, 0.1) 
 
     numeric_meta <- colnames(meta_data)[unlist(lapply(colnames(meta_data), function(x)is.numeric(meta_data[,x])))]
@@ -91,9 +92,12 @@ mda.create <- function(count_data, meta_data, formulas, output_dir=tempdir()){
     dat$meta_data   <- meta_data
     dat$formula     <- FD
     dat$outprefix   <- output_dir
+    dat$usecache       <- usecache
     checksums <- unlist(lapply(list(count_data, meta_data), digest, algo="md5"))
     dat$cacheprefix <- paste0(c(output_dir, "mda.cache", paste0(checksums, collapse=".")), collapse="/")
-    mda.mkdirp(dirname(dat$cacheprefix))
+    if (usecache){
+        mda.mkdirp(dirname(dat$cacheprefix))
+    }
 
     return(dat)
 }
@@ -135,27 +139,47 @@ mda.verify_formula_input <- function(raw_formula){
 mda.process_formula_input <- function(raw_formula){
   form <- lapply(raw_formula, as.formula)
   
-  fterms <- lapply(form, function(x){labels(terms(x))})
-  fterms_fixed  <- lapply(fterms, function(x){ x[!grepl("\\|", x)]})
-  fterms_random <- lapply(fterms, function(x){ x[grepl("\\|", x)]})
-  
+  fterms <-                  lapply(form, function(x){labels(terms(x))})
+  fterms_fixed  <-           lapply(fterms, function(x){ x[!grepl("\\|", x)]})
+  fterms_random_intercept <- lapply(fterms, function(x){ x[grepl("^[1][ ]*\\|", x)]})
+  fterms_random_slope <-     lapply(fterms, function(x){ x[grepl("^[01]?[ ]*[+]?[^0-9].+\\|", x)]})
+
   FD <- c()
   FD$raw <- raw_formula
   FD$formula <- form
   FD$main_var <- unlist(lapply(fterms_fixed, function(x){unlist(x[1])}))
-  FD$adj_vars <- unlist(lapply(fterms_fixed, function(x){paste0(x[-1], collapse="+")}))
-  FD$rand_vars <- unlist(lapply(fterms_random, function(ftr){
-    paste0(lapply(ftr, function(x){paste0(c('(', x, ')'), collapse="")}), collapse="+")
-  }))
+  FD$adj_vars <- lapply(fterms_fixed, function(x){paste0(x[-1], collapse="+")})
+
+  FD$rand_intercept <- lapply(fterms_random_intercept, function(ftr){
+    unlist(lapply(ftr, function(x){paste0(c('(', x, ')'), collapse="")}))
+  })
+    
+  FD$rand_slope <- lapply(fterms_random_slope, function(ftr){
+    unlist(lapply(ftr, function(x){paste0(c('(', x, ')'), collapse="")}))
+  })
+    
   FD$norand <- lapply(fterms_fixed, function(ftf){
     as.formula(paste0(c("~",paste0(ftf, collapse="+")),collapse=""))
   })
   
-  if (nchar(paste0(unlist(fterms_random), collapse="")) > 0){
-    message("[MDA] mda.process_formula_input WARNING: No mixed effect terms are allowed in this implementation. Random effects will be ignored. Please format your random effects as fixed effects. Sorry.")
-  }
+  #if (nchar(paste0(unlist(fterms_random), collapse="")) > 0){
+  #  message("[MDA] mda.process_formula_input WARNING: No mixed effect terms are allowed in this implementation. Random effects will be ignored. Please format your random effects as fixed effects. Sorry.")
+  #}
   
   FD
+}
+                                                      
+mda.permute_formula <- function(form){
+    unlist(lapply(c(form), function(f){
+        L <- labels(terms(as.formula(f)))
+        Lf <- L[!grepl("\\|",L)]
+        Lr <- L[grepl("\\|",L)]
+        Lrf <- unlist(lapply(Lr, function(x) paste0(c("(",x,")"), collapse="")))
+        unlist(lapply(Lf, function(l){
+            other <- setdiff(Lf, l)
+            as.formula(paste0(c(paste0(c("~",l,""), collapse=""), other, Lrf), collapse="+"))
+        }))
+    }))
 }
 
 ###############################################################################
@@ -208,19 +232,13 @@ mda.meta.freq <- function(D, var){
 mda.cache_filename <- function(outprefix, method, form, suffix="tsv", collapse="."){
     require(digest)
     mainvar <- labels(terms(as.formula(form)))[1]
-    form.fmt <- tolower(mda.deparse(form))
-    form.fmt <- gsub("[~()._!]", "", form.fmt)
-    form.fmt <- gsub("[*]", "M", form.fmt)
-    form.fmt <- gsub("[+]", "P", form.fmt)
-    form.fmt <- gsub("[:]", "I", form.fmt)
-    form.fmt <- gsub("[|]", "R", form.fmt)
-    form.fmt <- gsub("[-]", "S", form.fmt)
-    form.fmt
+    L <- labels(terms(as.formula(form)))
+    form.fmt <- paste0(sort(L), collapse="+")
     
     form.digest <- digest(form.fmt, algo="md5")
     form.digest <- gsub("[~():._! |]", "", form.digest)
     
-    filename <- paste0(c(paste0(c(outprefix, method, mainvar, form.digest), collapse=collapse), suffix), collapse=".")
+    filename <- paste0(c(paste0(c(outprefix, method, form.digest), collapse=collapse), suffix), collapse=".")
     filename
 }
 
@@ -234,16 +252,20 @@ mda.cache_load <- function(outprefix, method, form, suffix="rds"){
   dat <- readRDS(filename)
 }
                                                       
-mda.cache_load_or_run_save <- function(outputprefix, method, form, expr) {
+mda.cache_load_or_run_save <- function(mda.D, method, form, expr) {
+    D <- mda.D
+    outputprefix <- D$cacheprefix
     cache.file <- mda.cache_filename(outputprefix, method, form, suffix="rds")
     mainvar <- labels(terms(as.formula(form)))[1]
-    data <- if (file.exists(cache.file)){
+    data <- if (file.exists(cache.file) & D$usecache){
         message(paste0(c("[MDA] CacheLoad: ", method, ", ", mainvar, " (", basename(cache.file), ")"), collapse=""))
         readRDS(cache.file)
     } else{
         data <- expr
-        message(paste0(c("[MDA] CacheStore: ", method, ", ", mainvar, " (", basename(cache.file), ")"), collapse=""))
-        saveRDS(data, cache.file)
+        if (D$usecache){
+            message(paste0(c("[MDA] CacheStore: ", method, ", ", mainvar, " (", basename(cache.file), ")"), collapse=""))
+            saveRDS(data, cache.file)
+        }
         data
     }
     data

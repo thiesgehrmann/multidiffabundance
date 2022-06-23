@@ -9,8 +9,21 @@ mda.maaslin2 <- function(mda.D){
 
     do <- function(f_idx){
         f <- D$formula$norand[[f_idx]]
+        f.cache <- f
         mainvar <- D$formula$main_var[f_idx]
-        mas <- mda.cache_load_or_run_save(D$cacheprefix, "maaslin2", f, 
+        
+        if ( length(D$formula$rand_slope[[f_idx]]) > 0 ){
+            message(paste0(c("[MDA] mda.maaslin2: Formula on ", f_idx, " contains random slope effects. Maaslin2 can not handle random slopes. Run will continue without random slopes")))
+        }
+        
+        random_effects <- NULL
+        if ( length(D$formula$rand_intercept[[f_idx]]) > 0 ){
+            randvars <- D$formula$rand_intercept[[f_idx]]
+            random_effects <- unlist(lapply(randvars, function(x){ trimws(gsub(")", "", unlist(strsplit(x, split="\\|"))[[2]]))}))
+            f.cache <- update.formula(f.cache, paste0(c(".~.+", paste0(D$formula$rand_intercept[[f_idx]], collapse="+")), collapse=""))
+        }
+        
+        mas <- mda.cache_load_or_run_save(D$cacheprefix, "maaslin2", f.cache, 
                     Maaslin2(input_data = D$count_data,
                              input_metadata = D$meta_data,
                              output = paste0(c(D$outprefix, "/maaslin2.output.folder"), collapse=""),
@@ -21,6 +34,7 @@ mda.maaslin2 <- function(mda.D){
                              analysis_method = "LM",
                              max_significance = 0.05,
                              fixed_effects = labels(terms(f)),
+                             random_effects = random_effects,
                              correction = "BH",
                              standardize = FALSE,
                              plot_heatmap = FALSE,
@@ -28,7 +42,7 @@ mda.maaslin2 <- function(mda.D){
                              cores = 1))
         res.full <- as_tibble(as.data.frame(mas$results))
         res.full <- res.full[,c("feature","metadata","coef","stderr","pval")]
-        res.full$formula <- rep(mda.deparse(f), dim(res.full)[1])
+        res.full$formula <- rep(mda.deparse(f.cache), dim(res.full)[1])
         res.full$method <- rep("maaslin2", dim(res.full)[1])
         res.full$n <- rep(mda.meta.n(D, mainvar), dim(res.full)[1])
         res.full$freq <- rep(mda.meta.freq(D, mainvar), dim(res.full)[1])

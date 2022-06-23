@@ -7,23 +7,34 @@ mda.corncob <- function(mda.D){
     require(corncob)
     require(phyloseq)
     require(tibble)
-    
-    OTU <- phyloseq::otu_table(t(D$count_data), taxa_are_rows = T)
-    sampledata <- phyloseq::sample_data(D$meta_data, errorIfNULL = F)
-    phylo <- phyloseq::merge_phyloseq(OTU, sampledata)
+    require(dplyr)
 
     do <- function(f_idx){
         f <- D$formula$norand[[f_idx]]
         mainvar <- D$formula$main_var[f_idx]
+        
+        if ( (length(D$formula$rand_intercept[[f_idx]]) + length(D$formula$rand_slope[[f_idx]])) > 0 ){
+            message(paste0(c("[MDA] mda.corncob: Formula on ", f_idx, " contains random effects. Corncob can not handle random effects. Run will continue without random effects.")))
+        }
 
-        results <- mda.cache_load_or_run_save(D$cacheprefix, "corncob", f,
+        results <- mda.cache_load_or_run_save(D, "corncob", f,{
+            
+                       terms <- labels(terms(f))
+                       variables <- terms[!grepl(':', terms)]
+                       meta_data.nona <- na.omit(D$meta_data[,variables,drop=FALSE])
+                       count_data.nona <- D$count_data[rownames(meta_data.nona),]
+            
+                       OTU <- phyloseq::otu_table(t(count_data.nona), taxa_are_rows = T)
+                       sampledata <- phyloseq::sample_data(meta_data.nona, errorIfNULL = F)
+                       phylo <- phyloseq::merge_phyloseq(OTU, sampledata)
+            
                        corncob::differentialTest(formula= f,
                                                  phi.formula = f,
                                                  phi.formula_null = f,
                                                  formula_null = ~ 1,
                                                  test="Wald", data=phylo,
                                                  boot=F,
-                                                 fdr_cutoff = 0.05) )
+                                                 fdr_cutoff = 0.05) })
 
         ram <- results$all_models
         ram <- lapply(1:length(ram), function(t_idx){

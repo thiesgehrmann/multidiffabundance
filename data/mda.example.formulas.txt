@@ -1,2 +1,2 @@
-~ Subject + ReportedAntibioticUsage
+~ ReportedAntibioticUsage + (1|Subject)
 ~ DaysSinceExperimentStart + ReportedAntibioticUsage
