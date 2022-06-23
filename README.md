@@ -78,13 +78,13 @@ Not all tools can handle all types of formulas. While all models can accept adju
 
 | Tool          | Linear Model           | Random intercepts      | Random slopes          |
 | ------------- |:----------------------:|:----------------------:|:----------------------:|
-| ALDEx2        | <ul><li>-[x]</li></ul> |                        |                        |
-| ANCOM-BC      | <ul><li>-[x]</li></ul> |                        |                        
-| Corncob       | <ul><li>-[x]</li></ul> |                        |                        |
-| DESeq2        | <ul><li>-[x]</li></ul> |                        |                        |
-| limma         | <ul><li>-[x]</li></ul> | 1                      |                        |
-| lmCLR         | <ul><li>-[x]</li></ul> | <ul><li>-[x]</li></ul> | <ul><li>-[x]</li></ul> |
-| Maaslin2      | <ul><li>-[x]</li></ul> | <ul><li>-[x]</li></ul> |                        |
+| ALDEx2        | ✓ (many)               |                        |                        |
+| ANCOM-BC      | ✓ (many)               |                        |                        
+| Corncob       | ✓ (many)               |                        |                        |
+| DESeq2        | ✓ (many)               |                        |                        |
+| limma         | ✓ (many)               | ✓ (one)                |                        |
+| lmCLR         | ✓ (many)               | ✓ (many)               | ✓ (many)               |
+| Maaslin2      | ✓ (many)               | ✓ (many)               |                        |
 
 In the future, I am hoping also to include `dream` in this list, which also allows random intercepts
 
