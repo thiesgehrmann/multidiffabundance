@@ -3,9 +3,9 @@
 
 mda.maaslin2 <- function(mda.D){
     D <- mda.D
-    require(Maaslin2)
-    require(dplyr)
-    require(tibble)
+    suppressPackageStartupMessages(require(Maaslin2))
+    suppressPackageStartupMessages(require(dplyr))
+    suppressPackageStartupMessages(require(tibble))
 
     do <- function(f_idx){
         f <- D$formula$norand[[f_idx]]

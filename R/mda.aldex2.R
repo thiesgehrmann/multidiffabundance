@@ -2,10 +2,10 @@
 # ALDEx2
 
 mda.aldex2 <- function(mda.D){
-    require("ALDEx2")
-    require(tidyr)
-    require(tibble)
     D <- mda.D
+    suppressPackageStartupMessages(require("ALDEx2"))
+    suppressPackageStartupMessages(require(tidyr))
+    suppressPackageStartupMessages(require(tibble))
 
     do <- function(f_idx){
         f <- D$formula$norand[[f_idx]]

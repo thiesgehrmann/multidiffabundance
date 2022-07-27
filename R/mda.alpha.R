@@ -4,14 +4,13 @@
 mda.alpha <- function(mda.D){
     D <- mda.D
     
-    require(dplyr)
-    require(tibble)
-    require(vegan)
+    suppressPackageStartupMessages(require(dplyr))
+    suppressPackageStartupMessages(require(tibble))
+    suppressPackageStartupMessages(require(vegan))
     
-    clr_data <- as.data.frame(scale(mda.clr(mda.relative_abundance(mda.pseudocount(D$count_data)))))
     D$meta_data$mda.alpha <- scale(diversity(D$count_data))
 
-    lmclr <- function(count_data, meta_data, formula, mainvar, taxa=NULL){
+    lmalpha <- function(count_data, meta_data, formula, mainvar, taxa=NULL){
         taxa <- if (is.null(taxa)) colnames(count_data) else taxa
 
         f <- update(formula, mda.alpha ~ .)
@@ -30,8 +29,8 @@ mda.alpha <- function(mda.D){
         res
     }
     
-    lmerclr <- function(count_data, meta_data, formula, mainvar, taxa=NULL){
-        library(lmerTest)
+    lmeralpha <- function(count_data, meta_data, formula, mainvar, taxa=NULL){
+        suppressPackageStartupMessages(require(lmerTest))
         taxa <- if (is.null(taxa)) colnames(count_data) else taxa
 
         f <- update(formula, mda.alpha ~ .)
@@ -52,8 +51,8 @@ mda.alpha <- function(mda.D){
     do <- function(f_idx){
 
         method <- if ( (length(D$formula$rand_intercept[[f_idx]]) + length(D$formula$rand_slope[[f_idx]])) > 0 ){
-            lmerclr
-        } else { lmclr }
+            lmeralpha
+        } else { lmalpha }
         f <- D$formula$formula[[f_idx]]
         mainvar <- D$formula$main_var[f_idx]
 

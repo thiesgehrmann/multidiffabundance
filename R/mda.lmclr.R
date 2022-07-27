@@ -4,8 +4,8 @@
 mda.lmclr <- function(mda.D){
     D <- mda.D
     
-    require(dplyr)
-    require(tibble)
+    suppressPackageStartupMessages(require(dplyr))
+    suppressPackageStartupMessages(require(tibble))
     
     clr_data <- as.data.frame(scale(mda.clr(mda.relative_abundance(mda.pseudocount(D$count_data)))))
 
@@ -33,7 +33,7 @@ mda.lmclr <- function(mda.D){
     }
     
     lmerclr <- function(count_data, meta_data, formula, mainvar, taxa=NULL){
-        library(lmerTest)
+        suppressPackageStartupMessages(library(lmerTest))
         taxa <- if (is.null(taxa)) colnames(count_data) else taxa
 
         f <- update(formula, clrtaxa ~ .)

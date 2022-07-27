@@ -4,10 +4,10 @@
 mda.corncob <- function(mda.D){
     D <- mda.D
     
-    require(corncob)
-    require(phyloseq)
-    require(tibble)
-    require(dplyr)
+    suppressPackageStartupMessages(require(corncob))
+    suppressPackageStartupMessages(require(phyloseq))
+    suppressPackageStartupMessages(require(tibble))
+    suppressPackageStartupMessages(require(dplyr))
 
     do <- function(f_idx){
         f <- D$formula$norand[[f_idx]]
@@ -20,7 +20,7 @@ mda.corncob <- function(mda.D){
         results <- mda.cache_load_or_run_save(D, "corncob", f,{
             
                        terms <- labels(terms(f))
-                       variables <- terms[!grepl(':', terms)]
+                       variables <- terms[!grepl(':', terms)] # This needs to be cleaned up or done in a  nicer way
                        meta_data.nona <- na.omit(D$meta_data[,variables,drop=FALSE])
                        count_data.nona <- D$count_data[rownames(meta_data.nona),]
             

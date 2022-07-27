@@ -2,12 +2,12 @@
 # Run ANCOMBC
 
 mda.ancombc <- function(mda.D){
+    suppressPackageStartupMessages(require("ANCOMBC"))
+    suppressPackageStartupMessages(require(tidyr))
+    suppressPackageStartupMessages(require(dplyr))
+    suppressPackageStartupMessages(require(tibble))
+    
     D <- mda.D
-    require("ANCOMBC")
-    require(tidyr)
-    require(dplyr)
-    require(tibble)
-
 
     OTU <- phyloseq::otu_table(t(D$count_data), taxa_are_rows = T)
     sampledata <- phyloseq::sample_data(D$meta_data, errorIfNULL = F)

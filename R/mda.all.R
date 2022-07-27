@@ -1,6 +1,8 @@
 
-mda.all <- function(mda.D, alpha=TRUE, beta=FALSE, aldex2=TRUE, ancombc=TRUE, corncob=FALSE, deseq2=TRUE, limma=TRUE, lmclr=TRUE, maaslin2=TRUE){
-    require(dplyr)
+mda.all <- function(mda.D, alpha=FALSE, beta=FALSE,
+                    aldex2=TRUE, ancombc=TRUE, corncob=FALSE, deseq2=TRUE,
+                    limma=TRUE, lmclr=TRUE, maaslin2=TRUE){
+    suppressPackageStartupMessages(require(dplyr))
     D <- mda.D
     
     functions <- c(mda.alpha, mda.beta, mda.aldex2, mda.ancombc, mda.corncob, mda.deseq2, mda.limma, mda.lmclr, mda.maaslin2)

@@ -6,8 +6,8 @@
 # Input loading functions
 
 mda.from_cmdargs <- function(args, ...){
-    require(tools)
-    require("tidyverse")
+    suppressPackageStartupMessages(require(tools))
+    suppressPackageStartupMessages(require("tidyverse"))
     
     if (length(args) != 4){
         message("[MDA] mda.from_cmdargs ERROR: Too few arguments. There should be 4!")
@@ -24,7 +24,7 @@ mda.from_cmdargs <- function(args, ...){
                                                       
 mda.from_files <- function(abundance, meta, formula.data, outprefix=tempdir(), ...){
     # Prepare formula
-    require(tidyverse)
+    suppressPackageStartupMessages(require(tidyverse))
 
     raw.formula.data <- mda.load_formula_input(formula.data)
     if (!mda.verify_formula_input(raw.formula.data)){
@@ -54,8 +54,8 @@ mda.from_files <- function(abundance, meta, formula.data, outprefix=tempdir(), .
 }
 
 mda.from_tidyamplicons <- function(ta, formulas, output_dir=tempdir(), ...){
-    require(dplyr)
-    require(tidyr)
+    suppressPackageStartupMessages(require(dplyr))
+    suppressPackageStartupMessages(require(tidyr))
     meta_data <- as.data.frame(ta$samples)
     rownames(meta_data) <- meta_data$sample_id
     
@@ -81,7 +81,7 @@ mda.from_phyloseq <- function(phys, formulas, output_dir=tempdir(), ...){
 }
                                                       
 mda.create <- function(count_data, meta_data, formulas, output_dir=tempdir(), usecache=TRUE, recache=FALSE, nonrare.pct=0.1){
-    require(digest)
+    suppressPackageStartupMessages(require(digest))
     
     if (! all(rownames(count_data) == rownames(meta_data))) {
         message("[MDA] mda.create ERROR: Rownames of meta data and count data do not match!")
@@ -109,6 +109,20 @@ mda.create <- function(count_data, meta_data, formulas, output_dir=tempdir(), us
     }
 
     return(dat)
+}
+                                                      
+###############################################################################
+# Export functions
+
+mda.as_phyloseq <- function(D){
+    OTU <- phyloseq::otu_table(t(D$count_data), taxa_are_rows = T)
+    sampledata <- phyloseq::sample_data(D$meta_data, errorIfNULL = F)
+    phylo <- phyloseq::merge_phyloseq(OTU, sampledata)
+    phylo
+}
+                                                      
+mda.as_tidyamplicons <- function(D){
+    T
 }
 
 ###############################################################################
@@ -239,7 +253,7 @@ mda.meta.freq <- function(D, var){
 # output cache functions
                                                       
 mda.cache_filename <- function(outprefix, method, form, suffix="tsv", collapse="."){
-    require(digest)
+    suppressPackageStartupMessages(require(digest))
     mainvar <- labels(terms(as.formula(form)))[1]
     L <- labels(terms(as.formula(form)))
     form.fmt <- paste0(sort(L), collapse="+")
