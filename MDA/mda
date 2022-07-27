@@ -13,6 +13,8 @@ function usage(){
     echo "    -l|--limma    : Run limma"
     echo "    -L|--lmclr    : Run lm CLR"
     echo "    -m|--maaslin2 : Run Maaslin2"
+    echo "    --alpha       : Run alpha diversity test"
+    echo "    --beta        : Run beta diversity test (permanova/adonis2)"
     echo "    --complement  : run the complement of the current selection
                               (i.e. -c --complement would NOT run corncob)"
     echo "    --nocache     : Do not use a cache"
@@ -42,6 +44,8 @@ deseq2=0
 limma=0
 lmclr=0
 maaslin2=0
+alpha=0
+beta=0
 all=1
 complement=0
 usecache="TRUE"
@@ -64,6 +68,10 @@ while true; do
             all=0; lmclr=1; shift;;
       (-m|--maaslin2)
             all=0; maaslin2=1; shift;;
+      (--alpha)
+            all=0; alpha=1; shift;;
+      (--beta)
+            all=0; beta=1; shift;;
       (--complement)
             complement=1; shift;;
       (--nocache)
@@ -85,6 +93,8 @@ if [ $complement -eq 1 ]; then
     limma=$((1-limma))
     lmclr=$((1-lmclr))
     maaslin2=$((1-maaslin2))
+    alpha=$((1-alpha))
+    beta=$((1-beta))
 fi
 
 if [ $all -eq 1 ] ; then
@@ -95,6 +105,8 @@ if [ $all -eq 1 ] ; then
     limma=1
     lmclr=1
     maaslin2=1
+    alpha=1
+    beta=1
 fi
 
 #############################
@@ -216,6 +228,14 @@ fi
 
 if [ $maaslin2 -eq 1 ] ; then
     run_one_mda maaslin2 && result_files+=("$outprefix/maaslin2/results.tsv")
+fi
+
+if [ $alpha -eq 1 ] ; then
+    run_one_mda alpha && result_files+=("$outprefix/alpha/results.tsv")
+fi
+
+if [ $beta -eq 1 ] ; then
+    run_one_mda beta && result_files+=("$outprefix/beta/results.tsv")
 fi
 
 

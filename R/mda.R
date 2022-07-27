@@ -54,7 +54,7 @@ mda.from_files <- function(abundance, meta, formula.data, outprefix=tempdir(), .
 }
 
 mda.from_tidyamplicons <- function(ta, formulas, output_dir=tempdir(), ...){
-    require(dpylr)
+    require(dplyr)
     require(tidyr)
     meta_data <- as.data.frame(ta$samples)
     rownames(meta_data) <- meta_data$sample_id
@@ -62,8 +62,15 @@ mda.from_tidyamplicons <- function(ta, formulas, output_dir=tempdir(), ...){
     count_data <- as.data.frame(pivot_wider(ta$abundances, id_cols="sample_id", names_from="taxon_id", values_from="abundance", values_fill=0))
     rownames(count_data) <- count_data$sample_id
     count_data <- count_data[,-1]
+
+    union.samples = sort(union(rownames(count_data), rownames(meta_data)))
+    intersect.samples = sort(intersect(rownames(count_data), rownames(meta_data)))
     
-    dat <- mda.create(count_data, meta_data, formulas, output_dir, ...)
+    if ( length(union.samples) != length(intersect.samples) ){
+        message("[MDA] mda.from_tidyamplicons WARNING: tidyamplicons object has differing samples present in abundance and meta data!")
+    }
+    
+    dat <- mda.create(count_data[intersect.samples,], meta_data[intersect.samples,], formulas, output_dir, ...)
     dat$ta <- ta
     
     return(dat)
@@ -73,15 +80,16 @@ mda.from_phyloseq <- function(phys, formulas, output_dir=tempdir(), ...){
     message("[MDA] mda.from_phyloseq ERROR: UNIMPLEMENTED")
 }
                                                       
-mda.create <- function(count_data, meta_data, formulas, output_dir=tempdir(), usecache=TRUE, recache=FALSE){
+mda.create <- function(count_data, meta_data, formulas, output_dir=tempdir(), usecache=TRUE, recache=FALSE, nonrare.pct=0.1){
     require(digest)
+    
     if (! all(rownames(count_data) == rownames(meta_data))) {
         message("[MDA] mda.create ERROR: Rownames of meta data and count data do not match!")
         return(NULL)
     }
     
-    FD <- mda.process_formula_input(unlist(lapply(c(formulas), function(x){mda.deparse(x)})))
-    nonrare <- mda.nonrare_taxa(count_data, 0.1) 
+    FD <- mda.process_formula_input(unlist(lapply(list(formulas), function(x){mda.deparse(x)})))
+    nonrare <- mda.nonrare_taxa(count_data, nonrare.pct) 
 
     numeric_meta <- colnames(meta_data)[unlist(lapply(colnames(meta_data), function(x)is.numeric(meta_data[,x])))]
     meta_data[,numeric_meta] <- scale(meta_data[,numeric_meta])
@@ -95,7 +103,7 @@ mda.create <- function(count_data, meta_data, formulas, output_dir=tempdir(), us
     dat$usecache    <- usecache
     dat$recache     <- recache
     checksums <- unlist(lapply(list(count_data, meta_data), digest, algo="md5"))
-    dat$cacheprefix <- paste0(c(output_dir, "mda.cache", paste0(checksums, collapse=".")), collapse="/")
+    dat$cacheprefix <- paste0(c(output_dir, "mda.cache", paste0(c(checksums, as.character(nonrare.pct)), collapse="-")), collapse="/")
     if (usecache){
         mda.mkdirp(dirname(dat$cacheprefix))
     }
@@ -239,7 +247,7 @@ mda.cache_filename <- function(outprefix, method, form, suffix="tsv", collapse="
     form.digest <- digest(form.fmt, algo="md5")
     form.digest <- gsub("[~():._! |]", "", form.digest)
     
-    filename <- paste0(c(paste0(c(outprefix, method, form.digest), collapse=collapse), suffix), collapse=".")
+    filename <- paste0(c(paste0(c(outprefix, method, form.digest), collapse='_'), suffix), collapse=".")
     filename
 }
 
@@ -284,3 +292,18 @@ mda.deparse <- function(form){
 }
                                                       
 ###############################################################################
+# Summary function
+
+mda.summary <- function(res, id_cols="taxa", names_from="variable", method_from="method", pvalue_from="pvalue", qvalue_from="qvalue", effectsize_from="effectsize",
+                        values_fn=list, pvalue_threshold=0.05, qvalue_threshold=0.05){
+
+    res <- arrange(res, "method", "taxa", "variable")
+    
+    list(
+        nsig =       pivot_wider(res, id_cols=id_cols, names_from=names_from, values_from=all_of(qvalue_from),     values_fn=function(v){as.integer(sum(v < qvalue_threshold))}),
+        pvalue =     pivot_wider(res, id_cols=id_cols, names_from=names_from, values_from=all_of(pvalue_from),     values_fn=list),
+        qvalue =     pivot_wider(res, id_cols=id_cols, names_from=names_from, values_from=all_of(qvalue_from),     values_fn=list),
+        effectsize = pivot_wider(res, id_cols=id_cols, names_from=names_from, values_from=all_of(effectsize_from), values_fn=list),
+        method_order = sort(unique(res[,method_from]))
+    )
+}

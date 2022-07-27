@@ -65,5 +65,5 @@ mda.ancombc <- function(mda.D){
     column.order <- c("taxa","variable","effectsize","se","stat","pvalue","qvalue.withinformula","qvalue","formula","method","n","freq")
     res <- res[,column.order]
     
-    return(list(res=res, res.full=res.full))
+    return(list(res=res, res.full=res.full, summary=mda.summary(res)))
 }

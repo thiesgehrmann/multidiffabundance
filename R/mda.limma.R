@@ -44,7 +44,6 @@ mda.limma <- function(mda.D){
             if (length(D$formula$rand_intercept[[f_idx]]) > 1){
                 message(paste0(c("[MDA] mda.limma: Formula on ", f_idx, " contains more than one random intercept effect. limma can only handle one random effect. Will continue with (1|", block, ").")))
             }
-            print(block)
             block <- D$meta_data[,block]
         }
         
@@ -60,10 +59,11 @@ mda.limma <- function(mda.D){
                     } else {
                         # With explanations on 
                         # https://bioconductor.riken.jp/packages/3.9/bioc/vignettes/variancePartition/inst/doc/dream.html
-                        dupcor <- duplicateCorrelation(voomfit,mm,block=block)
-                        vobj = voom( subset_dgelist, mm, plot=FALSE, block=block, correlation=dupcor$consensus)
-                        dupcor <- duplicateCorrelation(vobj, mm, block=block)
-                        lmFit(vobj, mm, block=block, correlation=dupcor$consensus)
+                        subset_block <- block[rownames(DGE_LIST_Norm$samples) %in% rownames(mm)]
+                        dupcor <- duplicateCorrelation(voomfit,mm,block=subset_block)
+                        vobj = voom( subset_dgelist, mm, plot=FALSE, block=subset_block, correlation=dupcor$consensus)
+                        dupcor <- duplicateCorrelation(vobj, mm, block=subset_block)
+                        lmFit(vobj, mm, block=subset_block, correlation=dupcor$consensus)
                     }
                     eBayes( fit )
                    } )
@@ -108,5 +108,5 @@ mda.limma <- function(mda.D){
     column.order <- c("taxa","variable","effectsize","se","stat","pvalue","qvalue.withinformula","qvalue","formula","method","n","freq")
     res <- res[,column.order]
     
-    return(list(res=res, res.full=res.full))
+    return(list(res=res, res.full=res.full, summary=mda.summary(res)))
 }

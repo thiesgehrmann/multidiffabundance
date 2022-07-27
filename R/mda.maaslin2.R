@@ -23,7 +23,7 @@ mda.maaslin2 <- function(mda.D){
             f.cache <- update.formula(f.cache, paste0(c("~.+", paste0(D$formula$rand_intercept[[f_idx]], collapse="+")), collapse=""))
         }
 
-        mas <- mda.cache_load_or_run_save(D, "maaslin2", f.cache, 
+        mas <- mda.cache_load_or_run_save(D, "maaslin2", f.cache,
                     Maaslin2(input_data = D$count_data,
                              input_metadata = D$meta_data,
                              output = paste0(c(D$outprefix, "/maaslin2.output.folder"), collapse=""),
@@ -75,5 +75,5 @@ mda.maaslin2 <- function(mda.D){
 
     column.order <- c("taxa","variable","effectsize","se","stat","pvalue","qvalue.withinformula","qvalue","formula","method","n","freq")
     res <- res[,column.order]
-    return(list(res=res, res.full=res.full))
+    return(list(res=res, res.full=res.full, summary=mda.summary(res)))
 }

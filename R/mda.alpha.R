@@ -1,28 +1,26 @@
- ###############################################################################
-# LMCLR
+###############################################################################
+# ALPHA
 
-mda.lmclr <- function(mda.D){
+mda.alpha <- function(mda.D){
     D <- mda.D
     
     require(dplyr)
     require(tibble)
+    require(vegan)
     
     clr_data <- as.data.frame(scale(mda.clr(mda.relative_abundance(mda.pseudocount(D$count_data)))))
+    D$meta_data$mda.alpha <- scale(diversity(D$count_data))
 
     lmclr <- function(count_data, meta_data, formula, mainvar, taxa=NULL){
         taxa <- if (is.null(taxa)) colnames(count_data) else taxa
 
-        f <- update(formula, clrtaxa ~ .)
+        f <- update(formula, mda.alpha ~ .)
 
-        res <- lapply(taxa, function(t){
-            meta_data$clrtaxa <- clr_data[,t]
-            fit <- lm(f, data=meta_data, na.action = 'na.exclude')
-            s <- as.data.frame(coefficients(summary(fit)))
-            s$taxa <- rep(t, dim(s)[1])
-            s <- s %>% rownames_to_column("variable")
-            s
-        })
-        res <- bind_rows(res)
+        fit <- lm(f, data=meta_data, na.action = 'na.exclude')
+        s <- as.data.frame(coefficients(summary(fit)))
+        s$taxa <- c("mda.alpha")
+        s <- s %>% rownames_to_column("variable")
+        res <- s
 
         names(res)[names(res)=="Estimate"] <- "effectsize"
         names(res)[names(res)=="Std. Error"] <- "se"
@@ -36,17 +34,12 @@ mda.lmclr <- function(mda.D){
         library(lmerTest)
         taxa <- if (is.null(taxa)) colnames(count_data) else taxa
 
-        f <- update(formula, clrtaxa ~ .)
-
-        res <- lapply(taxa, function(t){
-            meta_data$clrtaxa <- clr_data[,t]
-            fit <- lmer(f, data=meta_data, na.action = 'na.exclude')
-            s <- as.data.frame(coefficients(summary(fit)))
-            s$taxa <- rep(t, dim(s)[1])
-            s <- s %>% rownames_to_column("variable")
-            s
-        })
-        res <- bind_rows(res)
+        f <- update(formula, mda.alpha ~ .)
+        fit <- lmer(f, data=meta_data, na.action = 'na.exclude')
+        s <- as.data.frame(coefficients(summary(fit)))
+        s$taxa <- c("mda.alpha")
+        s <- s %>% rownames_to_column("variable")
+        res <- s
 
         names(res)[names(res)=="Estimate"] <- "effectsize"
         names(res)[names(res)=="Std. Error"] <- "se"
@@ -64,16 +57,15 @@ mda.lmclr <- function(mda.D){
         f <- D$formula$formula[[f_idx]]
         mainvar <- D$formula$main_var[f_idx]
 
-        res.full <- mda.cache_load_or_run_save(D, "lmclr", f, method(D$count_data, D$meta_data, f, mainvar, D$nonrare))
+        res.full <- mda.cache_load_or_run_save(D, "alpha", f, method(D$count_data, D$meta_data, f, mainvar, D$nonrare))
 
         res.full$formula <- rep(mda.deparse(f), dim(res.full)[1])
-        res.full$method <- rep("lmclr", dim(res.full)[1])
+        res.full$method <- rep("alpha", dim(res.full)[1])
         res.full$n <- rep(mda.meta.n(D, mainvar), dim(res.full)[1])
         res.full$freq <- rep(mda.meta.freq(D, mainvar), dim(res.full)[1])
 
-        # Select only the relevant variable ( taxa are selected already in lmclr, but we repeat it here for safety )
-        res <- res.full[res.full$taxa %in% D$nonrare,]
-        res <- res[startsWith(res$variable, mainvar),]
+        # Select only the relevant variable
+        res <- res.full[startsWith(res.full$variable, mainvar),]
 
         res$qvalue.withinformula <- p.adjust(res$pvalue, "fdr")
         res$variable <- rep(mainvar, dim(res)[1])

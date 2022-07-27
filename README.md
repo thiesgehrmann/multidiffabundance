@@ -122,7 +122,7 @@ Functions to run the differential abundance tests are:
     mda "$abundance" \
         "$meta_data" \
         "$functions" \
-        "$outdir" | tee $outidr/stdout # Produces output in $outdir/results.tsv
+        "$outdir" | tee "$outdir/stdout" # Produces output in "$outdir/results.tsv"
 ```
 
 ## Running via docker/singularity image
@@ -185,6 +185,10 @@ In the future, I am hoping also to include `dream` in this list, which allows mu
 In this implementation (which is maybe not the best, and perhaps it will change), the first variable of each provided formula is the variable of interest, and only the effect of this variable will be reported.
 In the future there may be ways to retrieve multiple effects.
 For now, to retrieve the effects of multiple variables from the same formula, you must provide multiple formulas in which only the order of the variables has been changed. You can use the `mda.permute_formula` function for a crude implementation of this approach.
+```R
+mda.permute_formula(~a+b+c) # results in ~a+b+c, ~b+a+c, ~c+a+b
+```
+
 This should not result in increased computational overhead as the fitted models are cached with an formula-term-order-invariant hash (i.e. `~a+b` will be stored in the same cache as `~b+a`)
 
 ```R
@@ -192,7 +196,7 @@ This should not result in increased computational overhead as the fitted models 
     D <- mda.create(
              mda.example$count_data,
              mda.example$meta_data,
-             mda.permute_formula(form)
+             mda.permute_formula(form))
 
     mda.maaslin2(D)
 ```
@@ -219,6 +223,8 @@ cd multidiffabundance
 # *make changes to R/mda.method.R*
 echo "devtools:install_local(force=TRUE, dependencies=FALSE)" | R --no-save
 ```
+
+## 
 
 ## Can you include method `xxx`?
 Maybe. Send me a message.

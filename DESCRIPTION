@@ -19,6 +19,7 @@ Imports:
     tidyr,
     readr,
     digest,
-    lmerTest
+    lmerTest,
+    vegan
 VignetteBuilder: knitr
 RoxygenNote: 7.1.1

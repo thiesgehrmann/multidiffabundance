@@ -13,6 +13,8 @@ function usage(){
     echo "    -l|--limma    : Run limma"
     echo "    -L|--lmclr    : Run lm CLR"
     echo "    -m|--maaslin2 : Run Maaslin2"
+    echo "    --alpha       : Run alpha diversity test"
+    echo "    --beta        : Run beta diversity test (permanova/adonis2)"
     echo "    --complement  : run the complement of the current selection
                               (i.e. -c --complement would NOT run corncob)"
     echo "    --nocache     : Do not use a cache"
@@ -57,6 +59,10 @@ while true; do
             args="$args -L"; shift;;
       (-m|--maaslin2)
             args="$args -m"; shift;;
+      (--alpha)
+            args="$args --alpha"; shift;;
+      (--beta)
+            args="$args --beta"; shift;;
       (--complement)
             args="$args --complement"; shift;;
       (--nocache)
