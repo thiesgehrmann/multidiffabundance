@@ -227,7 +227,7 @@
                    
 ###############################################################################
                    
-mda.beta <- function(mda.D, permutations=999, parallel=1){
+mda.beta <- function(mda.D, beta.permutations=999, beta.parallel=8, ...){
     suppressPackageStartupMessages(require(vegan))
     suppressPackageStartupMessages(require(tidyverse))
     D <- mda.D
@@ -259,20 +259,20 @@ mda.beta <- function(mda.D, permutations=999, parallel=1){
 
         Dcopy <- D
         Dcopy$count_data <- count_data.nona
+        Dcopy$meta_data <- meta_data.nona
         
         out <- mda.cache_load_or_run_save(Dcopy, "beta", f.cache, {
             #meta_data.nona <- na.omit(D$meta_data[,variables,drop=FALSE])
             #count_data.nona <- D$count_data[rownames(meta_data.nona),]
-            
-            dist <- eval(mda.cache_load_or_run_save(Dcopy, "beta_dist", .~., {vegdist(count_data.nona)}))
+            dist <- mda.cache_load_or_run_save(Dcopy, "beta_dist", y~x, {vegdist(count_data.nona)})
             strata <- if (is.null(block)){NULL}else{meta_data.nona[,block]}
             f <- update(f, dist ~ .)
             assign("dist",dist,envir=environment(f)) # Dumbest shit I ever saw
             
             mda.adonis2(f, meta_data.nona, na.action = 'na.exclude', strata=strata,
-                        by = "margin", permutations=permutations, parallel=parallel,
+                        by = "margin", permutations=beta.permutations, parallel=beta.parallel,
                         scope=mainvar)
-        })
+        }, order_invariant=FALSE)
 
         res.full <- out
         res.full <- res.full[,c("R2","F", "Pr(>F)")]

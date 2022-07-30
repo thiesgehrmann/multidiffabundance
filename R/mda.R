@@ -35,11 +35,11 @@ mda.from_files <- function(abundance, meta, formula.data, outprefix=tempdir(), .
     ###############################################################################
     # Load the data
 
-    count_data <- as.data.frame(read_tsv(abundance))
+    count_data <- as.data.frame(read_tsv(abundance, col_types = cols()))
     row.names(count_data) <- count_data[,1]
     count_data <- count_data[,-1]
 
-    meta_data <- as.data.frame(read_tsv(meta))
+    meta_data <- as.data.frame(read_tsv(meta, col_types = cols()))
     row.names(meta_data) <- meta_data[,1]
     meta_data <- meta_data[,-1]
 
@@ -102,8 +102,8 @@ mda.create <- function(count_data, meta_data, formulas, output_dir=tempdir(), us
     dat$outprefix   <- output_dir
     dat$usecache    <- usecache
     dat$recache     <- recache
-    checksums <- unlist(lapply(list(count_data, meta_data), digest, algo="md5"))
-    dat$cacheprefix <- paste0(c(output_dir, "mda.cache", paste0(c(checksums, as.character(nonrare.pct)), collapse="-")), collapse="/")
+    checksum <- digest(c(count_data, meta_data), algo="md5")
+    dat$cacheprefix <- paste0(c(output_dir, "mda.cache", paste0(c(checksum, as.character(nonrare.pct)), collapse="-")), collapse="/")
     if (usecache){
         mda.mkdirp(dirname(dat$cacheprefix))
     }
@@ -252,33 +252,25 @@ mda.meta.freq <- function(D, var){
 ###############################################################################
 # output cache functions
                                                       
-mda.cache_filename <- function(outprefix, method, form, suffix="tsv", collapse="."){
+mda.cache_filename <- function(mda.D, method, form, suffix="tsv", collapse=".", order_invariant=TRUE){
+    D <- mda.D
     suppressPackageStartupMessages(require(digest))
     mainvar <- labels(terms(as.formula(form)))[1]
     L <- labels(terms(as.formula(form)))
-    form.fmt <- paste0(sort(L), collapse="+")
+    L <- if (order_invariant){sort(L)} else{L}
+    form.fmt <- paste0(L, collapse="+")
     
-    form.digest <- digest(form.fmt, algo="md5")
-    form.digest <- gsub("[~():._! |]", "", form.digest)
+    form.digest <- gsub("[~():._! |]", "", form.fmt)
+    form.digest <- digest(form.digest, algo="md5")
+    data.digest <- digest(c(D$count_data, D$meta_data), algo="md5")
     
-    filename <- paste0(c(paste0(c(outprefix, method, form.digest), collapse='_'), suffix), collapse=".")
+    filename <- paste0(c(paste0(c(D$cacheprefix, method, form.digest, data.digest), collapse='_'), suffix), collapse=".")
     filename
 }
-
-mda.cache_save <- function(dat, outprefix, method, form, suffix="rds", ...){
-  filename <- mda.get_cache_filename(outprefix, method, form, ...)
-  saveRDS(dat, filename)
-}
-
-mda.cache_load <- function(outprefix, method, form, suffix="rds"){
-  filename <- mda.get_cache_filename(outprefix, method, form, ...)
-  dat <- readRDS(filename)
-}
                                                       
-mda.cache_load_or_run_save <- function(mda.D, method, form, expr) {
+mda.cache_load_or_run_save <- function(mda.D, method, form, expr, order_invariant=TRUE) {
     D <- mda.D
-    outputprefix <- D$cacheprefix
-    cache.file <- mda.cache_filename(outputprefix, method, form, suffix="rds")
+    cache.file <- mda.cache_filename(D, method, form, suffix="rds", order_invariant=order_invariant)
     mainvar <- labels(terms(as.formula(form)))[1]
     data <- if (file.exists(cache.file) & (D$usecache) & !(D$recache)){
         message(paste0(c("[MDA] CacheLoad: ", method, ", ", mainvar, " (", basename(cache.file), ")"), collapse=""))

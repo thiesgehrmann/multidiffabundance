@@ -36,7 +36,7 @@ function usage(){
 # PROCESS INPUTS
 
 
-ARGS=$(getopt -o 'aAcdlLm' --long 'aldex2,ancombc,corncob,deseq2,limma,lmclr,maaslin2,complement,docker,nocache' -- "$@") || exit
+ARGS=$(getopt -o 'aAcdlLm' --long 'alpha,beta,aldex2,ancombc,corncob,deseq2,limma,lmclr,maaslin2,complement,docker,nocache' -- "$@") || exit
 eval "set -- $ARGS"
 
 singularity=1
