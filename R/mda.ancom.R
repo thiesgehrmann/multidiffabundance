@@ -1,7 +1,7 @@
 ###############################################################################
 # Run ANCOMBC
 
-mda.ancombc <- function(mda.D){
+mda.ancombc <- function(mda.D, ...){
     suppressPackageStartupMessages(require("ANCOMBC"))
     suppressPackageStartupMessages(require(tidyr))
     suppressPackageStartupMessages(require(dplyr))

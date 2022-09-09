@@ -1,7 +1,7 @@
 ###############################################################################
 # RUN LIMMA
 
-mda.limma <- function(mda.D){
+mda.limma <- function(mda.D, ...){
     D <- mda.D
     suppressPackageStartupMessages(require("edgeR"))
     suppressPackageStartupMessages(require(tidyr))

@@ -1,7 +1,7 @@
 
 mda.all <- function(mda.D, alpha=FALSE, beta=FALSE,
                     aldex2=TRUE, ancombc=TRUE, corncob=FALSE, deseq2=TRUE,
-                    limma=TRUE, lmclr=TRUE, maaslin2=TRUE,...){
+                    limma=TRUE, lmclr=TRUE, maaslin2=TRUE, ...){
     suppressPackageStartupMessages(require(dplyr))
     D <- mda.D
     

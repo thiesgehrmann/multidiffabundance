@@ -1,7 +1,7 @@
 ###############################################################################
 # ALPHA
 
-mda.alpha <- function(mda.D){
+mda.alpha <- function(mda.D, ...){
     D <- mda.D
     
     suppressPackageStartupMessages(require(dplyr))

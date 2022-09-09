@@ -158,6 +158,44 @@ mda.verify_formula_input <- function(raw_formula){
   })
   all(unlist(valids))
 }
+                                                      
+mda.formula_variables <- function(fn, depth=0, maxdepth=10){
+    # Extracts all the variables from a formula, from arithmetic and random effects
+    # fn <- ~ log(a) + b*c + (1|dn) + (e|f*g) + I(h+i) + log(j+I(k+l))
+    # mda.formula_variables(fn)
+    # >> c('a','b','c','dn','e','f','g','h','i','j','k','l')
+
+    if (depth > maxdepth){
+        return(NULL)
+    }
+    vars <- as.character(attributes((terms(as.formula(fn))))$variables)[-1]
+    subvars <- if (length(vars) == 1){
+        vs_func <- unlist(strsplit(vars, '[(]'))
+        if (length(vs_func) > 1){
+            stripfunc <- paste0(vs_func[-1], collapse='(')
+            stripfunc <- substr(stripfunc, 1, nchar(stripfunc)-1)
+            subfunc <- as.formula(paste0(c('~ ',stripfunc), collapse=""))
+            return(mda.formula_variables(subfunc,depth+1,maxdepth))
+        }
+        vs_random <- unlist(strsplit(vars, '[|]'))
+        if (length(vs_random) > 1){
+            if (vs_random[1] == "1"){
+                subfunc <- as.formula(paste0(c('~ ', vs_random[1]), collapse=""))
+                return(mda.formula_variables(subfunc, depth+1,maxdepth))
+            } else {
+                subfunc <- as.formula(paste0(c('~ ', vs_random[1]," + ",vs_random[2]), collapse=""))
+                return(mda.formula_variables(subfunc, depth+1,maxdepth))
+            }
+        }
+        return(vars)
+    } else {
+        unlist(lapply(vars, function(x){
+            subfunc <- as.formula(paste0(c('~ ',x), collapse=""))
+            mda.formula_variables(subfunc,depth+1,maxdepth)
+        }))
+    }
+    subvars
+}
 
 mda.process_formula_input <- function(raw_formula){
   form <- lapply(raw_formula, as.formula)
@@ -172,6 +210,7 @@ mda.process_formula_input <- function(raw_formula){
   FD$formula <- form
   FD$main_var <- unlist(lapply(fterms_fixed, function(x){unlist(x[1])}))
   FD$adj_vars <- lapply(fterms_fixed, function(x){paste0(x[-1], collapse="+")})
+  FD$variables <- lapply(FD$raw, mda.formula_variables)
 
   FD$rand_intercept <- lapply(fterms_random_intercept, function(ftr){
     unlist(lapply(ftr, function(x){paste0(c('(', x, ')'), collapse="")}))

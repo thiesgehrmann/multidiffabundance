@@ -15,8 +15,10 @@ function usage(){
     echo "    -m|--maaslin2 : Run Maaslin2"
     echo "    --alpha       : Run alpha diversity test"
     echo "    --beta        : Run beta diversity test (permanova/adonis2)"
-    echo "    --complement  : run the complement of the current selection
-                              (i.e. -c --complement would NOT run corncob)"
+    echo "    --complement  : run the complement of the current selection"
+    echo "                    (i.e. -c --complement would NOT run corncob)"
+    echo "    -o|--options  : Arguments to the mda functions. Comma seperated."
+    echo "                    (e.g. -o 'beta.permutations=10000')"
     echo "    --nocache     : Do not use a cache"
     echo "    --recache     : Re-do cached analyses"
     echo "    --help        : Display this help message"
@@ -36,7 +38,7 @@ function usage(){
 # PROCESS INPUTS
 
 
-ARGS=$(getopt -o 'aAcdlLm' --long 'alpha,beta,aldex2,ancombc,corncob,deseq2,limma,lmclr,maaslin2,complement,docker,nocache' -- "$@") || exit
+ARGS=$(getopt -o 'aAcdlLmo:' --long 'alpha,beta,aldex2,ancombc,corncob,deseq2,limma,lmclr,maaslin2,complement,options:,docker,nocache' -- "$@") || exit
 eval "set -- $ARGS"
 
 singularity=1
@@ -65,6 +67,8 @@ while true; do
             args="$args --beta"; shift;;
       (--complement)
             args="$args --complement"; shift;;
+      (-o|--options)
+            args="$args -o '$2'"; shift 2;;
       (--nocache)
             args="$args --nocache"; shift;;
       (--recache)

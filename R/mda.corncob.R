@@ -1,7 +1,7 @@
 ###############################################################################
 # Run CORNCOB
 
-mda.corncob <- function(mda.D){
+mda.corncob <- function(mda.D, ...){
     D <- mda.D
     
     suppressPackageStartupMessages(require(corncob))

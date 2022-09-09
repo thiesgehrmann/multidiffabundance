@@ -1,24 +1,29 @@
  ###############################################################################
-# LMCLR
+# Continuous value analysis
 
-mda.lmclr <- function(mda.D, ...){
+mda.continuous <- function(mda.D, continuous.cols=NULL, ...){
     D <- mda.D
     
     suppressPackageStartupMessages(require(dplyr))
     suppressPackageStartupMessages(require(tibble))
+    suppressPackageStartupMessages(require(lmerTest))
     
-    clr_data <- as.data.frame(scale(mda.clr(mda.relative_abundance(mda.pseudocount(D$count_data)))))
+    if(is.null(continuous.cols)){
+        message("[MDA] mda.continuous: Undefined 'continuous.cols' parameter. You should specify this in order to use the function.")
+        exit(0)
+    }
+    
+    lmcont <- function(D, formula){
 
-    lmclr <- function(count_data, meta_data, formula, mainvar, taxa=NULL){
-        taxa <- if (is.null(taxa)) colnames(count_data) else taxa
-
-        f <- update(formula, clrtaxa ~ .)
-
-        res <- lapply(taxa, function(t){
-            meta_data$clrtaxa <- clr_data[,t]
+        f <- update(formula, mda.cont.col ~ .)
+        
+        res <- lapply(continuous.cols, function(c){
+            meta_data <- D$meta_data
+            meta_data[!is.na(meta_data[,c]),]
+            meta_data$mda.cont.col <- meta_data[,c]
             fit <- lm(f, data=meta_data, na.action = 'na.exclude')
             s <- as.data.frame(coefficients(summary(fit)))
-            s$taxa <- rep(t, dim(s)[1])
+            s$taxa <- rep(c, dim(s)[1])
             s <- s %>% rownames_to_column("variable")
             s
         })
@@ -32,17 +37,18 @@ mda.lmclr <- function(mda.D, ...){
         res
     }
     
-    lmerclr <- function(count_data, meta_data, formula, mainvar, taxa=NULL){
+    lmercont <- function(D, formula){
         suppressPackageStartupMessages(library(lmerTest))
-        taxa <- if (is.null(taxa)) colnames(count_data) else taxa
 
-        f <- update(formula, clrtaxa ~ .)
+        f <- update(formula, mda.group.col ~ .)
 
-        res <- lapply(taxa, function(t){
-            meta_data$clrtaxa <- clr_data[,t]
+        res <- lapply(continuous.cols, function(c){
+            meta_data <- D$meta_data
+            meta_data[!is.na(meta_data[,c]),]
+            meta_data$mda.cont.col <- meta_data[,c]
             fit <- lmer(f, data=meta_data, na.action = 'na.exclude')
             s <- as.data.frame(coefficients(summary(fit)))
-            s$taxa <- rep(t, dim(s)[1])
+            s$taxa <- rep(c, dim(s)[1])
             s <- s %>% rownames_to_column("variable")
             s
         })
@@ -59,21 +65,20 @@ mda.lmclr <- function(mda.D, ...){
     do <- function(f_idx){
 
         method <- if ( (length(D$formula$rand_intercept[[f_idx]]) + length(D$formula$rand_slope[[f_idx]])) > 0 ){
-            lmerclr
-        } else { lmclr }
+            lmercont
+        } else { lmcont }
         f <- D$formula$formula[[f_idx]]
         mainvar <- D$formula$main_var[f_idx]
 
-        res.full <- mda.cache_load_or_run_save(D, "lmclr", f, method(D$count_data, D$meta_data, f, mainvar, D$nonrare))
+        res.full <- mda.cache_load_or_run_save(D, "continuous", f, method(D, f))
 
         res.full$formula <- rep(mda.deparse(f), dim(res.full)[1])
-        res.full$method <- rep("lmclr", dim(res.full)[1])
+        res.full$method <- rep("continuous", dim(res.full)[1])
         res.full$n <- rep(mda.meta.n(D, mainvar), dim(res.full)[1])
         res.full$freq <- rep(mda.meta.freq(D, mainvar), dim(res.full)[1])
 
-        # Select only the relevant variable ( taxa are selected already in lmclr, but we repeat it here for safety )
-        res <- res.full[res.full$taxa %in% D$nonrare,]
-        res <- res[startsWith(res$variable, mainvar),]
+        # Select only the relevant variable
+        res <- res.full[startsWith(res.full$variable, mainvar),]
 
         res$qvalue.withinformula <- p.adjust(res$pvalue, "fdr")
         res$variable <- rep(mainvar, dim(res)[1])

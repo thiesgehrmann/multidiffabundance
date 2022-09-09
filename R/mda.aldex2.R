@@ -1,7 +1,7 @@
 ###############################################################################
 # ALDEx2
 
-mda.aldex2 <- function(mda.D){
+mda.aldex2 <- function(mda.D, ...){
     D <- mda.D
     suppressPackageStartupMessages(require("ALDEx2"))
     suppressPackageStartupMessages(require(tidyr))

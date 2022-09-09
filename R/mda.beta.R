@@ -227,7 +227,8 @@
                    
 ###############################################################################
                    
-mda.beta <- function(mda.D, beta.permutations=999, beta.parallel=8, ...){
+mda.beta <- function(mda.D, beta.permutations=999, beta.parallel=8, beta.hack=TRUE, ...){
+    
     suppressPackageStartupMessages(require(vegan))
     suppressPackageStartupMessages(require(tidyverse))
     D <- mda.D
@@ -271,8 +272,8 @@ mda.beta <- function(mda.D, beta.permutations=999, beta.parallel=8, ...){
             
             mda.adonis2(f, meta_data.nona, na.action = 'na.exclude', strata=strata,
                         by = "margin", permutations=beta.permutations, parallel=beta.parallel,
-                        scope=mainvar)
-        }, order_invariant=FALSE)
+                        scope=if(beta.hack){mainvar}else{NULL})
+        }, order_invariant=!beta.hack)
 
         res.full <- out
         res.full <- res.full[,c("R2","F", "Pr(>F)")]

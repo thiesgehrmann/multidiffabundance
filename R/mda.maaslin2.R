@@ -1,7 +1,7 @@
 ###############################################################################
 # Maaslin2
 
-mda.maaslin2 <- function(mda.D){
+mda.maaslin2 <- function(mda.D, ...){
     D <- mda.D
     suppressPackageStartupMessages(require(Maaslin2))
     suppressPackageStartupMessages(require(dplyr))
@@ -22,6 +22,19 @@ mda.maaslin2 <- function(mda.D){
             random_effects <- unlist(lapply(randvars, function(x){ trimws(gsub(")", "", unlist(strsplit(x, split="\\|"))[[2]]))}))
             f.cache <- update.formula(f.cache, paste0(c("~.+", paste0(D$formula$rand_intercept[[f_idx]], collapse="+")), collapse=""))
         }
+        
+        fix_factors <- D$meta_data
+        possible_factors <- colnames(fix_factors)[unlist(lapply(colnames(fix_factors), function(x) { typeof(fix_factors[,x])})) == 'character']
+        dumb_masslin_factor_crap <- function(d){
+            fd <- factor(fix_factors[,d])
+            lv <- sort(levels(fd))
+            if (length(lv) > 2){
+                paste0(c(d, lv[1]), collapse=",")
+            } else {
+                NULL
+            }
+        }
+        maaslin2.reference <- paste0(unlist(lapply(possible_factors, dumb_masslin_factor_crap)), collapse=";")
 
         mas <- mda.cache_load_or_run_save(D, "maaslin2", f.cache,
                     Maaslin2(input_data = D$count_data,
@@ -39,7 +52,8 @@ mda.maaslin2 <- function(mda.D){
                              standardize = FALSE,
                              plot_heatmap = FALSE,
                              plot_scatter = FALSE,
-                             cores = 1))
+                             cores = 1,
+                             reference = maaslin2.reference))
 
         res.full <- as_tibble(as.data.frame(mas$results))
         res.full <- res.full[,c("feature","metadata","coef","stderr","pval")]

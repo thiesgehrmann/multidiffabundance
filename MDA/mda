@@ -15,10 +15,14 @@ function usage(){
     echo "    -m|--maaslin2 : Run Maaslin2"
     echo "    --alpha       : Run alpha diversity test"
     echo "    --beta        : Run beta diversity test (permanova/adonis2)"
+    echo "    --group       : Run an analysis on meta data a group variable (i.e. logistic regression) (e.g. CST/enterotypes etc.)"
+    echo "                      Define the relevant column with: --options \"group.col='groupcol'\" "
+    echo "    --continuous  : Run an analysis on meta data for a continuous variable (e.g. a score etc.)"
+    echo "                      Define the relevant column with: --options \"continuous.cols=c('score1','score2')\" "
+    echo "    --complement  : run the complement of the current selection"
+    echo "                    (i.e. -c --complement would NOT run corncob)"
     echo "    -o|--options  : Arguments to the mda functions. Comma seperated."
     echo "                    (e.g. -o 'beta.permutations=10000')"
-    echo "    --complement  : run the complement of the current selection
-                              (i.e. -c --complement would NOT run corncob)"
     echo "    --nocache     : Do not use a cache"
     echo "    --recache     : Re-do cached analyses"
     echo "    --help        : Display this help message"
@@ -36,7 +40,7 @@ function usage(){
 ###############################################################################
 # PROCESS INPUTS
 
-ARGS=$(getopt -o 'aAcdlLmo:' --long 'alpha,beta,aldex2,ancombc,corncob,deseq2,limma,lmclr,maaslin2,options:,complement,nocache,help' -- "$@") || exit
+ARGS=$(getopt -o 'aAcdlLmo:' --long 'alpha,beta,group,continuous,aldex2,ancombc,corncob,deseq2,limma,lmclr,maaslin2,options:,complement,nocache,help' -- "$@") || exit
 eval "set -- $ARGS"
 
 aldex2=0
@@ -48,12 +52,13 @@ lmclr=0
 maaslin2=0
 alpha=0
 beta=0
+group=0
+continuous=0
 all=1
 complement=0
 usecache="TRUE"
 recache="FALSE"
 fn_arguments=""
-
 
 while true; do
     case $1 in
@@ -75,8 +80,12 @@ while true; do
             all=0; alpha=1; shift;;
       (--beta)
             all=0; beta=1; shift;;
+      (--group)
+            all=0; group=1; shift;;
+      (--continuous)
+            all=0; continuous=1; shift;;
       (-o|--options)
-          fn_arguments=", $2"; shift 2;;
+            fn_arguments="$fn_arguments, $2"; shift 2;;
       (--complement)
             complement=1; shift;;
       (--nocache)
@@ -85,8 +94,10 @@ while true; do
             recache="TRUE"; shift;;
       (--help)
             usage $0; exit 1;;
-      (--)  shift; break;;
-      (*)   usage $0; exit 1;;           # error
+      (--)
+          shift; break;;
+      (*)
+          usage $0; exit 1;;           # error
     esac
 done
 
@@ -98,8 +109,6 @@ if [ $complement -eq 1 ]; then
     limma=$((1-limma))
     lmclr=$((1-lmclr))
     maaslin2=$((1-maaslin2))
-    alpha=$((1-alpha))
-    beta=$((1-beta))
 fi
 
 if [ $all -eq 1 ] ; then
@@ -110,8 +119,10 @@ if [ $all -eq 1 ] ; then
     limma=1
     lmclr=1
     maaslin2=1
-    alpha=1
-    beta=1
+    alpha=0
+    beta=0
+    group=0
+    continuous=0
 fi
 
 #############################
@@ -180,10 +191,10 @@ function run_one_mda(){
         library(multidiffabundance);
         library(readr);
         args = commandArgs(trailingOnly=TRUE);
-        D <- mda.from_cmdargs(args, usecache=$usecache, recache="$recache");
+        D <- mda.from_cmdargs(args, usecache=$usecache, recache=$recache);
         R <- mda.$method(D ${fn_arguments});
         write_tsv(R\$res, paste0(c(D\$outprefix, '$method/results.tsv'), collapse=''));
-        write_tsv(R\$res.full, paste0(c(D\$outprefix, '$method/results.full.tsv'), collapse=''))
+        saveRDS(R, paste0(c(D\$outprefix, '$method/results.rds'), collapse=''))
     "
     
     stdlog="$outprefix/$method/stdout"
@@ -208,7 +219,7 @@ function run_one_mda(){
 declare -a result_files
 
 if [ $aldex2 -eq 1 ] ; then
-    run_one_mda aldex2 && result_files+=("$outprefix/aldex/results.tsv")
+    run_one_mda aldex2 && result_files+=("$outprefix/aldex2/results.tsv")
 fi
 
 if [ $ancombc -eq 1 ] ; then
@@ -224,7 +235,7 @@ if [ $deseq2 -eq 1 ] ; then
 fi
 
 if [ $limma -eq 1 ] ; then
-    run_one_mda limma && result_files+=("$outprefix/results.tsv")
+    run_one_mda limma && result_files+=("$outprefix/limma/results.tsv")
 fi
 
 if [ $lmclr -eq 1 ] ; then
@@ -243,12 +254,19 @@ if [ $beta -eq 1 ] ; then
     run_one_mda beta && result_files+=("$outprefix/beta/results.tsv")
 fi
 
-echo "${result_files[@]}"
+if [ $group -eq 1 ] ; then
+    run_one_mda group && result_files+=("$outprefix/group/results.tsv")
+fi
+
+if [ $continuous -eq 1 ] ; then
+    run_one_mda continuous && result_files+=("$outprefix/continuous/results.tsv")
+fi
+
 
 ###############################################################################
 # Combine all the outputs into one single output
 
-if [ ! "${#result_files[@]}" -eq 0 ]; then
+if [ "${#result_files[@]}" -gt 0 ]; then
     out_file="$outprefix/results.tsv"
 
     head -n 1 "${result_files[0]}" > "$out_file"
