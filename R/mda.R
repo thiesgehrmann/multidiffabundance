@@ -349,6 +349,6 @@ mda.summary <- function(res, id_cols="taxa", names_from="variable", method_from=
         pvalue =     pivot_wider(res, id_cols=id_cols, names_from=names_from, values_from=all_of(pvalue_from),     values_fn=list),
         qvalue =     pivot_wider(res, id_cols=id_cols, names_from=names_from, values_from=all_of(qvalue_from),     values_fn=list),
         effectsize = pivot_wider(res, id_cols=id_cols, names_from=names_from, values_from=all_of(effectsize_from), values_fn=list),
-        method_order = sort(as.data.frame(unique(res[,method_from]))[1,])
+        method_order = sort(as.data.frame(unique(res[,method_from]))[,1])
     )
 }
