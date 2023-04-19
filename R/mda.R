@@ -19,7 +19,7 @@ mda.from_cmdargs <- function(args, ...){
     formula.data <- args[3]
     outprefix <- args[4]
 
-    mda.from_files(abundance, meta, formula.data, outprefix)
+    mda.from_files(abundance, meta, formula.data, outprefix, ...)
 }
                                                       
 mda.from_files <- function(abundance, meta, formula.data, outprefix=tempdir(), ...){
@@ -169,24 +169,29 @@ mda.formula_variables <- function(fn, depth=0, maxdepth=10){
         return(NULL)
     }
     vars <- as.character(attributes((terms(as.formula(fn))))$variables)[-1]
+    message(depth, vars)
     subvars <- if (length(vars) == 1){
-        vs_func <- unlist(strsplit(vars, '[(]'))
-        if (length(vs_func) > 1){
-            stripfunc <- paste0(vs_func[-1], collapse='(')
-            stripfunc <- substr(stripfunc, 1, nchar(stripfunc)-1)
-            subfunc <- as.formula(paste0(c('~ ',stripfunc), collapse=""))
-            return(mda.formula_variables(subfunc,depth+1,maxdepth))
-        }
-        vs_random <- unlist(strsplit(vars, '[|]'))
         if (length(vs_random) > 1){
             if (vs_random[1] == "1"){
                 subfunc <- as.formula(paste0(c('~ ', vs_random[1]), collapse=""))
                 return(mda.formula_variables(subfunc, depth+1,maxdepth))
             } else {
                 subfunc <- as.formula(paste0(c('~ ', vs_random[1]," + ",vs_random[2]), collapse=""))
+                message(depth, paren, subfunc)
                 return(mda.formula_variables(subfunc, depth+1,maxdepth))
             }
         }
+        
+        vs_func <- unlist(strsplit(vars, '[(]'))
+        if (length(vs_func) > 1){
+            stripfunc <- paste0(vs_func[-1], collapse='(')
+            stripfunc <- substr(stripfunc, 1, nchar(stripfunc)-1)
+            subfunc <- as.formula(paste0(c('~ ',stripfunc), collapse=""))
+            message(depth, 'paren', subfunc)
+            return(mda.formula_variables(subfunc,depth+1,maxdepth))
+        }
+        vs_random <- unlist(strsplit(vars, '[|]'))
+
         return(vars)
     } else {
         unlist(lapply(vars, function(x){

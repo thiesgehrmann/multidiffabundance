@@ -7,6 +7,15 @@ Description: Tools to perform differential abundance testing with many different
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
+Imports:
+    dplyr,
+    tidyr,
+    readr,
+    digest,
+    lmerTest,
+    vegan,
+    corncob,
+    BiocManager
 biocViews:
     ALDEx2,
     ANCOMBC,
@@ -14,12 +23,5 @@ biocViews:
     DESeq2,
     edgeR,
     Maaslin2
-Imports:
-    dplyr,
-    tidyr,
-    readr,
-    digest,
-    lmerTest,
-    vegan
 VignetteBuilder: knitr
 RoxygenNote: 7.1.1

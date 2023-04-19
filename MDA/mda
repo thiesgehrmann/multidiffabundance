@@ -40,7 +40,7 @@ function usage(){
 ###############################################################################
 # PROCESS INPUTS
 
-ARGS=$(getopt -o 'aAcdlLmo:' --long 'alpha,beta,group,continuous,aldex2,ancombc,corncob,deseq2,limma,lmclr,maaslin2,options:,complement,nocache,help' -- "$@") || exit
+ARGS=$(getopt -o 'aAcdlLmo:' --long 'alpha,beta,group,continuous,aldex2,ancombc,corncob,deseq2,limma,lmclr,maaslin2,options:,complement,recache,nocache,help' -- "$@") || exit
 eval "set -- $ARGS"
 
 aldex2=0
@@ -170,7 +170,7 @@ echo "library(multidiffabundance)
         quit(save='no', status=0)}
     else {quit(save='no', status=1)}" | R --no-save &> /dev/null
 if [ ! "$?" -eq 0 ]; then
-    echo "ERROR: Please check your function input!"
+    echo "ERROR: Please check your function input! (Do you have MDA installed?)"
     exit 1
 fi
 
@@ -191,10 +191,11 @@ function run_one_mda(){
         library(multidiffabundance);
         library(readr);
         args = commandArgs(trailingOnly=TRUE);
-        D <- mda.from_cmdargs(args, usecache=$usecache, recache=$recache);
+        D <- mda.from_cmdargs(args, usecache=$usecache, recache=$recache ${fn_arguments});
         R <- mda.$method(D ${fn_arguments});
         write_tsv(R\$res, paste0(c(D\$outprefix, '$method/results.tsv'), collapse=''));
         saveRDS(R, paste0(c(D\$outprefix, '$method/results.rds'), collapse=''))
+        warnings()
     "
     
     stdlog="$outprefix/$method/stdout"
