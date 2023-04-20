@@ -5,7 +5,7 @@ mda.all <- function(mda.D, alpha=FALSE, beta=FALSE,
     suppressPackageStartupMessages(require(dplyr))
     D <- mda.D
     
-    functions <- c(mda.alpha, mda.beta, mda.aldex2, mda.ancombc, mda.corncob, mda.deseq2, mda.limma, mda.lmclr, mda.maaslin2)
+    functions <- c(mda.alpha, mda.beta, mda.aldex2, mda.ancombc2, mda.corncob, mda.deseq2, mda.limma, mda.lmclr, mda.maaslin2)
     selected <- c(alpha, beta, aldex2, ancombc, corncob, deseq2, limma, lmclr, maaslin2)
     
     R <- lapply(functions[selected], function(x){ x(D, ...) })

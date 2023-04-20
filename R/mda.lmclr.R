@@ -6,6 +6,7 @@ mda.lmclr <- function(mda.D, ...){
     
     suppressPackageStartupMessages(require(dplyr))
     suppressPackageStartupMessages(require(tibble))
+    library(lme4)
     
     clr_data <- as.data.frame(scale(mda.clr(mda.relative_abundance(mda.pseudocount(D$count_data)))))
 
@@ -17,6 +18,7 @@ mda.lmclr <- function(mda.D, ...){
         res <- lapply(taxa, function(t){
             meta_data$clrtaxa <- clr_data[,t]
             fit <- lm(f, data=meta_data, na.action = 'na.exclude')
+            
             s <- as.data.frame(coefficients(summary(fit)))
             s$taxa <- rep(t, dim(s)[1])
             s <- s %>% rownames_to_column("variable")
@@ -42,6 +44,9 @@ mda.lmclr <- function(mda.D, ...){
             meta_data$clrtaxa <- clr_data[,t]
             fit <- lmer(f, data=meta_data, na.action = 'na.exclude')
             s <- as.data.frame(coefficients(summary(fit)))
+            if (isSingular(fit)){
+                s[,"Pr(>|t|)"] <- NA
+                }
             s$taxa <- rep(t, dim(s)[1])
             s <- s %>% rownames_to_column("variable")
             s

@@ -54,6 +54,8 @@ mda.maaslin2 <- function(mda.D, ...){
                              plot_scatter = FALSE,
                              cores = 1,
                              reference = maaslin2.reference))
+        
+
 
         res.full <- as_tibble(as.data.frame(mas$results))
         res.full <- res.full[,c("feature","metadata","coef","stderr","pval")]
