@@ -171,13 +171,14 @@ mda.formula_variables <- function(fn, depth=0, maxdepth=10){
     vars <- as.character(attributes((terms(as.formula(fn))))$variables)[-1]
     message(depth, vars)
     subvars <- if (length(vars) == 1){
+        vs_random <- unlist(strsplit(vars, '[|]'))
         if (length(vs_random) > 1){
             if (vs_random[1] == "1"){
                 subfunc <- as.formula(paste0(c('~ ', vs_random[1]), collapse=""))
                 return(mda.formula_variables(subfunc, depth+1,maxdepth))
             } else {
                 subfunc <- as.formula(paste0(c('~ ', vs_random[1]," + ",vs_random[2]), collapse=""))
-                message(depth, paren, subfunc)
+                #message(depth, "paren", subfunc)
                 return(mda.formula_variables(subfunc, depth+1,maxdepth))
             }
         }
@@ -187,7 +188,7 @@ mda.formula_variables <- function(fn, depth=0, maxdepth=10){
             stripfunc <- paste0(vs_func[-1], collapse='(')
             stripfunc <- substr(stripfunc, 1, nchar(stripfunc)-1)
             subfunc <- as.formula(paste0(c('~ ',stripfunc), collapse=""))
-            message(depth, 'paren', subfunc)
+            #message(depth, 'paren', subfunc)
             return(mda.formula_variables(subfunc,depth+1,maxdepth))
         }
         vs_random <- unlist(strsplit(vars, '[|]'))
