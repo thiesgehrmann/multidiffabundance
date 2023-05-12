@@ -21,7 +21,7 @@ mda.ancombc2 <- function(mda.D, ...){
         mainvar <- D$formula$main_var[f_idx]
 
         out <- mda.cache_load_or_run_save(D, "ancombc", f, 
-                   ancombc2(data = phylo, fix_formula = f.ancombc.fix, rand_formula = f.ancombc.rand, 
+                   ANCOMBC::ancombc2(data = phylo, fix_formula = f.ancombc.fix, rand_formula = f.ancombc.rand, 
                            p_adj_method = "holm", prv_cut=0, lib_cut = 1000, 
                            struc_zero = FALSE, global = FALSE, alpha = 0.05) )
 

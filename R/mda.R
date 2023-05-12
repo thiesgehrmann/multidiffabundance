@@ -6,8 +6,9 @@
 # Input loading functions
 
 mda.from_cmdargs <- function(args, ...){
-    suppressPackageStartupMessages(require(tools))
-    suppressPackageStartupMessages(require("tidyverse"))
+    suppressPackageStartupMessages({
+        require(tools)
+        require("tidyverse")})
     
     if (length(args) != 4){
         message("[MDA] mda.from_cmdargs ERROR: Too few arguments. There should be 4!")
@@ -54,8 +55,9 @@ mda.from_files <- function(abundance, meta, formula.data, outprefix=tempdir(), .
 }
 
 mda.from_tidyamplicons <- function(ta, formulas, output_dir=tempdir(), ...){
-    suppressPackageStartupMessages(require(dplyr))
-    suppressPackageStartupMessages(require(tidyr))
+    suppressPackageStartupMessages({
+        require(dplyr)
+        require(tidyr)})
     meta_data <- as.data.frame(ta$samples)
     rownames(meta_data) <- meta_data$sample_id
     

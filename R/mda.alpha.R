@@ -4,9 +4,10 @@
 mda.alpha <- function(mda.D, ...){
     D <- mda.D
     
-    suppressPackageStartupMessages(require(dplyr))
-    suppressPackageStartupMessages(require(tibble))
-    suppressPackageStartupMessages(require(vegan))
+    suppressPackageStartupMessages({
+        require(dplyr)
+        require(tibble)
+        require(vegan)})
     
     D$meta_data$mda.alpha <- scale(diversity(D$count_data))
 

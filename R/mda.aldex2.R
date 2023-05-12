@@ -18,7 +18,7 @@ mda.aldex2 <- function(mda.D, ...){
         out <- mda.cache_load_or_run_save(D, "aldex2", f, {
             mm <- model.matrix(f, D$meta_data)
             counts <- t(D$count_data[rownames(mm),]) # Remove the NAs that have been removed by model.matrix
-            aldex(counts, mm, denom = "all", test="glm")
+            ALDEx2::aldex(counts, mm, denom = "all", test="glm")
         })
 
         res.full <- gather(as.data.frame(out) %>% rownames_to_column('taxa'), "measure", "value", 2:(dim(as.data.frame(out))[2]+1))
