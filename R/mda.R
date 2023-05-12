@@ -351,10 +351,10 @@ mda.summary <- function(res, id_cols="taxa", names_from="variable", method_from=
     res <- arrange(res, "method", "taxa", "variable")
     
     list(
-        nsig =       pivot_wider(res, id_cols=id_cols, names_from=names_from, values_from=all_of(qvalue_from),     values_fn=function(v){as.integer(sum(v < qvalue_threshold))}),
-        pvalue =     pivot_wider(res, id_cols=id_cols, names_from=names_from, values_from=all_of(pvalue_from),     values_fn=list),
-        qvalue =     pivot_wider(res, id_cols=id_cols, names_from=names_from, values_from=all_of(qvalue_from),     values_fn=list),
-        effectsize = pivot_wider(res, id_cols=id_cols, names_from=names_from, values_from=all_of(effectsize_from), values_fn=list),
+        nsig =       pivot_wider(res, id_cols=all_of(id_cols), names_from=all_of(names_from), values_from=all_of(qvalue_from),     values_fn=function(v){as.integer(sum(v < qvalue_threshold))}),
+        pvalue =     pivot_wider(res, id_cols=all_of(id_cols), names_from=all_of(names_from), values_from=all_of(pvalue_from),     values_fn=list),
+        qvalue =     pivot_wider(res, id_cols=all_of(id_cols), names_from=all_of(names_from), values_from=all_of(qvalue_from),     values_fn=list),
+        effectsize = pivot_wider(res, id_cols=all_of(id_cols), names_from=all_of(names_from), values_from=all_of(effectsize_from), values_fn=list),
         method_order = sort(unique(res[,method_from]))
     )
 }
