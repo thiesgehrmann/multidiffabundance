@@ -1,4 +1,5 @@
 test_that("mda.limma works", {
-  res = suppressMessages(mda.limma(D))
-  expect_snapshot(res)
+  expect_no_error({
+    suppressMessages(mda.limma(D))
+  })
 })

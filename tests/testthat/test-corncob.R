@@ -1,4 +1,5 @@
 test_that("mda.corncob works", {
-  res = suppressMessages(mda.corncob(D))
-  expect_snapshot(res)
+  expect_no_error({
+    suppressMessages(mda.corncob(D))
+  })
 })

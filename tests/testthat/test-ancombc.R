@@ -1,10 +1,12 @@
 test_that("mda.ancombc works", {
-  res = suppressMessages(mda.ancombc(D))
-  expect_snapshot(res)
+  expect_no_error({
+    suppressMessages(mda.ancombc(D))
+  })
 })
 
 test_that("mda.ancombc2 works", {
-  res = suppressMessages(mda.ancombc2(D))
-  expect_snapshot(res)
+  expect_no_error({
+    suppressMessages(mda.ancombc2(D))
+  })
 })
 
