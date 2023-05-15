@@ -24,7 +24,6 @@ Imports:
     edgeR,
     Maaslin2
 biocViews:
-    
 VignetteBuilder: knitr
 RoxygenNote: 7.1.1
 Suggests: 
