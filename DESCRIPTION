@@ -6,6 +6,7 @@ Authors@R: c(person("Thies", "Gehrmann", email = "thies.gehrmann@uantwerpen.be",
 Description: Tools to perform differential abundance testing with many different tools, resulting in a compatible output format
 License: GPL-3
 Encoding: UTF-8
+Depends: R (>= 4.2.0)
 LazyData: true
 Imports:
     dplyr,
@@ -18,10 +19,14 @@ Imports:
     BiocManager
 biocViews:
     ALDEx2,
-    ANCOMBC,
+    ANCOMBC (>= 2.0.0),
     phyloseq,
     DESeq2,
     edgeR,
     Maaslin2
 VignetteBuilder: knitr
 RoxygenNote: 7.1.1
+Suggests: 
+    knitr,
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3

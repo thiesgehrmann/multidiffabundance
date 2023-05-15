@@ -1,9 +1,10 @@
 mda.ancombc2 <- function(mda.D, ...){
-    suppressPackageStartupMessages(require("ANCOMBC"))
-    suppressPackageStartupMessages(require(tidyr))
-    suppressPackageStartupMessages(require(dplyr))
-    suppressPackageStartupMessages(require(tibble))
-    suppressPackageStartupMessages(require(stringr))
+    suppressPackageStartupMessages({
+        require("ANCOMBC")
+        require(tidyr)
+        require(dplyr)
+        require(tibble)
+        require(stringr)})
     
     D <- mda.D
 
