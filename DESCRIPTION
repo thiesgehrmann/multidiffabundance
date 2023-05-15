@@ -16,14 +16,15 @@ Imports:
     lmerTest,
     vegan,
     corncob,
-    BiocManager
-biocViews:
+    BiocManager,
     ALDEx2,
     ANCOMBC (>= 2.0.0),
     phyloseq,
     DESeq2,
     edgeR,
     Maaslin2
+biocViews:
+    
 VignetteBuilder: knitr
 RoxygenNote: 7.1.1
 Suggests: 
