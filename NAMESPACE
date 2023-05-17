@@ -1,7 +1,6 @@
 export(mda.aldex2)
 export(mda.all)
 export(mda.alpha)
-export(mda.ancombc)
 export(mda.ancombc2)
 export(mda.beta)
 export(mda.cache_filename)
