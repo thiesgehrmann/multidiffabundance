@@ -3,7 +3,7 @@ Type: Package
 Title: Tools to perform differential abundance testing with many different tools, resulting in a compatible output format
 Version: 0.0.1
 Authors@R: c(person("Thies", "Gehrmann", email = "thies.gehrmann@uantwerpen.be", role = c("aut", "cre"))) 
-Description: Tools to perform differential abundance testing with many different tools, resulting in a compatible output format
+Description: Tools to perform differential abundance testing with many different tools, resulting in a compatible output format.
 License: GPL-3
 Encoding: UTF-8
 Depends: R (>= 4.2.0)
