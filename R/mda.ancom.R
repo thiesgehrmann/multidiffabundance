@@ -26,7 +26,7 @@ mda.ancombc <- function(mda.D, ...){
 
         out <- mda.cache_load_or_run_save(D, "ancombc", f, 
                    ANCOMBC::ancombc(phyloseq = phylo, formula = f.ancombc, 
-                           p_adj_method = "holm", zero_cut = 0.90, lib_cut = 1000, 
+                           p_adj_method = "holm", prv_cut = 0.90, lib_cut = 1000, 
                            struc_zero = FALSE, global = FALSE, neg_lb = TRUE, tol = 1e-5, 
                            max_iter = 100, conserve = TRUE, alpha = 0.05) )
 

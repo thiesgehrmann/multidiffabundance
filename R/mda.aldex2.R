@@ -84,9 +84,9 @@ mda.aldex2 <- function(mda.D, ...){
 
     R <- lapply(1:length(D$formula$main_var), do)
 
-    res <- bind_rows(lapply(R, function(x){x$res}))
+    res <- dplyr::bind_rows(lapply(R, function(x){x$res}))
     res$qvalue <- p.adjust(res$pvalue, "fdr")
-    res.full <- bind_rows(lapply(R, function(x){x$res.full}))
+    res.full <- dplyr::bind_rows(lapply(R, function(x){x$res.full}))
 
     ###############################################################################
     # Format Output
