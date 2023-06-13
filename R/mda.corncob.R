@@ -4,10 +4,11 @@
 mda.corncob <- function(mda.D, ...){
     D <- mda.D
     
-    suppressPackageStartupMessages(require(corncob))
-    suppressPackageStartupMessages(require(phyloseq))
-    suppressPackageStartupMessages(require(tibble))
-    suppressPackageStartupMessages(require(dplyr))
+    suppressPackageStartupMessages({
+        require(corncob)
+        require(phyloseq)
+        require(tibble)
+        require(dplyr)})
 
     do <- function(f_idx){
         f <- D$formula$norand[[f_idx]]

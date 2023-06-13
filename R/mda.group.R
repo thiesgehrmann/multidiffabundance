@@ -4,8 +4,9 @@
 mda.group <- function(mda.D, group.col="group", ...){
     D <- mda.D
     
-    suppressPackageStartupMessages(require(dplyr))
-    suppressPackageStartupMessages(require(tibble))
+    suppressPackageStartupMessages({
+        require(dplyr)
+        require(tibble)})
     
     Dcopy <- D
     Dcopy$count_data <- D$count_data[!is.na(D$meta_data[,group.col]),]

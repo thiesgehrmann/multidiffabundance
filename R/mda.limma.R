@@ -3,10 +3,11 @@
 
 mda.limma <- function(mda.D, ...){
     D <- mda.D
-    suppressPackageStartupMessages(require("edgeR"))
-    suppressPackageStartupMessages(require(tidyr))
-    suppressPackageStartupMessages(require(tibble))
-    suppressPackageStartupMessages(require(dplyr))
+    suppressPackageStartupMessages({
+        require("edgeR")
+        require(tidyr)
+        require(tibble)
+        require(dplyr)})
 
     DGE_LIST <- DGEList(t(D$count_data))
 
