@@ -6,9 +6,9 @@
 # usethis::use_github_action("check-standard") will install it.
 on:
   push:
-    branches: [main, master, feature/tests]
+    branches: [main, devel]
   pull_request:
-    branches: [main, master]
+    branches: [main, devel]
 
 name: R-CMD-check
 
