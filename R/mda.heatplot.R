@@ -1,7 +1,7 @@
-mda.heatmap <- function(res, pipeline="maaslin2", ta=NULL, minEff=1, skip_sign=F, low="blue", high="red") {
+#' @export
+mda.heatplot <- function(res, pipeline="maaslin2", ta=NULL, min_eff=1, min_sign=1, low="blue", high="red") {
  
   res_matrix <- function(res, cval="effectsize") {
-    #cval <- enquo(col_value)
     res %>% 
     pivot_wider(id_cols=taxa, names_from = variable, values_from = cval) %>%
     column_to_rownames(var="taxa")
@@ -16,17 +16,21 @@ mda.heatmap <- function(res, pipeline="maaslin2", ta=NULL, minEff=1, skip_sign=F
   # Filter on effsize
   effsizes_taxa <- res_matrix(res_df) %>% 
     mutate_all(abs) %>%
-    mutate(maxEff = do.call(pmax, .) ) %>%
-    filter(maxEff >= minEff) %>%
+    mutate(max_eff = do.call(pmax, .) ) %>%
+    filter(max_eff >= min_eff) %>%
     row.names()
   res_df_min_eff <- res_df %>% filter(taxa %in% effsizes_taxa)
   
   # Filter on significance
+  if (min_sign < 0) {
+    stop("Invalid minimum significant tests")
+  }
   res_signif <- res$summary$nsig %>% column_to_rownames(var="taxa")
-  signif_taxa <- res_signif %>% mutate(n_sig = rowSums(.)) %>% 
-    filter(n_sig > 0) %>% 
+  signif_taxa <- res_signif %>% 
+    mutate(n_sig = do.call(pmax, .) ) %>% 
+    filter(n_sig >= min_sign) %>% 
     row.names()
-  if (length(signif_taxa) > 0 && !skip_sign) {
+  if (length(signif_taxa) > 0) {
   res_df_sign <- res_df_min_eff %>% filter(taxa %in% signif_taxa)
   } 
   else {
@@ -44,25 +48,25 @@ mda.heatmap <- function(res, pipeline="maaslin2", ta=NULL, minEff=1, skip_sign=F
       mutate(taxa = taxon_name)
   }
   
-  effM <- res_matrix(res_df_sign)
-  signM <- res_signif[taxids,]
-  signM <- apply(signM, MARGIN = c(1,2), FUN = function(x) {
+  eff_M <- res_matrix(res_df_sign)
+  sign_M <- res_signif[taxids,]
+  sign_M <- apply(sign_M, MARGIN = c(1,2), FUN = function(x) {
     ifelse(x == 0, "", x)
   })
-  padjM <- res_matrix(res_df_sign, "qvalue")
-  padjM <- apply(padjM, MARGIN = c(1,2), FUN = function(x) {
+  padj_M <- res_matrix(res_df_sign, "qvalue")
+  padj_M <- apply(padj_M, MARGIN = c(1,2), FUN = function(x) {
     paste0("Adj P: ", format(signif(x, 3), scientific=T))
   })
   
   heatmaply::heatmaply(
-    effM,
+    eff_M,
     scale_fill_gradient_fun = ggplot2::scale_fill_gradient2(
         low = low, 
         high = high, 
         midpoint = 0),
         show_dendrogram = c(F,F),
-        cellnote = signM,
+        cellnote = sign_M,
         cellnote_color = "black",
-        custom_hovertext = padjM
+        custom_hovertext = padj_M
   )
 }

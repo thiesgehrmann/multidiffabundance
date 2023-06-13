@@ -16,6 +16,9 @@ Imports:
     vegan,
     corncob,
     BiocManager
+Suggests:
+    knitr,
+    heatmaply
 biocViews:
     ALDEx2,
     ANCOMBC,
