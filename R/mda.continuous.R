@@ -4,9 +4,10 @@
 mda.continuous <- function(mda.D, continuous.cols=NULL, ...){
     D <- mda.D
     
-    suppressPackageStartupMessages(require(dplyr))
-    suppressPackageStartupMessages(require(tibble))
-    suppressPackageStartupMessages(require(lmerTest))
+    suppressPackageStartupMessages({
+        require(dplyr)
+        require(tibble)
+        require(lmerTest)})
     
     if(is.null(continuous.cols)){
         message("[MDA] mda.continuous: Undefined 'continuous.cols' parameter. You should specify this in order to use the function.")

@@ -4,9 +4,10 @@
 
 mda.deseq2 <- function(mda.D, ...){
     D <- mda.D
-    suppressPackageStartupMessages(require("DESeq2"))
-    suppressPackageStartupMessages(require(tidyr))
-    suppressPackageStartupMessages(require(tibble))
+    suppressPackageStartupMessages({
+        require("DESeq2")
+        require(tidyr)
+        require(tibble)})
 
 
     do <- function(f_idx){
