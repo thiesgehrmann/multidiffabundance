@@ -4,9 +4,10 @@
 mda.lmclr <- function(mda.D, ...){
     D <- mda.D
     
-    suppressPackageStartupMessages(require(dplyr))
-    suppressPackageStartupMessages(require(tibble))
-    library(lme4)
+    suppressPackageStartupMessages({
+        require(dplyr)
+        require(tibble)
+        library(lme4)})
     
     clr_data <- as.data.frame(scale(mda.clr(mda.relative_abundance(mda.pseudocount(D$count_data)))))
 

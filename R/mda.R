@@ -6,8 +6,9 @@
 # Input loading functions
 
 mda.from_cmdargs <- function(args, ...){
-    suppressPackageStartupMessages(require(tools))
-    suppressPackageStartupMessages(require("tidyverse"))
+    suppressPackageStartupMessages({
+        require(tools)
+        require("tidyverse")})
     
     if (length(args) != 4){
         message("[MDA] mda.from_cmdargs ERROR: Too few arguments. There should be 4!")
@@ -54,8 +55,9 @@ mda.from_files <- function(abundance, meta, formula.data, outprefix=tempdir(), .
 }
 
 mda.from_tidyamplicons <- function(ta, formulas, output_dir=tempdir(), ...){
-    suppressPackageStartupMessages(require(dplyr))
-    suppressPackageStartupMessages(require(tidyr))
+    suppressPackageStartupMessages({
+        require(dplyr)
+        require(tidyr)})
     meta_data <- as.data.frame(ta$samples)
     rownames(meta_data) <- meta_data$sample_id
     
@@ -348,13 +350,13 @@ mda.deparse <- function(form){
 mda.summary <- function(res, id_cols="taxa", names_from="variable", method_from="method", pvalue_from="pvalue", qvalue_from="qvalue", effectsize_from="effectsize",
                         values_fn=list, pvalue_threshold=0.05, qvalue_threshold=0.05){
 
-    res <- arrange(res, "method", "taxa", "variable")
+    res <- dplyr::arrange(res, "method", "taxa", "variable")
     
     list(
-        nsig =       pivot_wider(res, id_cols=id_cols, names_from=names_from, values_from=all_of(qvalue_from),     values_fn=function(v){as.integer(sum(v < qvalue_threshold))}),
-        pvalue =     pivot_wider(res, id_cols=id_cols, names_from=names_from, values_from=all_of(pvalue_from),     values_fn=list),
-        qvalue =     pivot_wider(res, id_cols=id_cols, names_from=names_from, values_from=all_of(qvalue_from),     values_fn=list),
-        effectsize = pivot_wider(res, id_cols=id_cols, names_from=names_from, values_from=all_of(effectsize_from), values_fn=list),
+        nsig =       tidyr::pivot_wider(res, id_cols=all_of(id_cols), names_from=all_of(names_from), values_from=all_of(qvalue_from),     values_fn=function(v){as.integer(sum(v < qvalue_threshold))}),
+        pvalue =     tidyr::pivot_wider(res, id_cols=all_of(id_cols), names_from=all_of(names_from), values_from=all_of(pvalue_from),     values_fn=list),
+        qvalue =     tidyr::pivot_wider(res, id_cols=all_of(id_cols), names_from=all_of(names_from), values_from=all_of(qvalue_from),     values_fn=list),
+        effectsize = tidyr::pivot_wider(res, id_cols=all_of(id_cols), names_from=all_of(names_from), values_from=all_of(effectsize_from), values_fn=list),
         method_order = sort(unique(res[,method_from]))
     )
 }
