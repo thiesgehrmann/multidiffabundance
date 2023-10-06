@@ -80,7 +80,7 @@ mda.from_phyloseq <- function(phys, formulas, output_dir=tempdir(), ...){
     message("[MDA] mda.from_phyloseq ERROR: UNIMPLEMENTED")
 }
                                                       
-mda.create <- function(count_data, meta_data, formulas, output_dir=tempdir(), usecache=TRUE, recache=FALSE, nonrare.pct=0.1){
+mda.create <- function(count_data, meta_data, formulas, output_dir=tempdir(), usecache=TRUE, recache=FALSE, nonrare.pct=0.1, ...){
     suppressPackageStartupMessages(require(digest))
     
     if (! all(rownames(count_data) == rownames(meta_data))) {
@@ -88,11 +88,13 @@ mda.create <- function(count_data, meta_data, formulas, output_dir=tempdir(), us
         return(NULL)
     }
     
-    FD <- mda.process_formula_input(unlist(lapply(list(formulas), function(x){mda.deparse(x)})))
     nonrare <- mda.nonrare_taxa(count_data, nonrare.pct) 
 
     numeric_meta <- colnames(meta_data)[unlist(lapply(colnames(meta_data), function(x)is.numeric(meta_data[,x])))]
     meta_data[,numeric_meta] <- scale(meta_data[,numeric_meta])
+
+    FD <- lapply(as.list(formulas), function(f){formula.reformulate(as.formula(f), meta_data)})
+                                                      
     
     dat <- c()
     dat$count_data  <- count_data
@@ -102,7 +104,7 @@ mda.create <- function(count_data, meta_data, formulas, output_dir=tempdir(), us
     dat$outprefix   <- output_dir
     dat$usecache    <- usecache
     dat$recache     <- recache
-    checksum <- digest(c(count_data, meta_data), algo="md5")
+    checksum <- digest(count_data, algo="md5")
     dat$cacheprefix <- paste0(c(output_dir, "mda.cache", paste0(c(checksum, as.character(nonrare.pct)), collapse="-")), collapse="/")
     if (usecache){
         mda.mkdirp(dirname(dat$cacheprefix))
@@ -277,46 +279,19 @@ mda.clr <- function(df){
     denom <- exp(rowMeans(log(df)))
     df / denom
 }
-
-###############################################################################
-# Statistical counts functions
-                                                      
-mda.meta.n <- function(D, var){
-    sum(unlist(lapply(D$meta_data[,var],function(x){!(is.na(x))})))
-}
-
-
-mda.meta.freq <- function(D, var){
-    if(is.numeric(D$meta_data[,var])){
-        ""
-    } else {
-        paste0(mapply(function(x,y){paste0(c(x,y), collapse=":")}, names(table(D$meta_data[,var])), as.character(table(D$meta_data[,var]))), collapse=", ")
-    }
-}
                                                       
 ###############################################################################
 # output cache functions
-                                                      
-mda.cache_filename <- function(mda.D, method, form, suffix="tsv", collapse=".", order_invariant=TRUE){
+
+mda.cache_load_or_run_save <- function(mda.D, method, f_idx, expr, order_invariant=TRUE) {
     D <- mda.D
-    suppressPackageStartupMessages(require(digest))
-    mainvar <- labels(terms(as.formula(form)))[1]
-    L <- labels(terms(as.formula(form)))
-    L <- if (order_invariant){sort(L)} else{L}
-    form.fmt <- paste0(L, collapse="+")
+    f <- D$formula[[f_idx]]
     
-    form.digest <- gsub("[~():._! |]", "", form.fmt)
-    form.digest <- digest(form.digest, algo="md5")
-    data.digest <- digest(c(D$count_data, D$meta_data), algo="md5")
+    checksum <- if (order_invariant){ f$checksum.order_invariant } else { f$checksum.order_variant }
+    cache.file <- paste0(c(paste0(c(D$cacheprefix, method, checksum), collapse='_'), "rds"), collapse=".")
     
-    filename <- paste0(c(paste0(c(D$cacheprefix, method, form.digest, data.digest), collapse='_'), suffix), collapse=".")
-    filename
-}
-                                                      
-mda.cache_load_or_run_save <- function(mda.D, method, form, expr, order_invariant=TRUE) {
-    D <- mda.D
-    cache.file <- mda.cache_filename(D, method, form, suffix="rds", order_invariant=order_invariant)
-    mainvar <- labels(terms(as.formula(form)))[1]
+    mainvar <- formula.parts(f$fn.orig)[1]
+    
     data <- if (file.exists(cache.file) & (D$usecache) & !(D$recache)){
         message(paste0(c("[MDA] CacheLoad: ", method, ", ", mainvar, " (", basename(cache.file), ")"), collapse=""))
         readRDS(cache.file)
