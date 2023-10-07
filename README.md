@@ -168,7 +168,7 @@ Run the mda command as so:
 
 ## Which tools are able to adjust for covariates, and which are able to accept random effects?
 
-While all models can accept adjustment terms ala a linear model, only three tools can accept random intercept effects, and only one can accept random slopes. If you attempt to evaluate a formula with random effects using a tool that cannot handle it, MDA issues a warning but DOES NOT FAIL. It evaluates the formula without the random terms. limma can only handle one random intercept effect. If you want to adjust for a repeated measures, you may need to encode it as a fixed effect in order to make use of all the tools.
+While all models can accept adjustment terms ala a linear model, only three tools can accept random intercept effects, and only one can accept random slopes. If you attempt to evaluate a formula with random effects using a tool that cannot handle it, MDA returns a dummy output. For these tools, if you want to adjust for a repeated measures, you may need to encode it as a fixed effect in order to make use of all the tools (or rather: don't use the tools.
 
 | Tool          | Covariates             | Random intercepts      | Random slopes          | Effects reported       |
 | ------------- |:----------------------:|:----------------------:|:----------------------:|:----------------------:|
@@ -185,7 +185,8 @@ While all models can accept adjustment terms ala a linear model, only three tool
 | continuous    | ✓                      | ✓ (many)               | ✓ (many)               | All                    |
 | group         | ✓                      | ✓ (many)               | ✓ (many)               | All                    |
 
-\* In adonis2, this is not a real random intercept. It merely performs permutations within a certain grouping as defined by a categorical variable. This can be interpreted as considering this grouping as a random effect
+\* In adonis2, this is not a real random intercept. It merely performs permutations within a certain grouping as defined by a categorical variable. This can be interpreted as considering this grouping as a random effect.
+
 \*\* This is due to a hack implemented to speed up the test. If, when running mda.beta, you set `beta.hack=FALSE`, then it will take longer but return all tested effects.
 
 
@@ -202,17 +203,13 @@ Essentially, you are able to provide any formula, no matter how excessively comp
 
 However, different tools handle these formulas differently, and some do not provide results for all formulas.
 mda returns a list with two dataframes:
- * `res` : A table in which ONLY THE RESULTS FOR THE FIRST VARIABLE OF THE FORMULA ARE PROVIDED \*
+ * `res` : A table in which **ONLY THE RESULTS FOR THE FIRST VARIABLE OF THE FORMULA ARE PROVIDED**
  * `res.full`: A table in which all results for all variables (if provided by the tool) are provided
  
 If, for example, you use a function like: `~ a*b`, this is expanded to `~ a + b + a:b`, in this order
 If your effect of interest is `a:b`, then this effect will not be reported in `res`
 Therefore, the `res` results may not be what you are looking for. Inspect the `res.full` dataframe.
 Alternatively, you can specify the order manually, by specifying this in the formula: `~ a:b + a + b`.
-
-## Why is it a problem if a variable has a name that is a prefix of another?
-
-Currently, to extract the variable of interest, we select it from the output of the method. In the case of categorical variables, this can be tricky. Say we have a categorical variable called `var1` with values `TRUE` and `FALSE`. It is usually listed in the output as `var1TRUE`. Therefore, we select the variable that starts with `var1`. This can be a problem if you have multiple variables and one of them has your variable of interest as a prefix. For example, your variable of interest is `var1`, but you also have `var12`. In this case, we may accidentally select `var12` instead of `var1`. In this case, please rename your variable so that it is not the prefix of another. This issue may be solved later.
 
 ## How can I modify the caching behaviour?
 
