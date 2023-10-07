@@ -1,6 +1,7 @@
 # MDA: multidiffabundance
 A toolkit for the testing of differential abundance with many different tools, each provided with a similar interface and a compatible output format.
-The following packages are currently supported (Only tools that allow for adjustment with other variables are selected): ALDEx2, ANCOMBC, Corncob, DESeq2, Limma(voom), lm/lmer CLR, and Maaslin2.
+The following packages are currently supported (Only tools that allow for adjustment with other variables are selected): ALDEx2, ANCOMBC, Corncob, DESeq2, Limma(voom), lm/lmer CLR, Maaslin2 and ZicoSeq.
+We also provide functionality to perform alpha and beta diversity tests, and meta-data associations to categorical and continuous variables (typical extracted from the microbiome data)
 
 # Quickstart
 
@@ -76,7 +77,7 @@ The input to MDA is the following:
  3. A (list of) formula(s), or a file with a line-separated list of formulas
  4. A path to an output folder (optional except in command line version)
  
-Example data is provided in the `mda.example` object provided by the R package, and also in the data files found in `data/` of this github repository.
+Example data is provided in the `mda.example` object provided by the R package, and also in the data files found in `inst/extdata/` of this github repository.
 
 ## Running in R
 
@@ -91,7 +92,7 @@ Example data is provided in the `mda.example` object provided by the R package, 
 ```
 
 **The effect for the FIRST variable in the formula will be reported**, so make sure to format your formulas correctly.
-`out$res.full` contains the output of all variables per method, but it is not cleaned! `out$res` contains only the chosen variable.
+`out$res.full` contains the output of all variables per method! `out$res` contains only the chosen variable.
 
 Functions to create the MDA objects are:
  1. `mda.create(counts, meta, formulas, ...)`: Takes loaded objects
@@ -109,6 +110,7 @@ Functions to run the differential abundance tests are:
  6. `mra.limma`: Run Limma only
  7. `mra.lmclr`: Run clr(abundance) ~ model only
  8. `mra.maaslin2`: Run Maaslin2 only
+ 9. `mra.zicoseq`: Run Zicoseq only
 
 ## Running via the command line
 
@@ -133,9 +135,9 @@ A wrapper script `container_mda.sh` allows you to run the docker image with the 
 
 ```shell
     # Assumes Docker or singularity is installed
-    abundance="data/mda.example.count_data.tsv"
-    meta_data="data/mda.example.meta_data.tsv"
-    functions="data/mda.example.formulas.txt"
+    abundance="inst/extdata/mda.example.count_data.tsv"
+    meta_data="inst/extdata/mda.example.meta_data.tsv"
+    functions="inst/extdata/mda.example.formulas.txt"
     outdir="output_folder"
     
     # Runs with singularity
@@ -168,41 +170,45 @@ Run the mda command as so:
 
 While all models can accept adjustment terms ala a linear model, only three tools can accept random intercept effects, and only one can accept random slopes. If you attempt to evaluate a formula with random effects using a tool that cannot handle it, MDA issues a warning but DOES NOT FAIL. It evaluates the formula without the random terms. limma can only handle one random intercept effect. If you want to adjust for a repeated measures, you may need to encode it as a fixed effect in order to make use of all the tools.
 
-| Tool          | Covariates             | Random intercepts      | Random slopes          |
-| ------------- |:----------------------:|:----------------------:|:----------------------:|
-| ALDEx2        | ✓                      |                        |                        |
-| ANCOM-BC      | ✓                      |                        |                        |
-| Corncob       | ✓                      |                        |                        |
-| DESeq2        | ✓                      |                        |                        |
-| limma         | ✓                      | ✓ (one)                |                        |
-| lmCLR         | ✓                      | ✓ (many)               | ✓ (many)               |
-| Maaslin2      | ✓                      | ✓ (many)               |                        |
+| Tool          | Covariates             | Random intercepts      | Random slopes          | Effects reported       |
+| ------------- |:----------------------:|:----------------------:|:----------------------:|:----------------------:|
+| ALDEx2        | ✓                      |                        |                        | All                    |
+| ANCOM-BC      | ✓                      | ✓ (many)               |                        | All                    |
+| Corncob       | ✓                      |                        |                        | All                    |
+| DESeq2        | ✓                      |                        |                        | All                    |
+| limma         | ✓                      | ✓ (one)                |                        | All                    |
+| lmCLR         | ✓                      | ✓ (many)               | ✓ (many)               | All                    |
+| Maaslin2      | ✓                      | ✓ (many)               |                        | All                    |
+| Zicoseq       | ✓                      |                        |                        | First                  |
+| alpha         | ✓                      | ✓ (many)               | ✓ (many)               | All                    |
+| beta          | ✓                      | ✓ (one) \*see note     |                        | First \*\*see note     |
+| continuous    | ✓                      | ✓ (many)               | ✓ (many)               | All                    |
+| group         | ✓                      | ✓ (many)               | ✓ (many)               | All                    |
 
-In the future, I am hoping also to include `dream` in this list, which allows multiple random intercept
+\* In adonis2, this is not a real random intercept. It merely performs permutations within a certain grouping as defined by a categorical variable. This can be interpreted as considering this grouping as a random effect
+\*\* This is due to a hack implemented to speed up the test. If, when running mda.beta, you set `beta.hack=FALSE`, then it will take longer but return all tested effects.
+
+
+In the future, I am hoping also to include `dream` in this list, which is essentially limma, but allows multiple random intercepts.
 
 ## How should I format my variables of interest
 
-In this implementation (which is maybe not the best, and perhaps it will change), the first variable of each provided formula is the variable of interest, and only the effect of this variable will be reported.
-In the future there may be ways to retrieve multiple effects.
-For now, to retrieve the effects of multiple variables from the same formula, you must provide multiple formulas in which only the order of the variables has been changed. You can use the `mda.permute_formula` function for a crude implementation of this approach.
-```R
-mda.permute_formula(~a+b+c) # results in ~a+b+c, ~b+a+c, ~c+a+b
-```
-
-This should not result in increased computational overhead as the fitted models are cached with an formula-term-order-invariant hash (i.e. `~a+b` will be stored in the same cache as `~b+a`)
+mda does exensive processing of formulas.
+Essentially, you are able to provide any formula, no matter how excessively complex. e.g.
 
 ```R
-    form <- ~ ReportedAntibioticUsage + DaysSinceExperimentStart + (1|Subject))
-    D <- mda.create(
-             mda.example$count_data,
-             mda.example$meta_data,
-             mda.permute_formula(form))
-
-    mda.maaslin2(D)
+~ log2(abs(I(a*b+c))) * z + (d+e+f)^2 + (1|q) + (exp(m)|g)
 ```
 
-A correlary of the previous statement is that if you are evaluating categorical variables, only one of the dummy encoded results will be reported.
-It may therefore be wise to dummycode your variables in advance in order to maintain control over the contrasts. Try out the `fastDummies` package for this.
+However, different tools handle these formulas differently, and some do not provide results for all formulas.
+mda returns a list with two dataframes:
+ * `res` : A table in which ONLY THE RESULTS FOR THE FIRST VARIABLE OF THE FORMULA ARE PROVIDED \*
+ * `res.full`: A table in which all results for all variables (if provided by the tool) are provided
+ 
+If, for example, you use a function like: `~ a*b`, this is expanded to `~ a + b + a:b`, in this order
+If your effect of interest is `a:b`, then this effect will not be reported in `res`
+Therefore, the `res` results may not be what you are looking for. Inspect the `res.full` dataframe.
+Alternatively, you can specify the order manually, by specifying this in the formula: `~ a:b + a + b`.
 
 ## Why is it a problem if a variable has a name that is a prefix of another?
 
@@ -223,8 +229,6 @@ cd multidiffabundance
 # *make changes to R/mda.method.R*
 echo "devtools:install_local(force=TRUE, dependencies=FALSE)" | R --no-save
 ```
-
-## 
 
 ## Can you include method `xxx`?
 Maybe. Send me a message.

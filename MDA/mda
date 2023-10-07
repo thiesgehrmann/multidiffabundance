@@ -7,12 +7,13 @@ function usage(){
     echo "Usage: $0 [options] <count_data> <meta_data> <function> <outputprefix>"
     echo "  Options:"
     echo "    -a|--aldex2   : Run ALDex2"
-    echo "    -A|--ancombc  : Run ANCOMBC"
+    echo "    -A|--ancombc2 : Run ANCOMBC"
     echo "    -c|--corncob  : Run corncob"
     echo "    -d|--deseq2   : Run DESeq2"
     echo "    -l|--limma    : Run limma"
     echo "    -L|--lmclr    : Run lm CLR"
     echo "    -m|--maaslin2 : Run Maaslin2"
+    echo "    -z|zicoseq    : Run ZicoSeq"
     echo "    --alpha       : Run alpha diversity test"
     echo "    --beta        : Run beta diversity test (permanova/adonis2)"
     echo "    --group       : Run an analysis on meta data a group variable (i.e. logistic regression) (e.g. CST/enterotypes etc.)"
@@ -40,16 +41,17 @@ function usage(){
 ###############################################################################
 # PROCESS INPUTS
 
-ARGS=$(getopt -o 'aAcdlLmo:' --long 'alpha,beta,group,continuous,aldex2,ancombc,corncob,deseq2,limma,lmclr,maaslin2,options:,complement,recache,nocache,help' -- "$@") || exit
+ARGS=$(getopt -o 'aAcdlLmzo:' --long 'alpha,beta,group,continuous,aldex2,ancombc,corncob,deseq2,limma,lmclr,maaslin2,zicoseq,options:,complement,recache,nocache,help' -- "$@") || exit
 eval "set -- $ARGS"
 
 aldex2=0
-ancombc=0
+ancombc2=0
 corncob=0
 deseq2=0
 limma=0
 lmclr=0
 maaslin2=0
+zicoseq=0
 alpha=0
 beta=0
 group=0
@@ -64,8 +66,8 @@ while true; do
     case $1 in
       (-a|--aldex2)
             all=0; aldex2=1; shift;;
-      (-A|--ancombc)
-            all=0; ancombc=1; shift;;
+      (-A|--ancombc2)
+            all=0; ancombc2=1; shift;;
       (-c|--corncob)
             all=0; corncob=1; shift;;
       (-d|--deseq2)
@@ -76,6 +78,8 @@ while true; do
             all=0; lmclr=1; shift;;
       (-m|--maaslin2)
             all=0; maaslin2=1; shift;;
+      (-z|--zicoseq)
+            all=0; zicoseq=1; shift;;
       (--alpha)
             all=0; alpha=1; shift;;
       (--beta)
@@ -103,22 +107,24 @@ done
 
 if [ $complement -eq 1 ]; then
     aldex2=$((1-aldex2))
-    ancombc=$((1-ancombc))
+    ancombc2=$((1-ancombc))
     corncob=$((1-corncob))
     deseq2=$((1-deseq2))
     limma=$((1-limma))
     lmclr=$((1-lmclr))
     maaslin2=$((1-maaslin2))
+    zicoseq=$((1-maaslin2))
 fi
 
 if [ $all -eq 1 ] ; then
     aldex2=1
-    ancombc=1
-    corncob=1
+    ancombc2=1
+    corncob=0
     deseq2=1
     limma=1
     lmclr=1
     maaslin2=1
+    zicoseq=1
     alpha=0
     beta=0
     group=0
@@ -194,6 +200,7 @@ function run_one_mda(){
         D <- mda.from_cmdargs(args, usecache=$usecache, recache=$recache ${fn_arguments});
         R <- mda.$method(D ${fn_arguments});
         write_tsv(R\$res, paste0(c(D\$outprefix, '$method/results.tsv'), collapse=''));
+        write_tsv(R\$res.full, paste0(c(D\$outprefix, '$method/results.full.tsv'), collapse=''));
         saveRDS(R, paste0(c(D\$outprefix, '$method/results.rds'), collapse=''))
         warnings()
     "
@@ -220,64 +227,68 @@ function run_one_mda(){
 declare -a result_files
 
 if [ $aldex2 -eq 1 ] ; then
-    run_one_mda aldex2 && result_files+=("$outprefix/aldex2/results.tsv")
+    run_one_mda aldex2 && result_files+=("$outprefix/aldex2/results.rds")
 fi
 
-if [ $ancombc -eq 1 ] ; then
-    run_one_mda ancombc && result_files+=("$outprefix/ancombc/results.tsv")
+if [ $ancombc2 -eq 1 ] ; then
+    run_one_mda ancombc2 && result_files+=("$outprefix/ancombc2/results.rds")
 fi
 
 if [ $corncob -eq 1 ] ; then
-    run_one_mda corncob && result_files+=("$outprefix/corncob/results.tsv")
+    run_one_mda corncob && result_files+=("$outprefix/corncob/results.rds")
 fi
     
 if [ $deseq2 -eq 1 ] ; then
-    run_one_mda deseq2 && result_files+=("$outprefix/deseq2/results.tsv")
+    run_one_mda deseq2 && result_files+=("$outprefix/deseq2/results.rds")
 fi
 
 if [ $limma -eq 1 ] ; then
-    run_one_mda limma && result_files+=("$outprefix/limma/results.tsv")
+    run_one_mda limma && result_files+=("$outprefix/limma/results.rds")
 fi
 
 if [ $lmclr -eq 1 ] ; then
-    run_one_mda lmclr && result_files+=("$outprefix/lmclr/results.tsv")
+    run_one_mda lmclr && result_files+=("$outprefix/lmclr/results.rds")
 fi
 
 if [ $maaslin2 -eq 1 ] ; then
-    run_one_mda maaslin2 && result_files+=("$outprefix/maaslin2/results.tsv")
+    run_one_mda maaslin2 && result_files+=("$outprefix/maaslin2/results.rds")
+fi
+
+if [ $zicoseq -eq 1 ] ; then
+    run_one_mda zicoseq && result_files+=("$outprefix/zicoseq/results.rds")
 fi
 
 if [ $alpha -eq 1 ] ; then
-    run_one_mda alpha && result_files+=("$outprefix/alpha/results.tsv")
+    run_one_mda alpha && result_files+=("$outprefix/alpha/results.rds")
 fi
 
 if [ $beta -eq 1 ] ; then
-    run_one_mda beta && result_files+=("$outprefix/beta/results.tsv")
+    run_one_mda beta && result_files+=("$outprefix/beta/results.rds")
 fi
 
 if [ $group -eq 1 ] ; then
-    run_one_mda group && result_files+=("$outprefix/group/results.tsv")
+    run_one_mda group && result_files+=("$outprefix/group/results.rds")
 fi
 
 if [ $continuous -eq 1 ] ; then
-    run_one_mda continuous && result_files+=("$outprefix/continuous/results.tsv")
+    run_one_mda continuous && result_files+=("$outprefix/continuous/results.rds")
 fi
 
 
 ###############################################################################
 # Combine all the outputs into one single output
 
-if [ "${#result_files[@]}" -gt 0 ]; then
-    out_file="$outprefix/results.tsv"
-
-    head -n 1 "${result_files[0]}" > "$out_file"
-    for idx in `seq 0 $((${#result_files[@]}-1))`; do
-        tail -n+2 "${result_files[idx]}"
-    done >> "$out_file"
-
-    echo "[MDA] (`date`) OUTPUT '$out_file'"
-else
-    echo "[MDA] (`date`) NO OUTPUT"
-fi
+#if [ "${#result_files[@]}" -gt 0 ]; then
+#    out_file="$outprefix/results.tsv"
+#
+#    head -n 1 "${result_files[0]}" > "$out_file"
+#    for idx in `seq 0 $((${#result_files[@]}-1))`; do
+#        tail -n+2 "${result_files[idx]}"
+#    done >> "$out_file"
+#
+#    echo "[MDA] (`date`) OUTPUT '$out_file'"
+#else
+#    echo "[MDA] (`date`) NO OUTPUT"
+#fi
 
 ###############################################################################

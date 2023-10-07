@@ -285,14 +285,16 @@ mda.clr <- function(df){
 ###############################################################################
 # output cache functions
 
-mda.cache_load_or_run_save <- function(mda.D, method, f_idx, expr, order_invariant=TRUE) {
+mda.cache_load_or_run_save <- function(mda.D, method, f_idx, expr, order_invariant=TRUE, extra=NULL) {
     D <- mda.D
-    f <- D$formula[[f_idx]]
     
-    checksum <- if (order_invariant){ f$checksum.order_invariant } else { f$checksum.order_variant }
+    checksum <- if (is.null(f_idx)){ "" } else { if (order_invariant){ D$formula[[f_idx]]$checksum.order_invariant  } else {  D$formula[[f_idx]]$checksum.order_variant } }
+    mainvar  <- if (is.null(f_idx)){ "mda_crossmethod_exec" } else { formula.parts(D$formula[[f_idx]]$fn.orig)[1] }
+
+    #extra = if (is.null(extra)) { NULL } else { if(order_invariant){ sort(extra) } else { extra } }
+    checksum <- if(is.null(extra)){checksum} else { digest(c(checksum, extra), algo="md5") }
+    
     cache.file <- paste0(c(paste0(c(D$cacheprefix, method, checksum), collapse='_'), "rds"), collapse=".")
-    
-    mainvar <- formula.parts(f$fn.orig)[1]
     
     data <- if (file.exists(cache.file) & (D$usecache) & !(D$recache)){
         message(paste0(c("[MDA] CacheLoad: ", method, ", ", mainvar, " (", basename(cache.file), ")"), collapse=""))
@@ -307,7 +309,9 @@ mda.cache_load_or_run_save <- function(mda.D, method, f_idx, expr, order_invaria
     }
     data
 }
-                                                      
+
+###############################################################################
+
 mda.deparse <- function(form){
     if (inherits(form, what="formula")){
         # Taken from as.character.formula in formula.tools
@@ -334,4 +338,96 @@ mda.summary <- function(res, id_cols="taxa", names_from="variable", method_from=
         effectsize = tidyr::pivot_wider(res, id_cols=all_of(id_cols), names_from=all_of(names_from), values_from=all_of(effectsize_from), values_fn=list),
         method_order = sort(unique(res[,method_from]))
     )
+}
+
+
+###############################################################################
+# A wrapper to be able to check singularity for both lmer and lm objects
+
+mda.isSingular <- function(fit){
+    suppressPackageStartupMessages({
+        require(lmerTest)})
+
+    if (length(intersect(class(fit), c("lmerModLmerTest", "glmerMod"))) > 0){
+        isSingular(fit)
+    }
+    else if (length(intersect(class(fit), c("lm", "glm"))) > 0){
+        p <- length(attributes(fit$terms)$term.labels) + attributes(fit$terms)$intercept
+        fit$rank < p
+    }
+    else { FALSE } # We don't know what to do in this case...
+}
+
+###############################################################################
+# Common post-do formatting
+                                 
+mda.common_do <- function(D, res.full, method, fdata, skip_taxa_sel=FALSE){
+    
+    res.full$formula <- rep(mda.deparse(fdata$fn.orig), dim(res.full)[1])
+    res.full$method <- rep(method, dim(res.full)[1])
+    res.full <- left_join(res.full, fdata$nfreq, by="variable.mda")
+
+    # Select only the relevant taxa ( taxa are selected already in some methods, but we repeat it here for safety )
+    res.full <- if(skip_taxa_sel){ res.full } else { res.full[res.full$taxa %in% D$nonrare,] }
+
+    # Select only the first variable in the original function
+    first_var <- formula.parts(fdata$fn.orig)[1]
+    res <- res.full[res.full$variable == first_var,]
+    res <- res[!is.na(res$variable),]
+    
+    # FDR correction
+    res$qvalue.withinformula <- p.adjust(res$pvalue, "fdr")
+    res.full$qvalue.withinformula <- p.adjust(res.full$pvalue, "fdr")
+
+    return(list(res=res, res.full=res.full))
+}
+###############################################################################
+# Common output format
+                  
+mda.common_output <- function(R){
+
+    column.initial <- c("taxa","variable","effectsize","se","stat","pvalue","qvalue.withinformula","formula","method","n","freq","comment")
+    column.order <- c("taxa","variable","effectsize","se","stat","pvalue","qvalue.withinformula","qvalue","formula","method","n","freq","comment")
+
+    
+    res <-        bind_rows(lapply(R, function(x){
+        v <- x$res[,intersect(column.initial, colnames(x$res))]
+        v[,setdiff(column.initial, colnames(x$res))] <- NA
+        v
+    }))
+    res$qvalue <- p.adjust(res$pvalue, "fdr")
+    rownames(res) <- NULL
+    
+    res.full <-        bind_rows(lapply(R, function(x){
+        v <- x$res.full[,intersect(column.initial, colnames(x$res.full))]
+        v[,setdiff(column.initial, colnames(x$res.full))] <- NA
+        v
+    }))
+    res.full$qvalue <- p.adjust(res.full$pvalue, "fdr")
+    rownames(res.full) <- NULL
+
+    # Select output columns
+
+    res <-          res[,column.order]
+    res.full <-     res.full[,column.order]
+    
+    return(list(res=res, res.full=res.full, summary=mda.summary(res)))
+}
+                  
+###############################################################################
+# Empty output format
+                  
+mda.empty_output <- function(fdata, comment=NA, taxa=NA){
+    empty.res <- fdata$nfreq[fdata$parts.fixed, c('variable.mda'),drop=FALSE]
+    empty.res[,c('se','taxa','pvalue','effectsize','df','stat')] <- NA
+    empty.res$taxa <- taxa
+    empty.res <- transform(empty.res,
+                           se = as.numeric(se),
+                           taxa = as.character(taxa),
+                           pvalue = as.numeric(pvalue),
+                           effectsize = as.numeric(effectsize),
+                           df = as.numeric(df),
+                           stat = as.numeric(stat))
+    empty.res$comment <- comment
+    empty.res
 }

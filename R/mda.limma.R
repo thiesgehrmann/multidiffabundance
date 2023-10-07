@@ -9,49 +9,53 @@ mda.limma <- function(mda.D, ...){
         require(tibble)
         require(dplyr)})
 
-    DGE_LIST <- DGEList(t(D$count_data))
+    DGE_LIST_Norm <- mda.cache_load_or_run_save(D, "limma_dgelistnorm", NULL, {
+        DGE_LIST <- DGEList(t(D$count_data))
 
-    ### check if upper quartile method works for selecting reference
-    Upper_Quartile_norm_test <- calcNormFactors(DGE_LIST, method="upperquartile")
+        ### check if upper quartile method works for selecting reference
+        Upper_Quartile_norm_test <- calcNormFactors(DGE_LIST, method="upperquartile")
 
-    summary_upper_quartile <- summary(Upper_Quartile_norm_test$samples$norm.factors)[3]
-    if(is.na(summary_upper_quartile) | is.infinite(summary_upper_quartile)){
-        message("Upper Quartile reference selection failed will use find sample with largest sqrt(read_depth) to use as reference")
-        Ref_col <- which.max(colSums(sqrt(t(D$count_data))))
-        DGE_LIST_Norm <- calcNormFactors(DGE_LIST, method = "TMM", refColumn = Ref_col)
-        message("Used max square root read depth to determine reference sample")
+        summary_upper_quartile <- summary(Upper_Quartile_norm_test$samples$norm.factors)[3]
+        if(is.na(summary_upper_quartile) | is.infinite(summary_upper_quartile)){
+            message("Upper Quartile reference selection failed will use find sample with largest sqrt(read_depth) to use as reference")
+            Ref_col <- which.max(colSums(sqrt(t(D$count_data))))
+            DGE_LIST_Norm <- calcNormFactors(DGE_LIST, method = "TMM", refColumn = Ref_col)
+            message("Used max square root read depth to determine reference sample")
 
-    }else{
-        DGE_LIST_Norm <- calcNormFactors(DGE_LIST, method="TMM")
-    }
+        }else{
+            DGE_LIST_Norm <- calcNormFactors(DGE_LIST, method="TMM")
+        }
+        DGE_LIST_Norm
+    })
+    
 
     do <- function(f_idx){
 
-        f <- D$formula$norand[[f_idx]]
-        f.cache <- f
-
-        mainvar <- D$formula$main_var[f_idx]
+        fdata <- D$formula[[f_idx]]
+        f <- fdata$fn
         
-        if ( length(D$formula$rand_slope[[f_idx]]) > 0 ){
-            message(paste0(c("[MDA] mda.limma: Formula on ", f_idx, " contains random slope effects. limma can not handle random slopes. Run will continue without random slopes")))
+        if ( length(fdata$parts.random.slope) > 0 ){
+            message(paste0(c("[MDA] mda.limma: Formula on ", f_idx, " contains random slope effects. limma can not handle random slopes.")))
+            return(mda.common_do(D, mda.empty_output(fdata, "Formula incompatible with limma analysis (random slope specified)"), "limma", fdata, skip_taxa_sel=TRUE))
+        }
+        
+        if ( length(fdata$parts.random.intercept) > 1 ){
+            message(paste0(c("[MDA] mda.limma: Formula on ", f_idx, " contains more than one random intercept effect. limma can only handle one random intercept")))
+            return(mda.common_do(D, mda.empty_output(fdata, "Formula incompatible with limma analysis (>1 random intercept specified)"), "limma", fdata, skip_taxa_sel=TRUE))
         }
         
         block <- NULL
-        if ( length(D$formula$rand_intercept[[f_idx]]) > 0 ){
-            rblock <- D$formula$rand_intercept[[f_idx]][1]
-            block <- trimws(gsub(")", "", unlist(strsplit(rblock, split="\\|"))[[2]]))
-            f.cache <- update.formula(f.cache, paste0(c("~.+", paste0(rblock, collapse="+")), collapse=""))
-            if (length(D$formula$rand_intercept[[f_idx]]) > 1){
-                message(paste0(c("[MDA] mda.limma: Formula on ", f_idx, " contains more than one random intercept effect. limma can only handle one random effect. Will continue with (1|", block, ").")))
-            }
-            block <- D$meta_data[,block]
+        if ( length(fdata$parts.random.intercept) == 1 ){
+            rblock <- fdata$parts.random.intercept[1]
+            block <- trimws(unlist(strsplit(rblock, split="\\|"))[[2]])
+            block <- fdata$data[,block]
         }
-        
 
-        ## make matrix for testing
-        fit <- mda.cache_load_or_run_save(D, "limma", f.cache, 
+        fit <- mda.cache_load_or_run_save(D, "limma", f_idx, 
                    {
-                    mm <- model.matrix(f, D$meta_data)
+                    print(fdata$parts.fixed)
+                    mm <- fdata$data[,fdata$parts.fixed,drop=FALSE]
+                       
                     subset_dgelist <- DGE_LIST_Norm[, rownames(DGE_LIST_Norm$samples) %in% rownames(mm)]
                     voomfit <- voom(subset_dgelist, mm, plot=FALSE)
                     fit <- if (is.null(block)) {
@@ -75,38 +79,20 @@ mda.limma <- function(mda.D, ...){
         p.val <- gather(as.data.frame(fit$p.value) %>% rownames_to_column('taxa'), "variable", "pvalue", 2:(dim(as.data.frame(fit$p.value))[2]+1))
         stat <- gather(as.data.frame(fit$t) %>% rownames_to_column('taxa'), "variable", "stat", 2:(dim(as.data.frame(fit$t))[2]+1))
 
-
         res.full <- merge(merge(merge(coeff, stdev, by=c("taxa","variable")), p.val, by=c("taxa","variable")), stat, by=c("taxa","variable"))
-        res.full$formula <- rep(mda.deparse(f.cache), dim(res.full)[1])
-        res.full$method <- rep("limma", dim(res.full)[1])
-        res.full$n <- rep(mda.meta.n(D, mainvar), dim(res.full)[1])
-        res.full$freq <- rep(mda.meta.freq(D, mainvar), dim(res.full)[1])
-        res.full$se <- res.full$stdev / sqrt(res.full$n)
+        names(res.full)[names(res.full)=="coefficient"] <- "effectsize"
+        names(res.full)[names(res.full)=="stdev"] <- "se"
+        names(res.full)[names(res.full)=="variable"] <- "variable.mda"
+        
+        res <- mda.common_do(D, res.full, "limma", fdata, skip_taxa_sel=FALSE)
 
-        # Select only the relevant variable & taxa
-        res <- res.full
-        res <- res[startsWith(res$variable, mainvar),]
-        res <- res[res$taxa %in% D$nonrare,]
+        res$res.full$se <- res$res.full$se / sqrt(as.numeric(res$res.full$n))
+        res$res$se <- res$res$se / sqrt(as.numeric(res$res$n))
+        res
 
-        res$qvalue.withinformula <- p.adjust(res$pvalue, "fdr")
-        res$variable <- rep(mainvar, dim(res)[1])
-        names(res)[names(res)=="coefficient"] <- "effectsize"
-
-        return(list(res=res, res.full=res.full))
     }
 
-    R <- lapply(1:length(D$formula$main_var), do)
+    R <- lapply(1:length(D$formula), do)
 
-    res <- bind_rows(lapply(R, function(x){x$res}))
-    res$qvalue <- p.adjust(res$pvalue, "fdr")
-    res.full <- bind_rows(lapply(R, function(x){x$res.full}))
-
-
-    ###############################################################################
-    # Output
-
-    column.order <- c("taxa","variable","effectsize","se","stat","pvalue","qvalue.withinformula","qvalue","formula","method","n","freq")
-    res <- res[,column.order]
-    
-    return(list(res=res, res.full=res.full, summary=mda.summary(res)))
+    mda.common_output(R)
 }

@@ -1,7 +1,6 @@
 ###############################################################################
 # Run DESEQ2
 
-
 mda.deseq2 <- function(mda.D, ...){
     D <- mda.D
     suppressPackageStartupMessages({
@@ -12,21 +11,20 @@ mda.deseq2 <- function(mda.D, ...){
 
     do <- function(f_idx){
 
-        f <- D$formula$norand[[f_idx]]
-        mainvar <- D$formula$main_var[f_idx]
+        fdata <- D$formula[[f_idx]]
+        f <- fdata$fn
         
-        if ( (length(D$formula$rand_intercept[[f_idx]]) + length(D$formula$rand_slope[[f_idx]])) > 0 ){
-            message(paste0(c("[MDA] mda.deseq2: Formula ", f_idx, " contains random effects. DESeq2 can not handle random effects. Run will continue without random effects.")))
+        if ( length(fdata$parts.random) > 0 ){
+            message(paste0(c("[MDA] mda.deseq2: Formula on ", f_idx, " contains random effects. DESeq2 can not handle random effects")))
+            return(mda.common_do(D, mda.empty_output(fdata, "Formula incompatible with DESeq2 analysis (random effect specified)"), "deseq2", fdata, skip_taxa_sel=TRUE))
         }
         
         # We need to remove na rows
-        terms <- labels(terms(f))
-        variables <- terms[!grepl(':', terms)]
-        meta_data.nona <- na.omit(D$meta_data[,variables,drop=FALSE])
+
+        meta_data.nona <- na.omit(fdata$data)
         count_data.nona <- D$count_data[rownames(meta_data.nona),]
 
-
-        dds_res <- mda.cache_load_or_run_save(D, "deseq2", f, 
+        dds_res <- mda.cache_load_or_run_save(D, "deseq2", f_idx, 
                     {
                     dds <- DESeq2::DESeqDataSetFromMatrix(countData = t(count_data.nona),
                                                           colData = meta_data.nona,
@@ -34,38 +32,19 @@ mda.deseq2 <- function(mda.D, ...){
                     DESeq2::DESeq(dds, sfType = "poscounts")
                     })
 
-        
-        res.full <- DESeq2::results(dds_res, name=DESeq2::resultsNames(dds_res)[startsWith(DESeq2::resultsNames(dds_res), mainvar)],
-                        tidy=T, format="DataFrame")
+
+        res.full <- bind_rows(lapply(DESeq2::resultsNames(dds_res), function(name){
+            v <- DESeq2::results(dds_res, name=name, tidy=T, format="DataFrame")
+            v$variable.mda <- name
+            v}))
         names(res.full)[names(res.full)=="row"] <- "taxa"
-        res.full$variable <- rep(mainvar, dim(res.full)[1])
-        res.full$formula <- rep(mda.deparse(f), dim(res.full)[1])
-        res.full$method <- rep("DESeq2", dim(res.full)[1])
-        res.full$n <- rep(mda.meta.n(D, mainvar), dim(res.full)[1])
-        res.full$freq <- rep(mda.meta.freq(D, mainvar), dim(res.full)[1])
+        names(res.full)[names(res.full)=="log2FoldChange"] <- "effectsize"
+        names(res.full)[names(res.full)=="lfcSE"] <- "se"
 
-        res <- res.full
-        res <- res[res$taxa %in% D$nonrare,]
-        res$qvalue.withinformula <- p.adjust(res$pvalue, "fdr")
-
-        return(list(res=res, res.full=res.full))
+        mda.common_do(D, res.full, "deseq2", fdata, skip_taxa_sel=FALSE)
     }
 
-    R <- lapply(1:length(D$formula$main_var), do)
+    R <- lapply(1:length(D$formula), do)
 
-    res <- bind_rows(lapply(R, function(x){x$res}))
-    res$qvalue <- p.adjust(res$pvalue, "fdr")
-
-    names(res)[names(res)=="log2FoldChange"] <- "effectsize"
-    names(res)[names(res)=="lfcSE"] <- "se"
-
-    res.full <- bind_rows(lapply(R, function(x){x$res.full}))
-
-    ###############################################################################
-    # Output
-
-    column.order <- c("taxa","variable","effectsize","se","stat","pvalue","qvalue.withinformula","qvalue","formula","method","n","freq")
-    res <- res[,column.order]
-    
-    return(list(res=res, res.full=res.full, summary=mda.summary(res)))
+    mda.common_output(R)
 }

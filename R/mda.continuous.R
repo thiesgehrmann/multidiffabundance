@@ -1,7 +1,7 @@
  ###############################################################################
 # Continuous value analysis
 
-mda.continuous <- function(mda.D, continuous.cols=NULL, ...){
+mda.continuous <- function(mda.D, continuous.cols=NULL, continuous.scale=TRUE, ...){
     D <- mda.D
     
     suppressPackageStartupMessages({
@@ -14,43 +14,31 @@ mda.continuous <- function(mda.D, continuous.cols=NULL, ...){
         exit(0)
     }
     
-    lmcont <- function(D, formula){
+    continuous <- function(count_data, meta_data, formula, method){
 
         f <- update(formula, mda.cont.col ~ .)
         
         res <- lapply(continuous.cols, function(c){
-            meta_data <- D$meta_data
-            meta_data[!is.na(meta_data[,c]),]
-            meta_data$mda.cont.col <- meta_data[,c]
-            fit <- lm(f, data=meta_data, na.action = 'na.exclude')
+            meta_data$mda.cont.col <- if(continuous.scale) { as.vector(scale(D$meta_data[,c]), ) } else { D$meta_data[,c] }
+
+            r <- tryCatch({
+                    list(fit=method(f, data=meta_data, na.action = 'na.exclude'), error=FALSE)
+                },
+                error=function(err){
+                    return(list(fit=mda.empty_output(fdata, err$message), error=TRUE))
+                })
+
+            if (r$error){
+                return(r$fit)
+            }
+            fit <- r$fit
             s <- as.data.frame(coefficients(summary(fit)))
+
+            if (mda.isSingular(fit)){
+                    s[,"Pr(>|t|)"] <- NA
+            }
             s$taxa <- rep(c, dim(s)[1])
-            s <- s %>% rownames_to_column("variable")
-            s
-        })
-        res <- bind_rows(res)
-
-        names(res)[names(res)=="Estimate"] <- "effectsize"
-        names(res)[names(res)=="Std. Error"] <- "se"
-        names(res)[names(res)=="t value"] <- "stat"
-        names(res)[names(res)=="Pr(>|t|)"] <- "pvalue"
-
-        res
-    }
-    
-    lmercont <- function(D, formula){
-        suppressPackageStartupMessages(library(lmerTest))
-
-        f <- update(formula, mda.group.col ~ .)
-
-        res <- lapply(continuous.cols, function(c){
-            meta_data <- D$meta_data
-            meta_data[!is.na(meta_data[,c]),]
-            meta_data$mda.cont.col <- meta_data[,c]
-            fit <- lmer(f, data=meta_data, na.action = 'na.exclude')
-            s <- as.data.frame(coefficients(summary(fit)))
-            s$taxa <- rep(c, dim(s)[1])
-            s <- s %>% rownames_to_column("variable")
+            s <- s %>% rownames_to_column("variable.mda")
             s
         })
         res <- bind_rows(res)
@@ -66,42 +54,19 @@ mda.continuous <- function(mda.D, continuous.cols=NULL, ...){
     do <- function(f_idx){
         
         fdata <- D$formula[[f_idx]]
-
-        method <- if ( formula.ismixed(fdata$fn) ){
-            lmercont
-        } else { lmcont }
-        
         f <- fdata$fn
-        
-        first_var <- formula.parts(fdata$fn.orig)[1]
 
-        res.full <- mda.cache_load_or_run_save(D, "continuous", f_idx, method(D$count_data, fdata$data, f))
+        method <- if ( formula.ismixed(f) ){
+            lmer
+        } else { lm }
 
-        res.full$formula <- rep(mda.deparse(fdata$fn.orig), dim(res.full)[1])
-        res.full$method <- rep("lmclr", dim(res.full)[1])
-        res.full <- left_join(res.full, fdata$nfreq, by="variable.mda")
+        res.full <- mda.cache_load_or_run_save(D, "continuous", f_idx, continuous(D$count_data, fdata$data, f, method), extra=continuous.cols)
 
-        # Select only the relevant variable
-        res <- res.full[startsWith(res.full$variable, mainvar),]
+        mda.common_do(D, res.full, "continuous", fdata, skip_taxa_sel=TRUE)
 
-        res$qvalue.withinformula <- p.adjust(res$pvalue, "fdr")
-        res$variable <- rep(mainvar, dim(res)[1])
-
-        return(list(res=res, res.full=res.full))
     }
 
-    R <- lapply(1:length(D$formula$main_var), do)
+    R <- lapply(1:length(D$formula), do)
+    mda.common_output(R)
 
-
-    res <- bind_rows(lapply(R, function(x){x$res}))
-    res$qvalue <- p.adjust(res$pvalue, "fdr")
-    res.full <- bind_rows(lapply(R, function(x){x$res.full}))
-
-    ###############################################################################
-    # Output
-
-    column.order <- c("taxa","variable","effectsize","se","stat","pvalue","qvalue.withinformula","qvalue","formula","method","n","freq")
-    res <- res[,column.order]
-    
-    return(list(res=res, res.full=res.full, summary=mda.summary(res)))
 }

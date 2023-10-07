@@ -1,18 +1,21 @@
-This example data was taken from Frederick Huang Lin's ANCOM package: https://github.com/FrederickHuangLin/ANCOM-Code-Archive/tree/master/data
+#This example data was taken from Frederick Huang Lin's ANCOM package: https://github.com/FrederickHuangLin/ANCOM-Code-Archive/tree/master/data
+#
+#Made with:
+# Run in root directory of repository
 
-Made with:
+source("R/formula.R")
 source("R/mda.R")
 
-args <- c("~/repos//multidiffabundance/data/mda.example.count_data.tsv",
-          "~/repos//multidiffabundance/data/mda.example.meta_data.tsv",
-          "~/repos//multidiffabundance/data/mda.example.formulas.txt",
-          "~output")
+args <- c("./inst/extdata/mda.example.count_data.tsv",
+          "./inst/extdata/mda.example.meta_data.tsv",
+          "./inst/extdata/mda.example.formulas.txt",
+          "./output")
 
 D <- mda.from_cmdargs(args)
 
 mda.example <- c()
 mda.example$count_data <- D$count_data
-mda.example$meta_data  <- D$meta_data
-mda.example$formulas  <- unlist(lapply(D$formula$raw, as.formula))
+mda.example$meta_data <-  D$meta_data
+mda.example$formulas <-   sapply(D$formula, function(d){d$fn.orig})
 
 save(mda.example, file="data/mda.example.RData")

@@ -11,18 +11,16 @@ mda.corncob <- function(mda.D, ...){
         require(dplyr)})
 
     do <- function(f_idx){
-        f <- D$formula$norand[[f_idx]]
-        mainvar <- D$formula$main_var[f_idx]
+        fdata <- D$formula[[f_idx]]
+        f <- fdata$fn
         
-        if ( (length(D$formula$rand_intercept[[f_idx]]) + length(D$formula$rand_slope[[f_idx]])) > 0 ){
-            message(paste0(c("[MDA] mda.corncob: Formula on ", f_idx, " contains random effects. Corncob can not handle random effects. Run will continue without random effects.")))
+        if ( length(fdata$parts.random) > 0 ){
+            message(paste0(c("[MDA] mda.corncob: Formula on ", f_idx, " contains random effects. Corncob can not handle random effects")))
+            return(mda.common_do(D, mda.empty_output(fdata, "Formula incompatible with Corncob analysis (random effect specified)"), "corncob", fdata, skip_taxa_sel=TRUE))
         }
 
-        results <- mda.cache_load_or_run_save(D, "corncob", f,{
-            
-                       terms <- labels(terms(f))
-                       variables <- terms[!grepl(':', terms)] # This needs to be cleaned up or done in a  nicer way
-                       meta_data.nona <- na.omit(D$meta_data[,variables,drop=FALSE])
+        results <- mda.cache_load_or_run_save(D, "corncob", f_idx,{
+                       meta_data.nona <- na.omit(fdata$data)
                        count_data.nona <- D$count_data[rownames(meta_data.nona),]
             
                        OTU <- phyloseq::otu_table(t(count_data.nona), taxa_are_rows = T)
@@ -46,8 +44,8 @@ mda.corncob <- function(mda.D, ...){
             ms <- as.data.frame(ms$coefficients)
             ms <- ms[startsWith(rownames(ms), "phi."),]
             ms$taxa <- rep(colnames(D$count_data)[t_idx], dim(ms)[1])
-            ms <- ms %>% rownames_to_column('variable')
-            ms$variable <- gsub("^phi[.]", "", ms$variable)
+            ms <- ms %>% rownames_to_column('variable.mda')
+            ms$variable.mda <- gsub("^phi[.]", "", ms$variable.mda)
 
             names(ms)[names(ms)=="Estimate"] <- "effectsize"
             names(ms)[names(ms)=="Std. Error"] <- "se"
@@ -57,33 +55,12 @@ mda.corncob <- function(mda.D, ...){
         })
 
         res.full <- bind_rows(ram)
-        res.full$formula <- rep(mda.deparse(f), dim(res.full)[1])
-        res.full$method <- rep("corncob", dim(res.full)[1])
-        res.full$n <- rep(mda.meta.n(D, mainvar), dim(res.full)[1])
-        res.full$freq <- rep(mda.meta.freq(D, mainvar), dim(res.full)[1])
-
-        res <- res.full
-        res <- res[startsWith(res$variable, mainvar),]
-        res <- res[res$taxa %in% D$nonrare,]
-
-        res$qvalue.withinformula <- p.adjust(res$pvalue, "fdr")
-        res$variable <- rep(mainvar, dim(res)[1])
-
-        return(list(res=res, res.full=res.full))
+        
+        mda.common_do(D, res.full, "corncob", fdata, skip_taxa_sel=TRUE)
 
     }
 
-    R <- lapply(1:length(D$formula$main_var), do)
+    R <- lapply(1:length(D$formula), do)
 
-    res <- bind_rows(lapply(R, function(x){x$res}))
-    res$qvalue <- p.adjust(res$pvalue, "fdr")
-    res.full <- bind_rows(lapply(R, function(x){x$res.full}))
-
-    ###############################################################################
-    # Output
-
-    column.order <- c("taxa","variable","effectsize","se","stat","pvalue","qvalue.withinformula","qvalue","formula","method","n","freq")
-    res <- res[,column.order]
-    
-    return(list(res=res, res.full=res.full, summary=mda.summary(res)))
+    mda.common_output(R)
 }

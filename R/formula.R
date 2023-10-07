@@ -147,6 +147,12 @@ formula.reformulate.mixed <- function(fn, data){
 
     fn.fixed <- as.formula(paste0(c('~', paste0(unlist(fe.parts), collapse=' + ')), collapse=' '))
     fe.data <- subset(formula.model.matrix(fn.fixed, data), select=-`(Intercept)`)
+    
+    fe.data.missing_rows <- setdiff(rownames(data), rownames(fe.data))
+    fe.data.missing_data <- as.data.frame(matrix(nrow=length(fe.data.missing_rows), ncol=length(colnames(fe.data))), rownames=fe.data.missing_rows)
+    colnames(fe.data.missing_data) <- colnames(fe.data)
+
+    fe.data <- rbind(fe.data, fe.data.missing_data)
 
     # Get data for just the random effect parts
     re <- lapply(re.parts, function(part){
@@ -174,8 +180,13 @@ formula.reformulate.mixed <- function(fn, data){
             colnames(bound) <- c(colnames(x), newcols)
             bound
         }, re.data)
+    
+    re.data.missing_rows <- setdiff(rownames(data), rownames(re.data))
+    re.data.missing_data <- as.data.frame(matrix(nrow=length(re.data.missing_rows), ncol=length(colnames(re.data))), rownames=re.data.missing_rows)
+    colnames(re.data.missing_data) <- colnames(re.data)
+    re.data <- rbind(re.data, re.data.missing_data)
+    
     # Merge the fixed and random effects into one table
-
     data.new <- cbind(fe.data, re.data[,setdiff(colnames(re.data), colnames(fe.data)), drop=FALSE])
     data.names.map <- colnames(data.new)
     names(data.names.map) <- sapply(1:dim(data.new)[2], function(x){sprintf('mda_p%05d', x)})
@@ -210,13 +221,16 @@ formula.reformulate.mixed <- function(fn, data){
     
 }
 
-mda.nfreq <- function(data, maxunique=10){
+mda.nfreq <- function(data, maxunique=100){
     n <- function(var){
         sum(unlist(lapply(data[,var],function(x){!(is.na(x))})))
     }
 
     freq <- function(var){
-        if (length(unique(data[,var])) >= maxunique){
+        if (is.numeric(data[,var])){
+            ""
+        }
+        else if (length(unique(data[,var])) >= maxunique){
             ""
         } else {
             paste0(mapply(function(x,y){paste0(c(x,y), collapse=":")}, names(table(data[,var])), as.character(table(data[,var]))), collapse=", ")

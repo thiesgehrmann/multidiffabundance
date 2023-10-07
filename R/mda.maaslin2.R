@@ -9,22 +9,20 @@ mda.maaslin2 <- function(mda.D, ...){
         require(tibble)})
 
     do <- function(f_idx){
-        f <- D$formula$norand[[f_idx]]
-        f.cache <- f
-        mainvar <- D$formula$main_var[f_idx]
+        fdata <- D$formula[[f_idx]]
+        f <- fdata$fn
         
-        if ( length(D$formula$rand_slope[[f_idx]]) > 0 ){
-            message(paste0(c("[MDA] mda.maaslin2: Formula on ", f_idx, " contains random slope effects. Maaslin2 can not handle random slopes. Run will continue without random slopes")))
+        if ( length(fdata$parts.random.slope) > 0 ){
+            message(paste0(c("[MDA] mda.maaslin2: Formula on ", f_idx, " contains random slope effects. Maaslin2 can not handle random slopes.")))
+            return(mda.common_do(D, mda.empty_output(fdata, "Formula incompatible with maaslin2 analysis (random slope specified)"), "maaslin2", fdata, skip_taxa_sel=TRUE))
         }
         
         random_effects <- NULL
-        if ( length(D$formula$rand_intercept[[f_idx]]) > 0 ){
-            randvars <- D$formula$rand_intercept[[f_idx]]
-            random_effects <- unlist(lapply(randvars, function(x){ trimws(gsub(")", "", unlist(strsplit(x, split="\\|"))[[2]]))}))
-            f.cache <- update.formula(f.cache, paste0(c("~.+", paste0(D$formula$rand_intercept[[f_idx]], collapse="+")), collapse=""))
+        if ( length(fdata$parts.random.intercept) > 0 ){
+            random_effects <- unlist(lapply(strsplit(fdata$parts.random.intercept, split="\\|"), function(v){trimws(v[2])}))
         }
         
-        fix_factors <- D$meta_data
+        fix_factors <- fdata$data
         possible_factors <- colnames(fix_factors)[unlist(lapply(colnames(fix_factors), function(x) { typeof(fix_factors[,x])})) == 'character']
         dumb_masslin_factor_crap <- function(d){
             fd <- factor(fix_factors[,d])
@@ -35,11 +33,12 @@ mda.maaslin2 <- function(mda.D, ...){
                 NULL
             }
         }
+        
         maaslin2.reference <- paste0(unlist(lapply(possible_factors, dumb_masslin_factor_crap)), collapse=";")
-
-        mas <- mda.cache_load_or_run_save(D, "maaslin2", f.cache,
+        
+        mas <- mda.cache_load_or_run_save(D, "maaslin2", f_idx,
                     Maaslin2(input_data = D$count_data,
-                             input_metadata = D$meta_data,
+                             input_metadata = fdata$data,
                              output = paste0(c(D$outprefix, "/maaslin2.output.folder"), collapse=""),
                              min_abundance = 0.0,
                              min_prevalence = 0.0,
@@ -47,7 +46,7 @@ mda.maaslin2 <- function(mda.D, ...){
                              transform = "LOG",
                              analysis_method = "LM",
                              max_significance = 0.05,
-                             fixed_effects = labels(terms(f)),
+                             fixed_effects = fdata$parts.fixed,
                              random_effects = random_effects,
                              correction = "BH",
                              standardize = FALSE,
@@ -60,37 +59,22 @@ mda.maaslin2 <- function(mda.D, ...){
 
         res.full <- as_tibble(as.data.frame(mas$results))
         res.full <- res.full[,c("feature","metadata","coef","stderr","pval")]
-        res.full$formula <- rep(mda.deparse(f.cache), dim(res.full)[1])
-        res.full$method <- rep("maaslin2", dim(res.full)[1])
-        res.full$n <- rep(mda.meta.n(D, mainvar), dim(res.full)[1])
-        res.full$freq <- rep(mda.meta.freq(D, mainvar), dim(res.full)[1])
-        res.full$stat <- rep(NA, dim(res.full)[1])
-
         names(res.full)[names(res.full)=="feature"] <- "taxa"
-        names(res.full)[names(res.full)=="metadata"] <- "variable"
+        names(res.full)[names(res.full)=="metadata"] <- "variable.mda"
         names(res.full)[names(res.full)=="coef"] <- "effectsize"
         names(res.full)[names(res.full)=="stderr"] <- "se"
         names(res.full)[names(res.full)=="pval"] <- "pvalue"
-
-        res <- res.full[(res.full$variable == mainvar),]
-        res$variable <- rep(mainvar, dim(res)[1])
-        res <- res[res$taxa %in% D$nonrare,]
-
-        res$qvalue.withinformula <- p.adjust(res$pvalue, "fdr")
-
-        return(list(res=res, res.full=res.full))
+        
+        res.full <- as.data.frame(res.full)
+        
+        res <- mda.common_do(D, res.full, "beta", fdata, skip_taxa_sel=TRUE)
+        
+        res$res.full$se <- res$res.full$se / sqrt(as.numeric(res$res.full$n))
+        res$res$se <- res$res$se / sqrt(as.numeric(res$res$n))
+        res
     }
 
-    R <- lapply(1:length(D$formula$main_var), do)
+    R <- lapply(1:length(D$formula), do)
 
-    res <- bind_rows(lapply(R, function(x){x$res}))
-    res$qvalue <- p.adjust(res$pvalue, "fdr")
-    res.full <- bind_rows(lapply(R, function(x){x$res.full}))
-
-    ###############################################################################
-    # Output
-
-    column.order <- c("taxa","variable","effectsize","se","stat","pvalue","qvalue.withinformula","qvalue","formula","method","n","freq")
-    res <- res[,column.order]
-    return(list(res=res, res.full=res.full, summary=mda.summary(res)))
+    mda.common_output(R)
 }
