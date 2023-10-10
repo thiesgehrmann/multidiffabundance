@@ -15,10 +15,10 @@ mda.aldex2 <- function(mda.D, ...){
 
         if ( length(fdata$parts.random) > 0 ){
             message(paste0(c("[MDA] mda.aldex2: Formula on ", f_idx, " contains random effects. Aldex2 can not handle random effects")))
-            return(mda.common_do(D, mda.empty_output(fdata, "Formula incompatible with Aldex2 analysis (random effect specified)"), "aldex2", fdata, skip_taxa_sel=TRUE))
+            return(mda.common_do(D, f_idx, mda.empty_output(D, f_idx, "Formula incompatible with Aldex2 analysis (random effect specified)"), "aldex2", skip_taxa_sel=TRUE))
         }
 
-        out <- mda.cache_load_or_run_save(D, "aldex2", f_idx, {
+        out <- mda.cache_load_or_run_save(D, f_idx, "aldex2", {
             mm <- model.matrix(f, fdata$data)
             counts <- t(D$count_data[rownames(mm),]) # Remove the NAs that have been removed by model.matrix
             ALDEx2::aldex(counts, mm, denom = "all", test="glm")
@@ -71,7 +71,7 @@ mda.aldex2 <- function(mda.D, ...){
         
         res.full <- pivot_wider(res.full, id_cols=c("taxa", "variable.mda"), names_from=feature, values_from=value)
         
-        mda.common_do(D, res.full, "aldex2", fdata, skip_taxa_sel=TRUE)
+        mda.common_do(D, f_idx, res.full, "aldex2", skip_taxa_sel=TRUE)
 
     }
 

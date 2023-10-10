@@ -13,8 +13,8 @@ mda.maaslin2 <- function(mda.D, ...){
         f <- fdata$fn
         
         if ( length(fdata$parts.random.slope) > 0 ){
-            message(paste0(c("[MDA] mda.maaslin2: Formula on ", f_idx, " contains random slope effects. Maaslin2 can not handle random slopes.")))
-            return(mda.common_do(D, mda.empty_output(fdata, "Formula incompatible with maaslin2 analysis (random slope specified)"), "maaslin2", fdata, skip_taxa_sel=TRUE))
+            message(paste0(c("[MDA] mda.maaslin2: Formula ", f_idx, " contains random slope effects. Maaslin2 can not handle random slopes.")))
+            return(mda.common_do(D, f_idx, mda.empty_output(D, f_idx, "Formula incompatible with maaslin2 analysis (random slope specified)"), "maaslin2", skip_taxa_sel=TRUE))
         }
         
         random_effects <- NULL
@@ -36,7 +36,7 @@ mda.maaslin2 <- function(mda.D, ...){
         
         maaslin2.reference <- paste0(unlist(lapply(possible_factors, dumb_masslin_factor_crap)), collapse=";")
         
-        mas <- mda.cache_load_or_run_save(D, "maaslin2", f_idx,
+        mas <- mda.cache_load_or_run_save(D, f_idx, "maaslin2",
                     Maaslin2(input_data = D$count_data,
                              input_metadata = fdata$data,
                              output = paste0(c(D$outprefix, "/maaslin2.output.folder"), collapse=""),
@@ -67,7 +67,7 @@ mda.maaslin2 <- function(mda.D, ...){
         
         res.full <- as.data.frame(res.full)
         
-        res <- mda.common_do(D, res.full, "beta", fdata, skip_taxa_sel=TRUE)
+        res <- mda.common_do(D, f_idx, res.full, "beta", skip_taxa_sel=TRUE)
         
         res$res.full$se <- res$res.full$se / sqrt(as.numeric(res$res.full$n))
         res$res$se <- res$res$se / sqrt(as.numeric(res$res$n))

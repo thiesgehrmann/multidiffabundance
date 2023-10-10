@@ -240,7 +240,12 @@ mda.beta <- function(mda.D, beta.permutations=999, beta.parallel=8, beta.hack=TR
         
         if ( length(fdata$parts.random.slope) > 0 ){
             message(paste0(c("[MDA] mda.beta. Formula on ", f_idx, " contains random slope effects. Adonis2 can not handle random slopes. Run will not continue")))
-            return(mda.common_do(D, mda.empty_output(fdata, "Formula incompatible with Beta analysis (random slope specified)", taxa="mda.beta"), "beta", fdata, skip_taxa_sel=TRUE))
+            return(mda.common_do(D, f_idx, mda.empty_output(D, f_idx, "Formula incompatible with Beta analysis (random slope specified)", taxa="mda.beta"), "beta", skip_taxa_sel=TRUE))
+        }
+        
+        if (length(D$formula$rand_intercept[[f_idx]]) > 1){
+            message(paste0(c("[MDA] mda.beta: Formula on ", f_idx, " contains more than one random intercept effect. Adonis2 can only handle one random effect.")))
+            return(mda.common_do(D, f_idx, mda.empty_output(D, f_idx, "Formula incompatible with Beta analysis (>1 random intercept specified)", taxa="mda.beta"), "beta", skip_taxa_sel=TRUE))
         }
         
         block <- NULL
@@ -248,32 +253,25 @@ mda.beta <- function(mda.D, beta.permutations=999, beta.parallel=8, beta.hack=TR
         if ( length(fdata$parts.random.intercept) == 1 ){
             rblock <- fdata$parts.random.intercept[1]
             block <- trimws(gsub(")", "", unlist(strsplit(rblock, split="\\|"))[[2]]))
-            print(block)
-            comment <- paste0(c("[MDA] mda.beta: Formula on ", f_idx, " contains a random intercept effect. Adonis2 cannot handle random effects. However, we will translate this into a block design. This means that permutations will be performed within these blocks. If you do not desire this, replace the random intercept with a fixed effect. Will block with (1|", block, ")."))
-            message(comment)
+            comment <- paste0(c("Adonis2 cannot handle random effects. However, we will translate this into a block design. This means that permutations will be performed within these blocks. If you do not desire this, replace the random intercept with a fixed effect. Will block with (1|", block, ")."), collapse="")
+            message(paste0(c("[MDA] mda.beta: Formula on ", f_idx, " contains a random intercept effect. ", comment), collapse=""))
         }
-                    
-        if (length(D$formula$rand_intercept[[f_idx]]) > 1){
-            message(paste0(c("[MDA] mda.beta: Formula on ", f_idx, " contains more than one random intercept effect. Adonis2 can only handle one random effect.")))
-            return(mda.common_do(D, mda.empty_output(fdata, "Formula incompatible with Beta analysis (>1 random intercept specified)", taxa="mda.beta"), "beta", fdata, skip_taxa_sel=TRUE))
-        }
-        
+
         meta_data.nona <- na.omit(fdata$data)
         count_data.nona <- D$count_data[rownames(meta_data.nona),]
-        
-        out <- mda.cache_load_or_run_save(D, "beta", f_idx, {
-            dist <- mda.cache_load_or_run_save(D, "beta_dist", NULL, {vegdist(count_data.nona)}, extra=count_data.nona)
-            strata <- if (is.null(block)){NULL}else{meta_data.nona[,block]}
-            f <- update(f, dist ~ .)
-            assign("dist",dist,envir=environment(f)) # Dumbest shit I ever saw
-            
-            mainvar <- fdata$parts.fixed[1]
-            mda.adonis2(f, meta_data.nona, na.action = 'na.exclude', strata=strata,
-                        by = "margin", permutations=beta.permutations, parallel=beta.parallel,
-                        scope=if(beta.hack){mainvar}else{NULL})
-        }, order_invariant=!beta.hack, extra=)
 
-        res.full <- out
+        r <- mda.cache_load_or_run_save(D, f_idx, "beta", {
+                dist <- mda.cache_load_or_run_save(D, NULL, "beta_dist", {vegdist(count_data.nona)}, extra=count_data.nona)
+                strata <- if (is.null(block)){NULL}else{meta_data.nona[,block]}
+                f <- update(f, dist ~ .)
+                assign("dist",dist,envir=environment(f)) # Dumbest shit I ever saw
+                mainvar <- fdata$parts.fixed[1]
+                mda.adonis2(f, meta_data.nona, na.action = 'na.exclude', strata=strata,
+                            by = "margin", permutations=beta.permutations, parallel=beta.parallel,
+                            scope=if(beta.hack){mainvar}else{NULL})
+            }, order_invariant=!beta.hack, extra=)
+
+        res.full <- r
         res.full <- res.full[,c("R2","F", "Pr(>F)")]
 
 
@@ -283,9 +281,10 @@ mda.beta <- function(mda.D, beta.permutations=999, beta.parallel=8, beta.hack=TR
         names(res.full)[names(res.full)=="Pr(>F)"] <- "pvalue"
         res.full$variable.mda <- rownames(res.full)
         
+        res.full$comment <- comment
         res.full$se <- NA
-        res.full$taxa <- "mda.beta" # rep("mda.beta", dim(res.full)[1])
-        mda.common_do(D, res.full, "beta", fdata, skip_taxa_sel=TRUE)
+        res.full$taxa <- "mda.beta"
+        mda.common_do(D, f_idx, res.full, "beta", skip_taxa_sel=TRUE)
     }
 
     R <- lapply(1:length(D$formula), do)

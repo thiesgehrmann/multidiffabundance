@@ -158,6 +158,10 @@ A wrapper script `container_mda.sh` allows you to run the docker image with the 
 
 # Frequently asked questions?
 
+## In an error message, or a warning, I see a strange variable name that wasn't in my formula. What's up?
+
+mda renames all variables in order to keep track of them throughout all the different tools. The order of the original formula is preserved, but all terms in your formula are expanded, so the number of variables may change (e.g. with interaction effects or with categorical variables). Each term in your formula is given a new name. You can look up the name in, for example, the first formula in your object: `D$formula[[1]]$map`.
+
 ## How can I limit the number of CPUs used?
 Some tools are parallelized and use all the CPUs available - even not making it possible to change this with a setting. However, `taskset` comes to the rescue!
 Run the mda command as so:
@@ -168,12 +172,12 @@ Run the mda command as so:
 
 ## Which tools are able to adjust for covariates, and which are able to accept random effects?
 
-While all models can accept adjustment terms ala a linear model, only three tools can accept random intercept effects, and only one can accept random slopes. If you attempt to evaluate a formula with random effects using a tool that cannot handle it, MDA returns a dummy output. For these tools, if you want to adjust for a repeated measures, you may need to encode it as a fixed effect in order to make use of all the tools (or rather: don't use the tools.
+While all models can accept adjustment terms ala a linear model, only some tools can accept random intercept effects or random slopes. If you attempt to evaluate a formula with random effects using a tool that cannot handle it, MDA returns a dummy output. For these tools, if you want to adjust for a repeated measures, you may need to encode it as a fixed effect in order to make use of all the tools (or better: don't use the tools).
 
 | Tool          | Covariates             | Random intercepts      | Random slopes          | Effects reported       |
 | ------------- |:----------------------:|:----------------------:|:----------------------:|:----------------------:|
 | ALDEx2        | ✓                      |                        |                        | All                    |
-| ANCOM-BC      | ✓                      | ✓ (many)               |                        | All                    |
+| ANCOM-BC      | ✓                      | ✓ (many)               | ✓ (many)               | All                    |
 | Corncob       | ✓                      |                        |                        | All                    |
 | DESeq2        | ✓                      |                        |                        | All                    |
 | limma         | ✓                      | ✓ (one)                |                        | All                    |
@@ -206,7 +210,8 @@ mda returns a list with two dataframes:
  * `res` : A table in which **ONLY THE RESULTS FOR THE FIRST VARIABLE OF THE FORMULA ARE PROVIDED**
  * `res.full`: A table in which all results for all variables (if provided by the tool) are provided
  
-If, for example, you use a function like: `~ a*b`, this is expanded to `~ a + b + a:b`, in this order
+If, for example, you use a function like: `~ a*b`, this is expanded to `~ a + b + a:b`, in this order.
+(Internally, these are then renamed to ` mda_00001 + mda_00002 + mda_00003`)
 If your effect of interest is `a:b`, then this effect will not be reported in `res`
 Therefore, the `res` results may not be what you are looking for. Inspect the `res.full` dataframe.
 Alternatively, you can specify the order manually, by specifying this in the formula: `~ a:b + a + b`.
@@ -227,5 +232,9 @@ cd multidiffabundance
 echo "devtools:install_local(force=TRUE, dependencies=FALSE)" | R --no-save
 ```
 
-## Can you include method `xxx`?
+## Can you include my favourite method `xxx`?
 Maybe. Send me a message.
+
+## How do I deal with all the results?
+
+Good question! Our current approach is to count the number of tools that report a significant result. This gives an indication of the consensus of the tools. For example, when 5/6 tools agree on a significant effect, I am more confident in the result than if only 2/6 tools agree. Our threshold for reporting is at least 3/6 tools.

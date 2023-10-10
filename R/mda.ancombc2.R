@@ -19,25 +19,19 @@ mda.ancombc2 <- function(mda.D, ...){
         sampledata <- phyloseq::sample_data(fdata$data, errorIfNULL = F)
         phylo <- phyloseq::merge_phyloseq(OTU, sampledata)
 
-        out <- tryCatch({
-             ancom <- mda.cache_load_or_run_save(D, "ancombc", f_idx, 
+        r <- mda.trycatchempty(D, f_idx, {
+            mda.cache_load_or_run_save(D, f_idx, "ancombc2", 
                     ANCOMBC::ancombc2(data = phylo, fix_formula = f.fixed, rand_formula = f.rand, 
                             p_adj_method = "holm", prv_cut=0, lib_cut = 1000, 
                             struc_zero = FALSE, global = FALSE, alpha = 0.05) )
-             list(ancom=ancom, empty=NULL, error=FALSE)
-             },
-             warning={},
-             error=function(err){
-                 return(list(ancom=NULL, empty=mda.empty_output(fdata, err$message), error=TRUE))
-                }
-        )
-
-        if (out$error){
-            res <- mda.common_do(D, out$empty, "ancombc2", fdata)
-            return(res)
+        })
+            
+        if (r$error){
+            return(mda.common_do(D, f_idx, r$response, "ancombc2", skip_taxa_sel = TRUE))
         }
+
+        fit = r$response$res
         
-        fit = out$ancom$res
         
         coeff <- fit[,c("taxon", colnames(fit)[startsWith(colnames(fit), 'lfc_')])]
         colnames(coeff) <- sapply(colnames(coeff), function(x){str_replace(x,"lfc_","")})
@@ -50,17 +44,17 @@ mda.ancombc2 <- function(mda.D, ...){
         
         p.val <- fit[,c("taxon", colnames(fit)[startsWith(colnames(fit), 'p_')])]
         colnames(p.val) <- sapply(colnames(p.val), function(x){str_replace(x,"p_","")})
-
-        coeff <- gather(coeff %>%   rename("taxa"="taxon"), "variable", "coefficient", -taxa)
-        se <-    gather(se %>%    rename("taxa"="taxon"), "variable", "se", -taxa)
-        stat <-  gather(stat %>%     rename("taxa"="taxon"), "variable", "stat", -taxa)
-        p.val <- gather(p.val %>% rename("taxa"="taxon"), "variable", "pvalue", -taxa)
+    
+        coeff <- gather(coeff %>%   rename("taxon"="taxa"), "variable", "coefficient", -taxa)
+        se <-    gather(se %>%      rename("taxon"="taxa"), "variable", "se", -taxa)
+        stat <-  gather(stat %>%    rename("taxon"="taxa"), "variable", "stat", -taxa)
+        p.val <- gather(p.val %>%   rename("taxon"="taxa"), "variable", "pvalue", -taxa)
         
         res.full <- merge(merge(merge(coeff, se, by=c("taxa","variable")), stat, by=c("taxa","variable")), p.val, by=c("taxa","variable"))
         names(res.full)[names(res.full)=="coefficient"] <- "effectsize"
         names(res.full)[names(res.full)=="variable"] <- "variable.mda"
         
-        res <- mda.common_do(D, res.full, "ancombc2", fdata)
+        res <- mda.common_do(D, f_idx, res.full, "ancombc2")
         res
 
     }

@@ -16,7 +16,7 @@ mda.deseq2 <- function(mda.D, ...){
         
         if ( length(fdata$parts.random) > 0 ){
             message(paste0(c("[MDA] mda.deseq2: Formula on ", f_idx, " contains random effects. DESeq2 can not handle random effects")))
-            return(mda.common_do(D, mda.empty_output(fdata, "Formula incompatible with DESeq2 analysis (random effect specified)"), "deseq2", fdata, skip_taxa_sel=TRUE))
+            return(mda.common_do(D, f_idx, mda.empty_output(D, f_idx, "Formula incompatible with DESeq2 analysis (random effect specified)"), "deseq2", skip_taxa_sel=TRUE))
         }
         
         # We need to remove na rows
@@ -24,7 +24,7 @@ mda.deseq2 <- function(mda.D, ...){
         meta_data.nona <- na.omit(fdata$data)
         count_data.nona <- D$count_data[rownames(meta_data.nona),]
 
-        dds_res <- mda.cache_load_or_run_save(D, "deseq2", f_idx, 
+        dds_res <- mda.cache_load_or_run_save(D, f_idx, "deseq2", 
                     {
                     dds <- DESeq2::DESeqDataSetFromMatrix(countData = t(count_data.nona),
                                                           colData = meta_data.nona,
@@ -41,7 +41,7 @@ mda.deseq2 <- function(mda.D, ...){
         names(res.full)[names(res.full)=="log2FoldChange"] <- "effectsize"
         names(res.full)[names(res.full)=="lfcSE"] <- "se"
 
-        mda.common_do(D, res.full, "deseq2", fdata, skip_taxa_sel=FALSE)
+        mda.common_do(D, f_idx, res.full, "deseq2", skip_taxa_sel=FALSE)
     }
 
     R <- lapply(1:length(D$formula), do)

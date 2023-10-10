@@ -1,7 +1,7 @@
 Package: multidiffabundancedevel
 Type: Package
 Title: Tools to perform differential abundance testing with many different tools, resulting in a compatible output format
-Version: 0.0.1
+Version: 0.0.2
 Authors@R: c(person("Thies", "Gehrmann", email = "thies.gehrmann@uantwerpen.be", role = c("aut", "cre"))) 
 Description: Tools to perform differential abundance testing with many different tools, resulting in a compatible output format.
 License: GPL-3
@@ -9,21 +9,22 @@ Encoding: UTF-8
 Depends: R (>= 4.2)
 LazyData: true
 Imports:
-    dplyr,
-    tidyr,
-    readr,
-    digest,
-    lmerTest,
-    vegan,
-    corncob,
-    BiocManager,
-    ALDEx2,
+    dplyr (>= 1.1.1),
+    tidyr (>= 1.3.0),
+    readr (>= 2.1.4),
+    digest (>= 0.6.31),
+    lmerTest (>= 3.1),
+    reshape2 (>= 1.4.4),
+    vegan (>= 2.6-4),
+    corncob (>= 0.3.1),
+    BiocManager (>= 1.30.20),
+    ALDEx2 (>= 1.30.0),
     ANCOMBC (>= 2.0.0),
-    phyloseq,
-    DESeq2,
-    edgeR,
-    Maaslin2,
-    GUniFrac
+    phyloseq (>= 1.42.0),
+    DESeq2 (>= 1.38.3),
+    edgeR (>= 3.40.2),
+    Maaslin2 (>= 1.12.0),
+    GUniFrac (>= 1.8)
 biocViews:
 VignetteBuilder: knitr
 RoxygenNote: 7.1.1

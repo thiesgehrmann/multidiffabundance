@@ -285,13 +285,12 @@ mda.clr <- function(df){
 ###############################################################################
 # output cache functions
 
-mda.cache_load_or_run_save <- function(mda.D, method, f_idx, expr, order_invariant=TRUE, extra=NULL) {
+mda.cache_load_or_run_save <- function(mda.D, f_idx, method, expr, order_invariant=TRUE, extra=NULL) {
     D <- mda.D
     
     checksum <- if (is.null(f_idx)){ "" } else { if (order_invariant){ D$formula[[f_idx]]$checksum.order_invariant  } else {  D$formula[[f_idx]]$checksum.order_variant } }
     mainvar  <- if (is.null(f_idx)){ "mda_crossmethod_exec" } else { formula.parts(D$formula[[f_idx]]$fn.orig)[1] }
 
-    #extra = if (is.null(extra)) { NULL } else { if(order_invariant){ sort(extra) } else { extra } }
     checksum <- if(is.null(extra)){checksum} else { digest(c(checksum, extra), algo="md5") }
     
     cache.file <- paste0(c(paste0(c(D$cacheprefix, method, checksum), collapse='_'), "rds"), collapse=".")
@@ -308,6 +307,50 @@ mda.cache_load_or_run_save <- function(mda.D, method, f_idx, expr, order_invaria
         data
     }
     data
+}
+                  
+###############################################################################
+# output cache functions
+                  
+mda.trycatchempty <- function(D, f_idx, expr, taxa=NA, empty=NULL){
+    fdata <- D$formula[[f_idx]]
+    
+    data <- tryCatch(withCallingHandlers({
+            message <- NULL
+            list(response=expr, error=FALSE, message=message)
+          }, 
+          warning = function(warn) {
+            message <<- warn$message
+            invokeRestart("muffleWarning")
+          }
+        ),
+        error=function(err){
+            response <- if (is.null(empty)) { mda.empty_output(D, f_idx, comment=err$message, taxa=taxa) } else { empty }
+            return(list(response=response, error=TRUE, message=err$message))
+        }
+    )
+    data
+}
+
+###############################################################################
+# Empty output format
+                  
+mda.empty_output <- function(D, f_idx, comment=NA, taxa=NA){
+    fdata <- D$formula[[f_idx]]
+    empty.res <- fdata$nfreq[fdata$parts.fixed, c('variable.mda'),drop=FALSE]
+
+    empty.res[,c('se','taxa','pvalue','effectsize','df','stat')] <- NA
+    empty.res$taxa <- taxa
+
+    empty.res <- transform(empty.res,
+                           se = as.numeric(se),
+                           taxa = as.character(taxa),
+                           pvalue = as.numeric(pvalue),
+                           effectsize = as.numeric(effectsize),
+                           df = as.numeric(df),
+                           stat = as.numeric(stat))
+    empty.res$comment <- comment
+    empty.res
 }
 
 ###############################################################################
@@ -361,7 +404,8 @@ mda.isSingular <- function(fit){
 ###############################################################################
 # Common post-do formatting
                                  
-mda.common_do <- function(D, res.full, method, fdata, skip_taxa_sel=FALSE){
+mda.common_do <- function(D, f_idx, res.full, method, skip_taxa_sel=FALSE){
+    fdata <- D$formula[[f_idx]]
     
     res.full$formula <- rep(mda.deparse(fdata$fn.orig), dim(res.full)[1])
     res.full$method <- rep(method, dim(res.full)[1])
@@ -414,20 +458,4 @@ mda.common_output <- function(R){
     return(list(res=res, res.full=res.full, summary=mda.summary(res)))
 }
                   
-###############################################################################
-# Empty output format
-                  
-mda.empty_output <- function(fdata, comment=NA, taxa=NA){
-    empty.res <- fdata$nfreq[fdata$parts.fixed, c('variable.mda'),drop=FALSE]
-    empty.res[,c('se','taxa','pvalue','effectsize','df','stat')] <- NA
-    empty.res$taxa <- taxa
-    empty.res <- transform(empty.res,
-                           se = as.numeric(se),
-                           taxa = as.character(taxa),
-                           pvalue = as.numeric(pvalue),
-                           effectsize = as.numeric(effectsize),
-                           df = as.numeric(df),
-                           stat = as.numeric(stat))
-    empty.res$comment <- comment
-    empty.res
-}
+

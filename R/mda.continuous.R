@@ -1,4 +1,4 @@
- ###############################################################################
+###############################################################################
 # Continuous value analysis
 
 mda.continuous <- function(mda.D, continuous.cols=NULL, continuous.scale=TRUE, ...){
@@ -14,28 +14,30 @@ mda.continuous <- function(mda.D, continuous.cols=NULL, continuous.scale=TRUE, .
         exit(0)
     }
     
-    continuous <- function(count_data, meta_data, formula, method){
+    continuous <- function(f_idx){
+        fdata <- D$formula[[f_idx]]
+        f <- fdata$fn
 
-        f <- update(formula, mda.cont.col ~ .)
+        method <- if ( formula.ismixed(f) ){
+            lmer
+        } else { lm }
+        f <- update(f, mda.cont.col ~ .)
         
+        meta_data <- data.frame(fdata$data)
         res <- lapply(continuous.cols, function(c){
             meta_data$mda.cont.col <- if(continuous.scale) { as.vector(scale(D$meta_data[,c]), ) } else { D$meta_data[,c] }
-
-            r <- tryCatch({
-                    list(fit=method(f, data=meta_data, na.action = 'na.exclude'), error=FALSE)
-                },
-                error=function(err){
-                    return(list(fit=mda.empty_output(fdata, err$message), error=TRUE))
-                })
+            
+            r <- mda.trycatchempty(D, f_idx, method(f, data=meta_data, na.action = 'na.exclude'), taxa=c)
 
             if (r$error){
-                return(r$fit)
+                return(r$response)
             }
-            fit <- r$fit
-            s <- as.data.frame(coefficients(summary(fit)))
+            fit <- r$response
 
+            s <- as.data.frame(coefficients(summary(fit)))
             if (mda.isSingular(fit)){
-                    s[,"Pr(>|t|)"] <- NA
+                s[,"Pr(>|z|)"] <- NA
+                s[,"comment"] <- paste0(c("Rank deficient: singular.", r$message), collapse='\n')
             }
             s$taxa <- rep(c, dim(s)[1])
             s <- s %>% rownames_to_column("variable.mda")
@@ -52,18 +54,8 @@ mda.continuous <- function(mda.D, continuous.cols=NULL, continuous.scale=TRUE, .
     }
 
     do <- function(f_idx){
-        
-        fdata <- D$formula[[f_idx]]
-        f <- fdata$fn
-
-        method <- if ( formula.ismixed(f) ){
-            lmer
-        } else { lm }
-
-        res.full <- mda.cache_load_or_run_save(D, "continuous", f_idx, continuous(D$count_data, fdata$data, f, method), extra=continuous.cols)
-
-        mda.common_do(D, res.full, "continuous", fdata, skip_taxa_sel=TRUE)
-
+        res.full <- mda.cache_load_or_run_save(D, f_idx, "continuous", {continuous(f_idx)}, extra=continuous.cols)
+        mda.common_do(D, f_idx, res.full, "continuous", skip_taxa_sel=TRUE)
     }
 
     R <- lapply(1:length(D$formula), do)

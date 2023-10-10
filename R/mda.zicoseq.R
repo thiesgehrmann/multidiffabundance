@@ -13,10 +13,10 @@ mda.zicoseq <- function(mda.D, ...){
         
         if ( length(fdata$parts.random) > 0 ){
             message(paste0(c("[MDA] mda.zicoseq: Formula on ", f_idx, " contains random effects. ZicoSeq can not handle random effects")))
-            return(mda.common_do(D, mda.empty_output(fdata, "Formula incompatible with ZicoSeq analysis (random effect specified)"), "zicoseq", fdata, skip_taxa_sel=TRUE))
+            return(mda.common_do(D, f_idx, mda.empty_output(D, f_idx, "Formula incompatible with ZicoSeq analysis (random effect specified)"), "zicoseq", skip_taxa_sel=TRUE))
         }
 
-        results <- mda.cache_load_or_run_save(D, "zicoseq", f_idx, {
+        results <- mda.cache_load_or_run_save(D, f_idx, "zicoseq", {
             ZicoSeq.obj <- ZicoSeq(meta.dat = fdata$data, feature.dat = t(D$count_data), 
                     grp.name = fdata$parts.fixed[1], adj.name = fdata$parts.fixed[-1], feature.dat.type = "count",
                     # Filter to remove rare taxa
@@ -47,11 +47,10 @@ mda.zicoseq <- function(mda.D, ...){
             
         res.full <- merge(res.full, res.other, by=c('taxa','variable.mda'))
         
-        mda.common_do(D, res.full, "zicoseq", fdata, skip_taxa_sel=TRUE)
+        mda.common_do(D, f_idx, res.full, "zicoseq", skip_taxa_sel=TRUE)
 
     }
 
     R <- lapply(1:length(D$formula), do)
-
     mda.common_output(R)
 }

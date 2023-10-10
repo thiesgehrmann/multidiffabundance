@@ -1,4 +1,4 @@
- ###############################################################################
+###############################################################################
 # LMCLR
 
 mda.lmclr <- function(mda.D, ...){
@@ -11,24 +11,26 @@ mda.lmclr <- function(mda.D, ...){
     
     clr_data <- as.data.frame(scale(mda.clr(mda.relative_abundance(mda.pseudocount(D$count_data)))))
 
-    lmclr <- function(count_data, meta_data, formula, taxa=NULL, method){
-        taxa <- if (is.null(taxa)) colnames(count_data) else taxa
+    lmclr <- function(f_idx){
+        fdata <- D$formula[[f_idx]]
+        f <- fdata$fn
 
-        f <- update(formula, clrtaxa ~ .)
+        method <- if ( formula.ismixed(f) ){
+            lmer
+        } else { lm }
+        
+        taxa <- D$nonrare
+
+        f <- update(f, clrtaxa ~ .)
 
         res <- lapply(taxa, function(t){
-            meta_data$clrtaxa <- clr_data[,t]
-            r <- tryCatch({
-                    list(fit=method(f, data=meta_data, na.action = 'na.exclude'), error=FALSE)
-                },
-                error=function(err){
-                    return(list(fit=mda.empty_output(fdata, err$message), error=TRUE))
-                })
-
+            fdata$data$clrtaxa <- clr_data[,t]
+            r <- mda.trycatchempty(D, f_idx, method(f, data=fdata$data, na.action = 'na.exclude'), taxa=t)
+            
             if (r$error){
-                return(r$fit)
+                return(r$response)
             }
-            fit <- r$fit
+            fit <- r$response
             
             s <- as.data.frame(coefficients(summary(fit)))
             s[,"comment"] <- NA
@@ -52,19 +54,10 @@ mda.lmclr <- function(mda.D, ...){
     }
 
     do <- function(f_idx){
-        fdata <- D$formula[[f_idx]]
-        f <- fdata$fn
-
-        method <- if ( formula.ismixed(f) ){
-            lmer
-        } else { lm }
-
-        res.full <- mda.cache_load_or_run_save(D, "lmclr", f_idx, lmclr(D$count_data, fdata$data, f, D$nonrare, method=method))
-
-        mda.common_do(D, res.full, "lmclr", fdata)
+        res.full <- mda.cache_load_or_run_save(D, f_idx, "lmclr", {lmclr(f_idx)})
+        mda.common_do(D, f_idx, res.full, "lmclr")
     }
 
     R <- lapply(1:length(D$formula), do)
-
     mda.common_output(R)
 }

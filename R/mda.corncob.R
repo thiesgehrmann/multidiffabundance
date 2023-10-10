@@ -16,10 +16,10 @@ mda.corncob <- function(mda.D, ...){
         
         if ( length(fdata$parts.random) > 0 ){
             message(paste0(c("[MDA] mda.corncob: Formula on ", f_idx, " contains random effects. Corncob can not handle random effects")))
-            return(mda.common_do(D, mda.empty_output(fdata, "Formula incompatible with Corncob analysis (random effect specified)"), "corncob", fdata, skip_taxa_sel=TRUE))
+            return(mda.common_do(D, f_idx, mda.empty_output(D, f_idx, "Formula incompatible with Corncob analysis (random effect specified)"), "corncob", skip_taxa_sel=TRUE))
         }
 
-        results <- mda.cache_load_or_run_save(D, "corncob", f_idx,{
+        results <- mda.cache_load_or_run_save(D, f_idx, "corncob",{
                        meta_data.nona <- na.omit(fdata$data)
                        count_data.nona <- D$count_data[rownames(meta_data.nona),]
             
@@ -56,7 +56,7 @@ mda.corncob <- function(mda.D, ...){
 
         res.full <- bind_rows(ram)
         
-        mda.common_do(D, res.full, "corncob", fdata, skip_taxa_sel=TRUE)
+        mda.common_do(D, f_idx, res.full, "corncob", skip_taxa_sel=TRUE)
 
     }
 

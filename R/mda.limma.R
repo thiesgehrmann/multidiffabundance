@@ -9,7 +9,7 @@ mda.limma <- function(mda.D, ...){
         require(tibble)
         require(dplyr)})
 
-    DGE_LIST_Norm <- mda.cache_load_or_run_save(D, "limma_dgelistnorm", NULL, {
+    DGE_LIST_Norm <- mda.cache_load_or_run_save(D, NULL, "limma_dgelistnorm", {
         DGE_LIST <- DGEList(t(D$count_data))
 
         ### check if upper quartile method works for selecting reference
@@ -36,12 +36,12 @@ mda.limma <- function(mda.D, ...){
         
         if ( length(fdata$parts.random.slope) > 0 ){
             message(paste0(c("[MDA] mda.limma: Formula on ", f_idx, " contains random slope effects. limma can not handle random slopes.")))
-            return(mda.common_do(D, mda.empty_output(fdata, "Formula incompatible with limma analysis (random slope specified)"), "limma", fdata, skip_taxa_sel=TRUE))
+            return(mda.common_do(D, f_idx, mda.empty_output(D, f_idx, "Formula incompatible with limma analysis (random slope specified)"), "limma", skip_taxa_sel=TRUE))
         }
         
         if ( length(fdata$parts.random.intercept) > 1 ){
             message(paste0(c("[MDA] mda.limma: Formula on ", f_idx, " contains more than one random intercept effect. limma can only handle one random intercept")))
-            return(mda.common_do(D, mda.empty_output(fdata, "Formula incompatible with limma analysis (>1 random intercept specified)"), "limma", fdata, skip_taxa_sel=TRUE))
+            return(mda.common_do(D, f_idx, mda.empty_output(D, f_idx, "Formula incompatible with limma analysis (>1 random intercept specified)"), "limma", skip_taxa_sel=TRUE))
         }
         
         block <- NULL
@@ -51,7 +51,7 @@ mda.limma <- function(mda.D, ...){
             block <- fdata$data[,block]
         }
 
-        fit <- mda.cache_load_or_run_save(D, "limma", f_idx, 
+        fit <- mda.cache_load_or_run_save(D, f_idx, "limma", 
                    {
                     print(fdata$parts.fixed)
                     mm <- fdata$data[,fdata$parts.fixed,drop=FALSE]
@@ -84,7 +84,7 @@ mda.limma <- function(mda.D, ...){
         names(res.full)[names(res.full)=="stdev"] <- "se"
         names(res.full)[names(res.full)=="variable"] <- "variable.mda"
         
-        res <- mda.common_do(D, res.full, "limma", fdata, skip_taxa_sel=FALSE)
+        res <- mda.common_do(D, f_idx, res.full, "limma", skip_taxa_sel=FALSE)
 
         res$res.full$se <- res$res.full$se / sqrt(as.numeric(res$res.full$n))
         res$res$se <- res$res$se / sqrt(as.numeric(res$res$n))
