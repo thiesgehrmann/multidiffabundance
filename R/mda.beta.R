@@ -257,7 +257,7 @@ mda.beta <- function(mda.D, beta.permutations=999, beta.parallel=8, beta.hack=TR
             message(paste0(c("[MDA] mda.beta: Formula on ", f_idx, " contains a random intercept effect. ", comment), collapse=""))
         }
 
-        meta_data.nona <- na.omit(fdata$data)
+        meta_data.nona <- na.omit(data.frame(fdata$data))
         count_data.nona <- D$count_data[rownames(meta_data.nona),]
 
         r <- mda.cache_load_or_run_save(D, f_idx, "beta", {

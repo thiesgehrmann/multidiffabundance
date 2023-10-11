@@ -45,10 +45,10 @@ mda.ancombc2 <- function(mda.D, ...){
         p.val <- fit[,c("taxon", colnames(fit)[startsWith(colnames(fit), 'p_')])]
         colnames(p.val) <- sapply(colnames(p.val), function(x){str_replace(x,"p_","")})
     
-        coeff <- gather(coeff %>%   rename("taxon"="taxa"), "variable", "coefficient", -taxa)
-        se <-    gather(se %>%      rename("taxon"="taxa"), "variable", "se", -taxa)
-        stat <-  gather(stat %>%    rename("taxon"="taxa"), "variable", "stat", -taxa)
-        p.val <- gather(p.val %>%   rename("taxon"="taxa"), "variable", "pvalue", -taxa)
+        coeff <- gather(coeff %>%   rename("taxa"="taxon"), "variable", "coefficient", -taxa)
+        se <-    gather(se %>%      rename("taxa"="taxon"), "variable", "se", -taxa)
+        stat <-  gather(stat %>%    rename("taxa"="taxon"), "variable", "stat", -taxa)
+        p.val <- gather(p.val %>%   rename("taxa"="taxon"), "variable", "pvalue", -taxa)
         
         res.full <- merge(merge(merge(coeff, se, by=c("taxa","variable")), stat, by=c("taxa","variable")), p.val, by=c("taxa","variable"))
         names(res.full)[names(res.full)=="coefficient"] <- "effectsize"

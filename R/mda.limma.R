@@ -53,7 +53,6 @@ mda.limma <- function(mda.D, ...){
 
         fit <- mda.cache_load_or_run_save(D, f_idx, "limma", 
                    {
-                    print(fdata$parts.fixed)
                     mm <- fdata$data[,fdata$parts.fixed,drop=FALSE]
                        
                     subset_dgelist <- DGE_LIST_Norm[, rownames(DGE_LIST_Norm$samples) %in% rownames(mm)]

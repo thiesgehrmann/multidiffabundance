@@ -77,7 +77,6 @@ formula.model.matrix <- function(fn, data){
 }
 
 formula.reformulate <- function(fn, data){
-    message(fn)
     f <- if (formula.ismixed(fn)) {formula.reformulate.mixed} else {formula.reformulate.fixed}
     new <- f(fn, data)
     

@@ -4,7 +4,8 @@ mda.alpha <- function(mda.D, ...){
     suppressPackageStartupMessages({
         require(dplyr)
         require(tibble)
-        require(vegan)})
+        require(vegan)
+        require(lmerTest)})
     
     alpha_measure <- scale(diversity(D$count_data))
 
