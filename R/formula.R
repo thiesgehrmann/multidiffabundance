@@ -88,7 +88,7 @@ formula.reformulate <- function(fn, data){
     nfreq$variable.mda <- rownames(nfreq)
     
     fn.orig <- Reduce(function(fn, i){
-                    as.formula(str_replace_all(mda.deparse(fn), names(new$map)[i], new$map[i]))
+                    as.formula(stringr::str_replace_all(mda.deparse(fn), names(new$map)[i], new$map[i]))
                 }, 1:length(new$map), init=new$fn)
     
     list(

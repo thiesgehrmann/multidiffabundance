@@ -69,7 +69,7 @@ mda.aldex2 <- function(mda.D, ...){
         clean.variable <- if (package_version(installed.packages()["ALDEx2", "Version"]) >= package_version("1.3")) {clean.variable.2} else {clean.variable.1}
         res.full$variable.mda <- unlist(lapply(res.full$measure, clean.variable))
         
-        res.full <- pivot_wider(res.full, id_cols=c("taxa", "variable.mda"), names_from=feature, values_from=value)
+        res.full <- tidyr::pivot_wider(res.full, id_cols=c("taxa", "variable.mda"), names_from=feature, values_from=value)
         
         mda.common_do(D, f_idx, res.full, "aldex2", skip_taxa_sel=TRUE)
 
