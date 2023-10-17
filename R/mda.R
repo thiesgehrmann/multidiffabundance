@@ -409,7 +409,7 @@ mda.common_do <- function(D, f_idx, res.full, method, skip_taxa_sel=FALSE){
     
     res.full$formula <- rep(mda.deparse(fdata$fn.orig), dim(res.full)[1])
     res.full$method <- rep(method, dim(res.full)[1])
-    res.full <- left_join(res.full, fdata$nfreq, by="variable.mda")
+    res.full <- dplyr::left_join(res.full, fdata$nfreq, by="variable.mda")
 
     # Select only the relevant taxa ( taxa are selected already in some methods, but we repeat it here for safety )
     res.full <- if(skip_taxa_sel){ res.full } else { res.full[res.full$taxa %in% D$nonrare,] }
