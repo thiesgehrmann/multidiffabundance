@@ -11,7 +11,7 @@ mda.from_cmdargs <- function(args, ...){
         require("tidyverse")})
     
     if (length(args) != 4){
-        message("[MDA] mda.from_cmdargs ERROR: Too few arguments. There should be 4!")
+        mda.message("Too few arguments. There should be 4!", type="error")
         quit(1)
     }
     
@@ -29,7 +29,7 @@ mda.from_files <- function(abundance, meta, formula.data, outprefix=tempdir(), .
 
     raw.formula.data <- mda.load_formula_input(formula.data)
     if (!mda.verify_formula_input(raw.formula.data)){
-        message("[MDA] mda.from_files ERROR: Errors in processing formula input.")
+        mda.message("Errors in processing formula input.", type="error")
         quit(1)
     }
 
@@ -54,14 +54,14 @@ mda.from_files <- function(abundance, meta, formula.data, outprefix=tempdir(), .
     return(dat)
 }
 
-mda.from_tidyamplicons <- function(ta, formulas, output_dir=tempdir(), ...){
+mda.from_tidytacos <- function(ta, formulas, output_dir=tempdir(), ...){
     suppressPackageStartupMessages({
         require(dplyr)
         require(tidyr)})
     meta_data <- as.data.frame(ta$samples)
     rownames(meta_data) <- meta_data$sample_id
     
-    count_data <- as.data.frame(pivot_wider(ta$abundances, id_cols="sample_id", names_from="taxon_id", values_from="abundance", values_fill=0))
+    count_data <- as.data.frame(pivot_wider(ta$counts, id_cols="sample_id", names_from="taxon_id", values_from="count", values_fill=0))
     rownames(count_data) <- count_data$sample_id
     count_data <- count_data[,-1]
 
@@ -69,7 +69,7 @@ mda.from_tidyamplicons <- function(ta, formulas, output_dir=tempdir(), ...){
     intersect.samples = sort(intersect(rownames(count_data), rownames(meta_data)))
     
     if ( length(union.samples) != length(intersect.samples) ){
-        message("[MDA] mda.from_tidyamplicons WARNING: tidyamplicons object has differing samples present in abundance and meta data!")
+        mda.message("tidytacos object has differing samples present in abundance and meta data!")
     }
     
     dat <- mda.create(count_data[intersect.samples,], meta_data[intersect.samples,], formulas, output_dir, ...)
@@ -79,14 +79,14 @@ mda.from_tidyamplicons <- function(ta, formulas, output_dir=tempdir(), ...){
 }
 
 mda.from_phyloseq <- function(phys, formulas, output_dir=tempdir(), ...){
-    message("[MDA] mda.from_phyloseq ERROR: UNIMPLEMENTED")
+    mda.message("UNIMPLEMENTED", type="error")
 }
                                                       
 mda.create <- function(count_data, meta_data, formulas, output_dir=tempdir(), usecache=TRUE, recache=FALSE, nonrare.pct=0.1, ...){
     suppressPackageStartupMessages(require(digest))
     
     if (! all(rownames(count_data) == rownames(meta_data))) {
-        message("[MDA] mda.create ERROR: Rownames of meta data and count data do not match!")
+        mda.message("Rownames of meta data and count data do not match!", type="error")
         return(NULL)
     }
     
@@ -125,7 +125,7 @@ mda.as_phyloseq <- function(D){
     phylo
 }
                                                       
-mda.as_tidyamplicons <- function(D){
+mda.as_tidytacos <- function(D){
     T
 }
 
@@ -457,5 +457,14 @@ mda.common_output <- function(R){
     
     return(list(res=res, res.full=res.full, summary=mda.summary(res)))
 }
-                  
+###############################################################################
+# Error/Warning display in terminal
+
+mda.message <- function(msg, type="warning") {
+    if (type != "warning") { type <- "error" }
+    type <- toupper(type)
+    func <- rlang::caller_call()[[1]]
+    msg <- paste0(c("[MDA] ", func, " ", type, ": ", msg))
+    message(msg)
+}                  
 
