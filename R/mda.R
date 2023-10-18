@@ -240,7 +240,12 @@ mda.process_formula_input <- function(raw_formula){
   
   FD
 }
-                                                      
+
+#' Permutes over all possible orders of effects in a given formula and returns a list of the possibilities.
+#'
+#' @param form a formula to permute over, eg: ~ a:b + a + b.
+#'
+#' @export
 mda.permute_formula <- function(form){
     unlist(lapply(c(form), function(f){
         L <- labels(terms(as.formula(f)))

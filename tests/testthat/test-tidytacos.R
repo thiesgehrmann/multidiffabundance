@@ -1,4 +1,5 @@
 test_that("Can convert tidytacos object and use it downstream", {
+  skip_if_not_installed("tidytacos")
   suppressMessages(library(tidytacos))
   expect_no_error({
   fml.urt <- mda.permute_formula(~location+plate)

@@ -27,7 +27,7 @@ Imports:
     GUniFrac (>= 1.8)
 biocViews:
 VignetteBuilder: knitr
-RoxygenNote: 7.1.1
+RoxygenNote: 7.2.3
 Suggests: 
     knitr,
     rmarkdown,
