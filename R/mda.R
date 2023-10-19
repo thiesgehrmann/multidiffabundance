@@ -439,7 +439,7 @@ mda.common_output <- function(R){
     column.order <- c("taxa","variable","effectsize","se","stat","pvalue","qvalue.withinformula","qvalue","formula","method","n","freq","comment")
 
     
-    res <-        bind_rows(lapply(R, function(x){
+    res <-        dplyr::bind_rows(lapply(R, function(x){
         v <- x$res[,intersect(column.initial, colnames(x$res))]
         v[,setdiff(column.initial, colnames(x$res))] <- NA
         v
@@ -447,7 +447,7 @@ mda.common_output <- function(R){
     res$qvalue <- p.adjust(res$pvalue, "fdr")
     rownames(res) <- NULL
     
-    res.full <-        bind_rows(lapply(R, function(x){
+    res.full <-        dplyr::bind_rows(lapply(R, function(x){
         v <- x$res.full[,intersect(column.initial, colnames(x$res.full))]
         v[,setdiff(column.initial, colnames(x$res.full))] <- NA
         v

@@ -28,7 +28,7 @@ mda.prototype <- function(mda.D, ...){
             s <- s %>% rownames_to_column("variable.mda")
             s
         })
-        res <- bind_rows(res)
+        res <- dplyr::bind_rows(res)
 
         names(res)[names(res)=="Estimate"] <- "effectsize"
         names(res)[names(res)=="Std. Error"] <- "se"
@@ -55,7 +55,7 @@ mda.prototype <- function(mda.D, ...){
             s <- s %>% rownames_to_column("variable.mda")
             s
         })
-        res <- bind_rows(res)
+        res <- dplyr::bind_rows(res)
 
         names(res)[names(res)=="Estimate"] <- "effectsize"
         names(res)[names(res)=="Std. Error"] <- "se"
@@ -96,10 +96,10 @@ mda.prototype <- function(mda.D, ...){
     R <- lapply(1:length(D$formula), do)
 
 
-    res <- bind_rows(lapply(R, function(x){x$res}))
+    res <- dplyr::bind_rows(lapply(R, function(x){x$res}))
     res$qvalue <- p.adjust(res$pvalue, "fdr")
     
-    res.full <- bind_rows(lapply(R, function(x){x$res.full}))
+    res.full <- dplyr::bind_rows(lapply(R, function(x){x$res.full}))
     res.full$qvalue <- p.adjust(res.full$pvalue, "fdr")
 
     ###############################################################################

@@ -43,7 +43,7 @@ mda.continuous <- function(mda.D, continuous.cols=NULL, continuous.scale=TRUE, .
             s <- s %>% rownames_to_column("variable.mda")
             s
         })
-        res <- bind_rows(res)
+        res <- dplyr::bind_rows(res)
 
         names(res)[names(res)=="Estimate"] <- "effectsize"
         names(res)[names(res)=="Std. Error"] <- "se"

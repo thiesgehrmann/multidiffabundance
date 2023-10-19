@@ -33,7 +33,7 @@ mda.deseq2 <- function(mda.D, ...){
                     })
 
 
-        res.full <- bind_rows(lapply(DESeq2::resultsNames(dds_res), function(name){
+        res.full <- dplyr::bind_rows(lapply(DESeq2::resultsNames(dds_res), function(name){
             v <- DESeq2::results(dds_res, name=name, tidy=T, format="DataFrame")
             v$variable.mda <- name
             v}))

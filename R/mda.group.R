@@ -49,10 +49,10 @@ mda.group <- function(mda.D, group.cols=NULL, ...){
                 s <- s %>% rownames_to_column("variable.mda")
                 s
             })
-            indiv.res <- bind_rows(indiv.res)
+            indiv.res <- dplyr::bind_rows(indiv.res)
         })
         
-        res <- bind_rows(all.res)
+        res <- dplyr::bind_rows(all.res)
 
         names(res)[names(res)=="Estimate"] <- "effectsize"
         names(res)[names(res)=="Std. Error"] <- "se"
