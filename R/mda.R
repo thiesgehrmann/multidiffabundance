@@ -384,7 +384,7 @@ mda.summary <- function(res, id_cols="taxa", names_from="variable", method_from=
         pvalue =     tidyr::pivot_wider(res, id_cols=all_of(id_cols), names_from=all_of(names_from), values_from=all_of(pvalue_from),     values_fn=list),
         qvalue =     tidyr::pivot_wider(res, id_cols=all_of(id_cols), names_from=all_of(names_from), values_from=all_of(qvalue_from),     values_fn=list),
         effectsize = tidyr::pivot_wider(res, id_cols=all_of(id_cols), names_from=all_of(names_from), values_from=all_of(effectsize_from), values_fn=list),
-        method_order = sort(unique(res[,method_from]))
+        method_order = sort(unique(res[[method_from]]))
     )
 }
 
