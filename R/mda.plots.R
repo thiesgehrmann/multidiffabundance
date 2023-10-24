@@ -124,7 +124,7 @@ mda.plot.alpha <-  function(res) {
   )
   
   plotly::plot_ly(
-  res_alpha, 
+  res.alpha, 
   x=~effectsize, 
   y=~variable, 
   type="scatter", mode="markers",
