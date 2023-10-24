@@ -147,7 +147,7 @@ mda.plot.all <- function(res, ...) {
   ap <- mda.plot.alpha(res)
 
   plotly::subplot(
-    hp, bp, ap, 
+    hp, ap, bp, 
     nrows=1, shareY = TRUE
   ) %>% 
   plotly::layout(
