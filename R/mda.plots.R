@@ -5,7 +5,7 @@
 #' @param high The color to use for high effect sizes.
 #' @param mid The color to use for effect sizes around 0.
 #' @export
-mda.plot.heatplot <- function(res, ta=NULL, low="magenta", high="limegreen", mid="white") {
+mda.plot.heatplot <- function(res, ta=NULL, low="magenta", high="limegreen", mid="white", min_sign=1, min_eff, q_lim=0.05) {
 
   if (!is.null(ta)) {
     require("tidytacos")
@@ -21,7 +21,7 @@ mda.plot.heatplot <- function(res, ta=NULL, low="magenta", high="limegreen", mid
   }
 
   qhits <- res$res.full %>% 
-    dplyr::filter(qvalue<0.05, !method %in% c("alpha", "beta")) %>% 
+    dplyr::filter(qvalue<q_lim, !method %in% c("alpha", "beta")) %>% 
     dplyr::filter(!is.na(variable), variable != "(Intercept)") %>% 
     dplyr::group_by(method, variable, taxa) %>% 
     dplyr::summarize(max(qvalue)) %>% 
@@ -30,21 +30,28 @@ mda.plot.heatplot <- function(res, ta=NULL, low="magenta", high="limegreen", mid
 
   res$res.full <- res$res.full %>% 
     dplyr::left_join(qhits)
+  
+  res$res.full$nq[is.na(res$res.full$nq)] <- 0
 
   sign_tax <- unique(res$res.full %>% 
   dplyr::filter(
     !is.na(variable), 
     variable != "(Intercept)") %>%
-  dplyr::filter(qvalue < 0.05) %>%
-  dplyr::filter(nq > 1) %>% 
+  dplyr::filter(nq >= min_sign) %>% 
   dplyr::filter(!is.na(qvalue)) %>%
+  dplyr::filter(abs(effectsize) >= min_eff) %>%
   dplyr::pull(taxa))
+  
+  if (length(sign_tax) == 0) {
+    stop("No taxa meet the criteria for significance.")
+  }
 
   sign_res <- res$res.full %>% 
   dplyr::filter(taxa %in% sign_tax) %>%
   dplyr::filter(
     !is.na(variable), 
-    variable != "(Intercept)")
+    variable != "(Intercept)",
+    !method %in% c("alpha", "beta"))
 
   methods <- unique(sign_res$method)
   make_button <- function(method) {
