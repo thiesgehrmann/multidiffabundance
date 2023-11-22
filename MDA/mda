@@ -61,6 +61,7 @@ complement=0
 usecache="TRUE"
 recache="FALSE"
 fn_arguments=""
+mdapackage="multidiffabundancedevel"
 
 while true; do
     case $1 in
@@ -194,7 +195,7 @@ function run_one_mda(){
     mkdir -p "$outprefix/$method"
 
     rcode="
-        library(multidiffabundance);
+        library($mdapackage);
         library(readr);
         args = commandArgs(trailingOnly=TRUE);
         D <- mda.from_cmdargs(args, usecache=$usecache, recache=$recache ${fn_arguments});
@@ -216,7 +217,7 @@ function run_one_mda(){
     result=`cat "$retlog"`
 
     if [ $result -eq 0 ]; then
-        echo "[MDA] (`date`) COMPLETED $method. '$outprefix/$method/results.tsv'"
+        echo "[MDA] (`date`) COMPLETED $method. '$outprefix/$method/results.rds'"
     else
         echo "[MDA] (`date`) FAILED $method. See '$errlog'"
     fi
@@ -279,12 +280,29 @@ fi
 # Combine all the outputs into one single output
 
 #if [ "${#result_files[@]}" -gt 0 ]; then
-#    out_file="$outprefix/results.tsv"
-#
-#    head -n 1 "${result_files[0]}" > "$out_file"
-#    for idx in `seq 0 $((${#result_files[@]}-1))`; do
-#        tail -n+2 "${result_files[idx]}"
-#    done >> "$out_file"
+    out_file="$outprefix/results"
+    results=`for value in ${result_files[@]}; do echo $value; done | awk '{print "\"" $0 "\","}' | tr '\n' ' '`
+    results=${results::-2}
+
+    rcode="
+        library('dplyr')
+        library($mdapackage)
+
+        rf <- c($results)
+
+        rs <- lapply(rf, readRDS)
+
+        comb <- list()
+
+        comb\$res      <- bind_rows(lapply(rs, function(x){x\$res}))
+        comb\$res.full <- bind_rows(lapply(rs, function(x){x\$res.full}))
+        comb\$summary  <- mda.summary(comb\$res)
+        saveRDS(comb, file='${outprefix}/${out_file}.rds')
+        write_tsv(comb\$res,      '${outprefix}/${out_file}.tsv')
+        write_tsv(comb\$res.full, '${outprefix}/${out_file}.full.tsv')
+    "
+    Rscript <(echo "$rcode")
+
 #
 #    echo "[MDA] (`date`) OUTPUT '$out_file'"
 #else

@@ -32,5 +32,6 @@ Suggests:
     knitr,
     rmarkdown,
     heatmaply,
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0),
+    tidytacos 
 Config/testthat/edition: 3
