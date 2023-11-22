@@ -54,7 +54,7 @@ mda.corncob <- function(mda.D, ...){
             ms
         })
 
-        res.full <- bind_rows(ram)
+        res.full <- dplyr::bind_rows(ram)
         
         mda.common_do(D, f_idx, res.full, "corncob", skip_taxa_sel=TRUE)
 

@@ -6,6 +6,7 @@ mda.aldex2 <- function(mda.D, ...){
     suppressPackageStartupMessages({
         require("ALDEx2")
         require(tidyr)
+        require(dplyr)
         require(tibble)
         })
 
@@ -24,7 +25,7 @@ mda.aldex2 <- function(mda.D, ...){
             ALDEx2::aldex(counts, mm, denom = "all", test="glm")
         })
 
-        res.full <- gather(as.data.frame(out) %>% rownames_to_column('taxa'), "measure", "value", 2:(dim(as.data.frame(out))[2]+1))
+        res.full <- tidyr::gather(as.data.frame(out) %>% rownames_to_column('taxa'), "measure", "value", 2:(dim(as.data.frame(out))[2]+1))
 
         clean.feature.1 <- function(v){
             ret <- if (endsWith(v, ".Estimate")) {
@@ -69,7 +70,7 @@ mda.aldex2 <- function(mda.D, ...){
         clean.variable <- if (package_version(installed.packages()["ALDEx2", "Version"]) >= package_version("1.3")) {clean.variable.2} else {clean.variable.1}
         res.full$variable.mda <- unlist(lapply(res.full$measure, clean.variable))
         
-        res.full <- pivot_wider(res.full, id_cols=c("taxa", "variable.mda"), names_from=feature, values_from=value)
+        res.full <- tidyr::pivot_wider(res.full, id_cols=c("taxa", "variable.mda"), names_from=feature, values_from=value)
         
         mda.common_do(D, f_idx, res.full, "aldex2", skip_taxa_sel=TRUE)
 

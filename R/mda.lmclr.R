@@ -7,7 +7,7 @@ mda.lmclr <- function(mda.D, ...){
     suppressPackageStartupMessages({
         require(dplyr)
         require(tibble)
-        library(lme4)})
+        library(lmerTest)})
     
     clr_data <- as.data.frame(scale(mda.clr(mda.relative_abundance(mda.pseudocount(D$count_data)))))
 
@@ -16,7 +16,7 @@ mda.lmclr <- function(mda.D, ...){
         f <- fdata$fn
 
         method <- if ( formula.ismixed(f) ){
-            lmer
+            lmerTest::lmer
         } else { lm }
         
         taxa <- D$nonrare
@@ -43,7 +43,7 @@ mda.lmclr <- function(mda.D, ...){
             s <- s %>% rownames_to_column("variable.mda")
             s
         })
-        res <- bind_rows(res)
+        res <- dplyr::bind_rows(res)
 
         names(res)[names(res)=="Estimate"] <- "effectsize"
         names(res)[names(res)=="Std. Error"] <- "se"

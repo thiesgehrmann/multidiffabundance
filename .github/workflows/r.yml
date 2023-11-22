@@ -24,8 +24,7 @@ jobs:
         config:
          #- {os: macos-latest, r: '4.2'}
           - {os: windows-latest, r: '4.2'}
-
-          - {os: ubuntu-latest,   r: '4.2.3'}
+          - {os: ubuntu-latest,   r: '4.3'}
           - {os: ubuntu-latest,   r: '4.2'}
 
     env:
@@ -45,7 +44,9 @@ jobs:
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
-          extra-packages: any::rcmdcheck
+          extra-packages: |
+            any::rcmdcheck
+            github::LebeerLab/tidytacos
           needs: |
            check
            biocViews
