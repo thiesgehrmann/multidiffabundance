@@ -292,9 +292,9 @@ fi
         rs <- lapply(rf, readRDS)
         comb <- mda.merge_results(rs)
         
-        saveRDS(comb, file='${outprefix}/${out_file}.rds')
-        write_tsv(comb\$res,      '${outprefix}/${out_file}.tsv')
-        write_tsv(comb\$res.full, '${outprefix}/${out_file}.full.tsv')
+        saveRDS(comb,        file='${out_file}.rds')
+        write_tsv(comb\$res,      '${out_file}.tsv')
+        write_tsv(comb\$res.full, '${out_file}.full.tsv')
     "
     Rscript <(echo "$rcode")
 
