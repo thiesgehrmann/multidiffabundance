@@ -287,6 +287,7 @@ fi
     rcode="
         library('dplyr')
         library($mdapackage)
+        library(readr)
 
         rf <- c($results)
         rs <- lapply(rf, readRDS)
