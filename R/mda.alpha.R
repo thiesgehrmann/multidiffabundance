@@ -22,7 +22,7 @@ mda.alpha <- function(mda.D, ...){
 
         f <- update(f, mda.alpha ~ .)
         
-        r <- mda.trycatchempty(D, f_idx, method(f, data=meta_data, na.action = 'na.exclude'), taxa="mda.alpha")
+        r <- mda.trycatchempty(D, f_idx, method(f, data=meta_data, na.action = 'na.exclude'), taxa="mda.alpha.shannon")
 
         if (r$error){
             return(r$response)

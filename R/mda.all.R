@@ -28,9 +28,8 @@ mda.all <- function(mda.D, alpha=FALSE, beta=FALSE, group=FALSE, continuous=FALS
     selected <-  c(    alpha,     beta,     group,     continuous,     aldex2,     ancombc2,      corncob,     deseq2,     limma,     lmclr,     maaslin2,     zicoseq)
     
     R <- lapply(functions[selected], function(x){ x(D, ...) })
-    res <- dplyr::bind_rows(lapply(R, function(x){x$res}))
-    res.full <- dplyr::bind_rows(lapply(R, function(x){x$res.full}))
+    comb <- mda.merge_results(R)
     
-    return(list(res=res, res.full=res.full, summary=mda.summary(res)))
+    return(comb)
 
 }

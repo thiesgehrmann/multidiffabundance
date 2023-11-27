@@ -289,14 +289,9 @@ fi
         library($mdapackage)
 
         rf <- c($results)
-
         rs <- lapply(rf, readRDS)
-
-        comb <- list()
-
-        comb\$res      <- bind_rows(lapply(rs, function(x){x\$res}))
-        comb\$res.full <- bind_rows(lapply(rs, function(x){x\$res.full}))
-        comb\$summary  <- mda.summary(comb\$res)
+        comb <- mda.merge_results(rs)
+        
         saveRDS(comb, file='${outprefix}/${out_file}.rds')
         write_tsv(comb\$res,      '${outprefix}/${out_file}.tsv')
         write_tsv(comb\$res.full, '${outprefix}/${out_file}.full.tsv')
