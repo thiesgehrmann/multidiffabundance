@@ -61,7 +61,7 @@ complement=0
 usecache="TRUE"
 recache="FALSE"
 fn_arguments=""
-mdapackage="multidiffabundancedevel"
+mdapackage="multidiffabundance"
 
 while true; do
     case $1 in
