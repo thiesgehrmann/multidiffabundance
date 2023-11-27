@@ -31,7 +31,7 @@ Suggests:
     knitr,
     rmarkdown,
     heatmaply,
-    tidytacos 
+    tidytacos,
     plotly,
     BiocManager,
     testthat (>= 3.0.0)
