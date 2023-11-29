@@ -279,7 +279,7 @@ fi
 ###############################################################################
 # Combine all the outputs into one single output
 
-#if [ "${#result_files[@]}" -gt 0 ]; then
+if [ "${#result_files[@]}" -gt 0 ]; then
     out_file="$outprefix/results"
     results=`for value in ${result_files[@]}; do echo $value; done | awk '{print "\"" $0 "\","}' | tr '\n' ' '`
     results=${results::-2}
@@ -299,10 +299,10 @@ fi
     "
     Rscript <(echo "$rcode")
 
-#
-#    echo "[MDA] (`date`) OUTPUT '$out_file'"
-#else
-#    echo "[MDA] (`date`) NO OUTPUT"
-#fi
+
+    echo "[MDA] (`date`) OUTPUT '$out_file'"
+else
+    echo "[MDA] (`date`) NO OUTPUT"
+fi
 
 ###############################################################################
