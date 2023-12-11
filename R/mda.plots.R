@@ -17,6 +17,7 @@ mda.plot.heatplot <- function(res, ta=NULL, low="magenta", high="limegreen", mid
         tidytacos::taxa() %>% 
         dplyr::select(c(taxon_name, taxon_id)), 
         by=c("taxa"="taxon_id")) %>% 
+      dplyr::select(-taxa) %>%
       dplyr::rename(taxa=taxon_name)
   }
 
