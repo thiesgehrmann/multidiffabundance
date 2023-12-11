@@ -374,18 +374,53 @@ mda.deparse <- function(form){
 ###############################################################################
 # Summary function
 
-mda.summary <- function(res, id_cols="taxa", names_from="variable", method_from="method", pvalue_from="pvalue", qvalue_from="qvalue", effectsize_from="effectsize",
-                        values_fn=list, pvalue_threshold=0.05, qvalue_threshold=0.05){
-
-    res <- dplyr::arrange(res, "method", "taxa", "variable")
+mda.summary <- function(res, id_cols = "taxa", names_from = "variable", method_from = "method",
+    pvalue_from = "pvalue", qvalue_from = "qvalue", effectsize_from = "effectsize", 
+    values_fn = list, pvalue_threshold = 0.05, qvalue_threshold = 0.05,
+    method.groups = list(
+        "da" = c("aldex2", "ancombc2",'corncob','deseq2','corncob','limma','lmclr','maaslin2','zicoseq'),
+        "alpha" = c("alpha"),
+        "beta"  = c("beta"),
+        "group" = c("group"),
+        "continuous" = c("continuous"))) {
     
-    list(
-        nsig =       tidyr::pivot_wider(res, id_cols=all_of(id_cols), names_from=all_of(names_from), values_from=all_of(qvalue_from),     values_fn=function(v){as.integer(sum(v < qvalue_threshold))}),
-        pvalue =     tidyr::pivot_wider(res, id_cols=all_of(id_cols), names_from=all_of(names_from), values_from=all_of(pvalue_from),     values_fn=list),
-        qvalue =     tidyr::pivot_wider(res, id_cols=all_of(id_cols), names_from=all_of(names_from), values_from=all_of(qvalue_from),     values_fn=list),
-        effectsize = tidyr::pivot_wider(res, id_cols=all_of(id_cols), names_from=all_of(names_from), values_from=all_of(effectsize_from), values_fn=list),
-        method_order = sort(unique(res[[method_from]]))
-    )
+    res <- as.data.frame(res)
+
+    mda.summary.internal <- function (res)
+    {
+        res <- dplyr::arrange(res, method_from, id_cols, names_from)
+        methods <- sort(unique(res[,method_from]))
+
+        list(
+            nsig =       tidyr::pivot_wider(res, id_cols=all_of(id_cols), names_from=all_of(names_from), values_from=all_of(qvalue_from),     values_fn=function(v){as.integer(sum(v < qvalue_threshold))}),
+            pvalue =     lapply(methods, function(method) { tidyr::pivot_wider(res[res[,method_from] == method,], id_cols=all_of(id_cols), names_from=all_of(names_from), values_from=all_of(pvalue_from),     values_fn=values_fn)}),
+            qvalue =     lapply(methods, function(method) { tidyr::pivot_wider(res[res[,method_from] == method,], id_cols=all_of(id_cols), names_from=all_of(names_from), values_from=all_of(qvalue_from),     values_fn=values_fn)}),
+            effectsize = lapply(methods, function(method) { tidyr::pivot_wider(res[res[,method_from] == method,], id_cols=all_of(id_cols), names_from=all_of(names_from), values_from=all_of(effectsize_from), values_fn=values_fn)}),
+            methods    = methods
+        )
+    }
+    
+    group.summary <- lapply(method.groups, function(group){
+        group.res <- res[res[,method_from] %in% group,]
+        if(nrow(group.res) > 0) {mda.summary.internal(group.res)} else {NULL}
+    })
+
+    group.summary
+    
+}
+                  
+###############################################################################
+# A function to merge the outputs of several mda runs
+
+mda.merge_results <- function(res.list){
+
+    comb <- list()
+
+    comb$res      <- bind_rows(lapply(res.list, function(x){x$res}))
+    comb$res.full <- bind_rows(lapply(res.list, function(x){x$res.full}))
+    comb$summary  <- mda.summary(comb$res)
+    
+    comb
 }
 
 

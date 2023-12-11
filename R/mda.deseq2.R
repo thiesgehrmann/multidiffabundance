@@ -8,7 +8,6 @@ mda.deseq2 <- function(mda.D, ...){
         require(tidyr)
         require(tibble)})
 
-
     do <- function(f_idx){
 
         fdata <- D$formula[[f_idx]]
