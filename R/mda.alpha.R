@@ -25,9 +25,9 @@ mda.alpha <- function(mda.D, alpha.index=c("shannon"), ...){
         } else { lm }
         
         meta_data <- data.frame(fdata$data)
-        
 
-        meta_data$mda.alpha <- alpha_indices[[i_idx]]
+        meta_data$mda.alpha <- alpha_indices[[i_idx]][rownames(meta_data)]
+
         taxa_name <- paste0(c("mda","alpha",index[i_idx]), collapse='.')
 
         f <- update(f, mda.alpha ~ .)
@@ -59,12 +59,14 @@ mda.alpha <- function(mda.D, alpha.index=c("shannon"), ...){
     }
 
     do <- function(f_idx){
+        message(D$formula[[f_idx]]$map['mda_p00001'])
         res.full <- lapply(1:length(index), function(i_idx){
             m <- paste(c("alpha",index[i_idx]), collapse=".")
             mda.cache_load_or_run_save(D, f_idx, m, {alpha(f_idx, i_idx)})
             })
         res.full <- bind_rows(res.full)
         mda.common_do(D, f_idx, res.full, "alpha", skip_taxa_sel=TRUE)
+
     }
 
     R <- lapply(1:length(D$formula), do)

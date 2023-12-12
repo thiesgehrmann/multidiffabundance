@@ -471,7 +471,7 @@ mda.common_do <- function(D, f_idx, res.full, method, skip_taxa_sel=FALSE){
 mda.common_output <- function(R){
 
     column.initial <- c("taxa","variable","effectsize","se","stat","pvalue","qvalue.withinformula","formula","method","n","freq","comment")
-    column.order <- c("taxa","variable","effectsize","se","stat","pvalue","qvalue.withinformula","qvalue","formula","method","n","freq","comment")
+    column.order   <- c("taxa","variable","effectsize","se","stat","pvalue","qvalue.withinformula","qvalue","formula","method","n","freq","comment")
 
     
     res <-        dplyr::bind_rows(lapply(R, function(x){
