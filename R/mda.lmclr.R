@@ -22,10 +22,12 @@ mda.lmclr <- function(mda.D, ...){
         taxa <- D$nonrare
 
         f <- update(f, clrtaxa ~ .)
+        
+        data <- data.frame(fdata$data)
 
         res <- lapply(taxa, function(t){
-            fdata$data$clrtaxa <- clr_data[,t]
-            r <- mda.trycatchempty(D, f_idx, method(f, data=fdata$data, na.action = 'na.exclude'), taxa=t)
+            data$clrtaxa <- clr_data[rownames(data),t]
+            r <- mda.trycatchempty(D, f_idx, method(f, data=data, na.action = 'na.exclude'), taxa=t)
             
             if (r$error){
                 return(r$response)

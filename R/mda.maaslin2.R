@@ -67,7 +67,7 @@ mda.maaslin2 <- function(mda.D, ...){
         
         res.full <- as.data.frame(res.full)
         
-        res <- mda.common_do(D, f_idx, res.full, "maaslin2", skip_taxa_sel=TRUE)
+        res <- mda.common_do(D, f_idx, res.full, "maaslin2", skip_taxa_sel=FALSE)
         
         res$res.full$se <- res$res.full$se / sqrt(as.numeric(res$res.full$n))
         res$res$se <- res$res$se / sqrt(as.numeric(res$res$n))

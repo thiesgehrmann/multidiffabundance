@@ -14,7 +14,8 @@ mda.alpha <- function(mda.D, alpha.index=c("shannon"), ...){
         exit(0)
     }
     
-    alpha_indices <- lapply(index, function(i){scale(diversity(D$count_data, index=i))})
+    alpha_indices <- as.data.frame(lapply(index, function(i){scale(diversity(D$count_data, index=i))}))
+    colnames(alpha_indices) <- index
 
     alpha <- function(f_idx, i_idx){
         fdata <- D$formula[[f_idx]]
@@ -25,8 +26,7 @@ mda.alpha <- function(mda.D, alpha.index=c("shannon"), ...){
         } else { lm }
         
         meta_data <- data.frame(fdata$data)
-
-        meta_data$mda.alpha <- alpha_indices[[i_idx]][rownames(meta_data)]
+        meta_data$mda.alpha <- alpha_indices[rownames(meta_data),index[i_idx]]
 
         taxa_name <- paste0(c("mda","alpha",index[i_idx]), collapse='.')
 
@@ -43,7 +43,7 @@ mda.alpha <- function(mda.D, alpha.index=c("shannon"), ...){
 
         if (mda.isSingular(fit)){
             s[,"Pr(>|t|)"] <- NA
-            s[,"comment"] <- paste0(c("Rank deficient: singular.", r$message), collapse='\n')
+            s[,"comment"] <- str_replace_all(paste0(c("Rank deficient: singular.", r$message), collapse=' ; '),'\n',' ; ')
         }
         
         s$taxa <- taxa_name
@@ -59,7 +59,6 @@ mda.alpha <- function(mda.D, alpha.index=c("shannon"), ...){
     }
 
     do <- function(f_idx){
-        message(D$formula[[f_idx]]$map['mda_p00001'])
         res.full <- lapply(1:length(index), function(i_idx){
             m <- paste(c("alpha",index[i_idx]), collapse=".")
             mda.cache_load_or_run_save(D, f_idx, m, {alpha(f_idx, i_idx)})

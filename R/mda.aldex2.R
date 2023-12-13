@@ -72,7 +72,7 @@ mda.aldex2 <- function(mda.D, ...){
         
         res.full <- tidyr::pivot_wider(res.full, id_cols=c("taxa", "variable.mda"), names_from=feature, values_from=value)
         
-        mda.common_do(D, f_idx, res.full, "aldex2", skip_taxa_sel=TRUE)
+        mda.common_do(D, f_idx, res.full, "aldex2", skip_taxa_sel=FALSE)
 
     }
 

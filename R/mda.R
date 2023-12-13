@@ -101,6 +101,7 @@ mda.create <- function(count_data, meta_data, formulas, output_dir=tempdir(), us
     dat <- c()
     dat$count_data  <- count_data
     dat$nonrare     <- nonrare
+    dat$nonrare.pct <- nonrare.pct
     dat$meta_data   <- meta_data
     dat$formula     <- FD
     dat$outprefix   <- output_dir
@@ -315,7 +316,7 @@ mda.cache_load_or_run_save <- function(mda.D, f_idx, method, expr, order_invaria
 }
                   
 ###############################################################################
-# output cache functions
+# trycatch functions
                   
 mda.trycatchempty <- function(D, f_idx, expr, taxa=NA, empty=NULL){
     fdata <- D$formula[[f_idx]]
@@ -340,12 +341,18 @@ mda.trycatchempty <- function(D, f_idx, expr, taxa=NA, empty=NULL){
 ###############################################################################
 # Empty output format
                   
-mda.empty_output <- function(D, f_idx, comment=NA, taxa=NA){
+mda.empty_output <- function(D, f_idx, comment=NA, taxa=c(NA)){
     fdata <- D$formula[[f_idx]]
     empty.res <- fdata$nfreq[fdata$parts.fixed, c('variable.mda'),drop=FALSE]
 
     empty.res[,c('se','taxa','pvalue','effectsize','df','stat')] <- NA
-    empty.res$taxa <- taxa
+    
+    empty.res <- bind_rows(lapply(taxa, function(t){
+        e <- data.frame(empty.res)
+        e$taxa <- t
+        e
+    } ))
+
 
     empty.res <- transform(empty.res,
                            se = as.numeric(se),
@@ -452,7 +459,17 @@ mda.common_do <- function(D, f_idx, res.full, method, skip_taxa_sel=FALSE){
     res.full <- dplyr::left_join(res.full, fdata$nfreq, by="variable.mda")
 
     # Select only the relevant taxa ( taxa are selected already in some methods, but we repeat it here for safety )
-    res.full <- if(skip_taxa_sel){ res.full } else { res.full[res.full$taxa %in% D$nonrare,] }
+    res.full <- if(skip_taxa_sel){
+        res.full 
+    } else {
+        # Come back to this - fill in taxa that were not tested by a method.
+        missing <- mda.empty_output(D, f_idx, comment="This method did not test this taxa.", taxa=setdiff(D$nonrare, res.full$taxa))
+        missing$formula <- rep(mda.deparse(fdata$fn.orig), dim(missing)[1])
+        missing$method <- method
+        missing <- dplyr::left_join(missing, fdata$nfreq, by="variable.mda")
+        res.full <- res.full[res.full$taxa %in% D$nonrare,]
+        bind_rows(res.full, missing)
+    }
 
     # Select only the first variable in the original function
     first_var <- formula.parts(fdata$fn.orig)[1]
@@ -465,6 +482,7 @@ mda.common_do <- function(D, f_idx, res.full, method, skip_taxa_sel=FALSE){
 
     return(list(res=res, res.full=res.full))
 }
+                  
 ###############################################################################
 # Common output format
                   

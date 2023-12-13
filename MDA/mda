@@ -41,7 +41,7 @@ function usage(){
 ###############################################################################
 # PROCESS INPUTS
 
-ARGS=$(getopt -o 'aAcdlLmzo:' --long 'alpha,beta,group,continuous,aldex2,ancombc,corncob,deseq2,limma,lmclr,maaslin2,zicoseq,options:,complement,recache,nocache,help' -- "$@") || exit
+ARGS=$(getopt -o 'aAcdlLmzo:' --long 'alpha,beta,group,continuous,aldex2,ancombc2,corncob,deseq2,limma,lmclr,maaslin2,zicoseq,options:,complement,recache,nocache,help' -- "$@") || exit
 eval "set -- $ARGS"
 
 aldex2=0
