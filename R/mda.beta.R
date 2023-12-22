@@ -1,12 +1,13 @@
 ###############################################################################
 # Run BETA
 # Code from Vegan is modified to allow scope to be passed to the internal anova,
-#   such that permutations are only performed for the selected variable
+#   such that we can control that only 2 permutations are performed for the
+#   selected variable, and the full permutations are performed for all others.
 
 `mda.adonis2` <- function(formula, data, permutations = 999, method = "bray",
                           sqrt.dist = FALSE, add = FALSE, by = "terms",
                           parallel = getOption("mc.cores"), na.action = na.fail,
-                          strata = NULL, scope = NULL, ...) {
+                          strata = NULL, scope = NULL, hack=NULL, ...) {
     ## handle missing data
     if (missing(data))
         data <- model.frame(delete.response(terms(formula)),
@@ -48,6 +49,7 @@
                             na.action = na.action)
     formula <- update(formula, lhs ~ .)
     sol <- vegan:::adonis0(formula, data = data, method = method)
+    sol. <<- sol
     ## handle permutations
     perm <- vegan:::getPermuteMatrix(permutations, NROW(data), strata = strata)
     out <- mda.anova.cca(sol, permutations = perm, by = by,
@@ -68,7 +70,7 @@
 `mda.anova.cca` <- function(object, ..., permutations = how(nperm=999), by = NULL,
                             model = c("reduced", "direct", "full"),
                             parallel = getOption("mc.cores"), strata = NULL,
-                            cutoff = 1, scope = NULL) {
+                            cutoff = 1, scope = NULL, hack=NULL) {
     EPS <- sqrt(.Machine$double.eps) # for permutation P-values
     model <- match.arg(model)
     ## permutation matrix
@@ -147,7 +149,7 @@
               class = c("anova.cca", "anova", "data.frame"))
 }
 
-`mda.anova.ccabymargin` <- function(object, permutations, scope, ...){
+`mda.anova.ccabymargin` <- function(object, permutations, scope=NULL, hack=NULL, ...){
     EPS <- sqrt(.Machine$double.eps)
     nperm <- nrow(permutations)
     ## We need term labels but without Condition() terms
@@ -185,9 +187,11 @@
         stop("old style result object: update() your model")
     ## analyse only terms of 'ass' thar are in scope
     scopeterms <- which(alltrms %in% trmlab)
+    
     mods <- lapply(scopeterms, function(i, ...)
            permutest(vegan:::ordConstrained(Y, X[, ass != i, drop=FALSE], Z, "pass"),
                      permutations, ...), ...)
+
     ## Chande in df
     Df <- sapply(mods, function(x) x$df[2]) - dfbig
     ## F of change
@@ -226,7 +230,7 @@
 }
                    
 ###############################################################################
-                   
+rf <- NULL        
 mda.beta <- function(mda.D, beta.permutations=999, beta.parallel=8, beta.hack=TRUE, ...){
     
     suppressPackageStartupMessages(require(vegan))
@@ -266,9 +270,19 @@ mda.beta <- function(mda.D, beta.permutations=999, beta.parallel=8, beta.hack=TR
                 f <- update(f, dist ~ .)
                 assign("dist",dist,envir=environment(f)) # Dumbest shit I ever saw
                 mainvar <- fdata$parts.fixed[1]
-                mda.adonis2(f, meta_data.nona, na.action = 'na.exclude', strata=strata,
+                scope <- if(beta.hack){mainvar}else{NULL}
+                r <- mda.adonis2(f, meta_data.nona, na.action = 'na.exclude', strata=strata,
                             by = "margin", permutations=beta.permutations, parallel=beta.parallel,
-                            scope=if(beta.hack){mainvar}else{NULL})
+                            scope=scope)
+                if (beta.hack){
+                    r.other <- mda.adonis2(f, meta_data.nona, na.action = 'na.exclude', strata=strata,
+                            by = "margin", permutations=2, parallel=beta.parallel,
+                            scope=NULL)
+                    r.other$`Pr(>F)` <- NA
+                    r <- bind_rows(r[rownames(r.other) == mainvar,], r.other[rownames(r.other) != mainvar,])
+                }
+            
+                r
             }, order_invariant=!beta.hack, extra=)
 
         res.full <- r
@@ -284,6 +298,10 @@ mda.beta <- function(mda.D, beta.permutations=999, beta.parallel=8, beta.hack=TR
         res.full$comment <- comment
         res.full$se <- NA
         res.full$taxa <- "mda.beta"
+        res.full$comment <- paste0(c("Residual R2 of total model:", as.character(res.full["Residual","effectsize"])), collapse=' ')
+
+        res.full <- head(res.full, -2)
+
         mda.common_do(D, f_idx, res.full, "beta", skip_taxa_sel=TRUE)
     }
 

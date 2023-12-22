@@ -341,18 +341,21 @@ mda.trycatchempty <- function(D, f_idx, expr, taxa=NA, empty=NULL){
 ###############################################################################
 # Empty output format
                   
-mda.empty_output <- function(D, f_idx, comment=NA, taxa=c(NA)){
+mda.empty_output <- function(D, f_idx, comment=NA, taxa=NA){
     fdata <- D$formula[[f_idx]]
     empty.res <- fdata$nfreq[fdata$parts.fixed, c('variable.mda'),drop=FALSE]
 
     empty.res[,c('se','taxa','pvalue','effectsize','df','stat')] <- NA
     
-    empty.res <- bind_rows(lapply(taxa, function(t){
-        e <- data.frame(empty.res)
-        e$taxa <- t
-        e
-    } ))
-
+    empty.res <- if ((length(taxa) == 0) | all(is.na(taxa)) ) {
+        empty.res
+    } else {
+        bind_rows(lapply(taxa, function(t){
+            e <- data.frame(empty.res)
+            e$taxa <- t
+            e
+        } ))
+    }
 
     empty.res <- transform(empty.res,
                            se = as.numeric(se),
@@ -364,7 +367,6 @@ mda.empty_output <- function(D, f_idx, comment=NA, taxa=c(NA)){
     empty.res$comment <- comment
     empty.res
 }
-
 ###############################################################################
 
 mda.deparse <- function(form){

@@ -71,18 +71,71 @@ formula.parts.random.intercept <- function(fn){
         })]
 }
 
+formula.parts_as_formula <- function(p){
+    as.formula(paste0(c('~', paste0(p, collapse='+')), collapse=''))
+}
+
+###############################################################################
+
+
+formula.determine_nonnumeric_vars <- function(fn,data){
+    introduce_spacers <- function(f, d, spacer='._m_._d_._a_.'){
+
+        add_spacer <- function(value){
+            if (length(value) == 0){
+                value
+            } else if (is.na(value) | is.null(value)){
+
+                value
+            } else {
+                paste0(c(spacer, stringr::str_replace_all(as.character(value), ':', ';')), collapse='')
+            }
+        }
+
+        d <- data.frame(d)
+        relevant_vars <- intersect(formula.parts(f), colnames(d))
+        nn_vars <- relevant_vars[sapply(relevant_vars, function(v){!is.numeric(d[,v])})]
+        if (length(nn_vars) == 0){
+            d
+        } else {
+            d[,nn_vars] <- apply(d[,nn_vars,drop=FALSE], c(1,2), add_spacer)
+            d
+        }
+    }
+    
+    all_nonnumeric <- function(var){
+        all(unlist(lapply(strsplit(var, ':'), function(v){
+            grepl('[.]_m_[.]_d_[.]_a_[.]', v)
+        })))
+    }
+    
+    # Determine the reformulated columns that are originating from nonnumeric columns
+    fn.fixed <- formula.parts_as_formula(formula.parts.fixed(fn))
+    mm.spacer <- colnames(model.matrix(fn.fixed, introduce_spacers(fn, data)))
+    mm.orig   <- colnames(model.matrix(fn.fixed, data))
+    nonnumeric <- mm.orig[unlist(lapply(mm.spacer, all_nonnumeric))]
+    nonnumeric
+}
+
+###############################################################################
+
 formula.model.matrix <- function(fn, data){
     data.new <- model.matrix(terms(fn, keep.order=TRUE), data)
     return(data.new)
 }
 
+
 formula.reformulate <- function(fn, data){
     f <- if (formula.ismixed(fn)) {formula.reformulate.mixed} else {formula.reformulate.fixed}
     new <- f(fn, data)
     
+    pam <- setNames(names(new$map), new$map)
+    
     parts <- formula.parts.fixed(fn)
     
-    nfreq <- mda.nfreq(new$data)
+    nonnumeric <- pam[formula.determine_nonnumeric_vars(fn, data)]
+    
+    nfreq <- mda.nfreq(new$data, nonnumeric)
     nfreq$variable <- sapply(rownames(nfreq), function(v){new$map[v]})
     nfreq['(Intercept)',] <- c(NA, NA, '(Intercept)')
     nfreq$variable.mda <- rownames(nfreq)
@@ -98,7 +151,6 @@ formula.reformulate <- function(fn, data){
         data=as.data.frame(new$data),
         map=new$map,
         nfreq=nfreq,
-        
         
         parts.fixed=formula.parts.fixed(new$fn),
         parts.random=formula.parts.random(new$fn),
@@ -220,16 +272,15 @@ formula.reformulate.mixed <- function(fn, data){
     
 }
 
-mda.nfreq <- function(data, maxunique=100){
+###############################################################################
+
+mda.nfreq <- function(data, nonnumeric=c()){
     n <- function(var){
         sum(unlist(lapply(data[,var],function(x){!(is.na(x))})))
     }
 
     freq <- function(var){
-        if (is.numeric(data[,var])){
-            ""
-        }
-        else if (length(unique(data[,var])) >= maxunique){
+        if (!(var %in% nonnumeric)){
             ""
         } else {
             paste0(mapply(function(x,y){paste0(c(x,y), collapse=":")}, names(table(data[,var])), as.character(table(data[,var]))), collapse=", ")

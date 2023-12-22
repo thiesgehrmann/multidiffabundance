@@ -23,13 +23,21 @@ mda.deseq2 <- function(mda.D, ...){
         meta_data.nona <- na.omit(fdata$data)
         count_data.nona <- D$count_data[rownames(meta_data.nona),]
 
-        dds_res <- mda.cache_load_or_run_save(D, f_idx, "deseq2", 
-                    {
-                    dds <- DESeq2::DESeqDataSetFromMatrix(countData = t(count_data.nona),
-                                                          colData = meta_data.nona,
-                                                          design = f)
-                    DESeq2::DESeq(dds, sfType = "poscounts")
-                    })
+        r <- mda.trycatchempty(D, f_idx, {
+                mda.cache_load_or_run_save(D, f_idx, "deseq2", 
+                        {
+                        dds <- DESeq2::DESeqDataSetFromMatrix(countData = t(count_data.nona),
+                                                              colData = meta_data.nona,
+                                                              design = f)
+                        DESeq2::DESeq(dds, sfType = "poscounts")
+                        })
+            }, taxa=D$nonrare)
+            
+        if (r$error){
+            return(mda.common_do(D, f_idx, r$response, "deseq2", skip_taxa_sel = FALSE))
+        }
+
+        dds_res = r$response$res
 
 
         res.full <- dplyr::bind_rows(lapply(DESeq2::resultsNames(dds_res), function(name){
