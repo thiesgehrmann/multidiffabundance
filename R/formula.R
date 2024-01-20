@@ -198,11 +198,12 @@ formula.reformulate.mixed <- function(fn, data){
 
     fn.fixed <- as.formula(paste0(c('~', paste0(unlist(fe.parts), collapse=' + ')), collapse=' '))
     fe.data <- subset(formula.model.matrix(fn.fixed, data), select=-`(Intercept)`)
-    
+
+
     fe.data.missing_rows <- setdiff(rownames(data), rownames(fe.data))
     fe.data.missing_data <- as.data.frame(matrix(nrow=length(fe.data.missing_rows), ncol=length(colnames(fe.data))), rownames=fe.data.missing_rows)
     colnames(fe.data.missing_data) <- colnames(fe.data)
-
+    rownames(fe.data.missing_data) <- fe.data.missing_rows
     fe.data <- rbind(fe.data, fe.data.missing_data)
 
     # Get data for just the random effect parts
@@ -232,6 +233,7 @@ formula.reformulate.mixed <- function(fn, data){
             bound
         }, re.data)
     
+    # Add back rows that were missing
     re.data.missing_rows <- setdiff(rownames(data), rownames(re.data))
     re.data.missing_data <- as.data.frame(matrix(nrow=length(re.data.missing_rows), ncol=length(colnames(re.data))), rownames=re.data.missing_rows)
     colnames(re.data.missing_data) <- colnames(re.data)

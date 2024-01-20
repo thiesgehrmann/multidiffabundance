@@ -34,11 +34,14 @@ mda.maaslin2 <- function(mda.D, ...){
             }
         }
         
+        nn.metadata <- fdata$data[!apply(is.na(fdata$data), 1, any),]
+        nn.counts   <- D$count_data[rownames(nn.metadata),]
+        
         maaslin2.reference <- paste0(unlist(lapply(possible_factors, dumb_masslin_factor_crap)), collapse=";")
         
         mas <- mda.cache_load_or_run_save(D, f_idx, "maaslin2",
-                    Maaslin2(input_data = D$count_data,
-                             input_metadata = fdata$data,
+                    Maaslin2(input_data = nn.counts,
+                             input_metadata = nn.metadata,
                              output = paste0(c(D$outprefix, "/maaslin2.output.folder"), collapse=""),
                              min_abundance = 0.0,
                              min_prevalence = 0.0,

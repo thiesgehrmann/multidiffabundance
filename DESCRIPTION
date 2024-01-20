@@ -16,7 +16,6 @@ Imports:
     lmerTest,
     reshape2,
     vegan,
-    corncob,
     ALDEx2,
     ANCOMBC,
     phyloseq,
@@ -36,3 +35,5 @@ Suggests:
     BiocManager,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
+
+r-base r-tidyverse r-digest r-lmertest r-vegan bioconductor-phyloseq bioconductor-aldex2 bioconductor-ancombc bioconductor-deseq2 bioconductor-edger bioconductor-maaslin2 r-gunifrac r-heatmaply r-knitr r-rmarkdown plotly r-devtools r-testthat r-irkernel

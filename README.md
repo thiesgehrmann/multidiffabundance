@@ -1,6 +1,6 @@
 # MDA: multidiffabundance
 A toolkit for the testing of differential abundance with many different tools, each provided with a similar interface and a compatible output format.
-The following packages are currently supported (Only tools that allow for adjustment with other variables are selected): ALDEx2, ANCOMBC, Corncob, DESeq2, Limma(voom), lm/lmer CLR, Maaslin2 and ZicoSeq.
+The following packages are currently supported (Only tools that allow for adjustment with other variables are selected): ALDEx2, ANCOMBC, Corncob (optionally), DESeq2, Limma(voom), lm/lmer CLR, Maaslin2 and ZicoSeq.
 We also provide functionality to perform alpha and beta diversity tests, and meta-data associations to categorical and continuous variables (typical extracted from the microbiome data)
 
 # Quickstart
