@@ -472,6 +472,8 @@ mda.common_do <- function(D, f_idx, res.full, method, skip_taxa_sel=FALSE){
         res.full <- res.full[res.full$taxa %in% D$nonrare,]
         bind_rows(res.full, missing)
     }
+    
+    res.full$comment <- lapply(res.full$comment, function(x){str_replace(x, '\n', '')})
 
     # Select only the first variable in the original function
     first_var <- formula.parts(fdata$fn.orig)[1]
@@ -494,7 +496,7 @@ mda.common_output <- function(R){
     column.order   <- c("taxa","variable","effectsize","se","stat","pvalue","qvalue.withinformula","qvalue","formula","method","n","freq","comment")
 
     
-    res <-        dplyr::bind_rows(lapply(R, function(x){
+    res <- dplyr::bind_rows(lapply(R, function(x){
         v <- x$res[,intersect(column.initial, colnames(x$res))]
         v[,setdiff(column.initial, colnames(x$res))] <- NA
         v
@@ -502,7 +504,7 @@ mda.common_output <- function(R){
     res$qvalue <- p.adjust(res$pvalue, "fdr")
     rownames(res) <- NULL
     
-    res.full <-        dplyr::bind_rows(lapply(R, function(x){
+    res.full <- dplyr::bind_rows(lapply(R, function(x){
         v <- x$res.full[,intersect(column.initial, colnames(x$res.full))]
         v[,setdiff(column.initial, colnames(x$res.full))] <- NA
         v

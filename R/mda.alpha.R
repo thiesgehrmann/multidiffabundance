@@ -40,6 +40,7 @@ mda.alpha <- function(mda.D, alpha.index=c("shannon"), ...){
         fit <- r$response
 
         s <- as.data.frame(coefficients(summary(fit)))
+        s$comment <- NA
 
         if (mda.isSingular(fit)){
             s[,"Pr(>|t|)"] <- NA

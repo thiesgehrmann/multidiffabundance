@@ -30,11 +30,16 @@ mda.continuous <- function(mda.D, continuous.cols=NULL, continuous.scale=TRUE, .
             r <- mda.trycatchempty(D, f_idx, method(f, data=meta_data, na.action = 'na.exclude'), taxa=c)
 
             if (r$error){
-                return(r$response)
+                order <- c("variable.mda", "effectsize", "se", "df", "stat", "pvalue", "taxa", "comment" )
+                rr <- r$response[,order]
+                colnames(rr) <- c("variable.mda", "Estimate", "Std. Error", "df", "t value", "Pr(>|t|)", "taxa", "comment" )
+                return(rr)
             }
             fit <- r$response
 
             s <- as.data.frame(coefficients(summary(fit)))
+            s$comment <- NA
+            
             if (mda.isSingular(fit)){
                 s[,"Pr(>|z|)"] <- NA
                 s[,"comment"] <- paste0(c("Rank deficient: singular.", r$message), collapse='\n')
@@ -49,7 +54,6 @@ mda.continuous <- function(mda.D, continuous.cols=NULL, continuous.scale=TRUE, .
         names(res)[names(res)=="Std. Error"] <- "se"
         names(res)[names(res)=="t value"] <- "stat"
         names(res)[names(res)=="Pr(>|t|)"] <- "pvalue"
-
         res
     }
 

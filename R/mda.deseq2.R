@@ -37,7 +37,7 @@ mda.deseq2 <- function(mda.D, ...){
             return(mda.common_do(D, f_idx, r$response, "deseq2", skip_taxa_sel = FALSE))
         }
 
-        dds_res = r$response$res
+        dds_res = r$response
 
 
         res.full <- dplyr::bind_rows(lapply(DESeq2::resultsNames(dds_res), function(name){
