@@ -72,6 +72,12 @@ mda.from_tidytacos <- function(ta, formulas, output_dir=tempdir(), ...){
         mda.message("tidytacos object has differing samples present in abundance and meta data!")
     }
     
+    if (!"taxon" %in% colnames(ta$taxa)) {
+        ta <- ta %>% tidytacos::add_taxon_name()
+        ta$taxa <- ta$taxa %>%
+          dplyr::rename(taxon=taxon_name) #needed by ancombc2
+    }
+    
     dat <- mda.create(count_data[intersect.samples,], meta_data[intersect.samples,], formulas, output_dir, ...)
     dat$ta <- ta
     
