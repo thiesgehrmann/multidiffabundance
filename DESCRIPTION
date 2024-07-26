@@ -15,14 +15,7 @@ Imports:
     digest,
     lmerTest,
     reshape2,
-    vegan,
-    ALDEx2,
-    ANCOMBC,
-    phyloseq,
-    DESeq2,
-    edgeR,
-    Maaslin2,
-    GUniFrac
+    vegan
 biocViews:
 VignetteBuilder: knitr
 RoxygenNote: 7.2.3
@@ -33,5 +26,12 @@ Suggests:
     tidytacos,
     plotly,
     BiocManager,
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0),
+    ALDEx2,
+    ANCOMBC,
+    phyloseq,
+    DESeq2,
+    edgeR,
+    Maaslin2,
+    GUniFrac
 Config/testthat/edition: 3

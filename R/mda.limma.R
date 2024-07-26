@@ -54,20 +54,21 @@ mda.limma <- function(mda.D, ...){
         fit <- mda.cache_load_or_run_save(D, f_idx, "limma", 
                    {
                     mm <- fdata$data[,fdata$parts.fixed,drop=FALSE]
+                    mm <- mm[complete.cases(mm), ] # Remove rows with NA... (Note: Do this in the formulas prep, or here? all tools should drop the NA rows anyway, right? Look into this...)
                        
                     subset_dgelist <- DGE_LIST_Norm[, rownames(DGE_LIST_Norm$samples) %in% rownames(mm)]
                     voomfit <- voom(subset_dgelist, mm, plot=FALSE)
                     fit <- if (is.null(block)) {
-                        lmFit(voomfit, mm)
-                    } else {
-                        # With explanations on 
-                        # https://bioconductor.riken.jp/packages/3.9/bioc/vignettes/variancePartition/inst/doc/dream.html
-                        subset_block <- block[rownames(DGE_LIST_Norm$samples) %in% rownames(mm)]
-                        dupcor <- duplicateCorrelation(voomfit,mm,block=subset_block)
-                        vobj = voom( subset_dgelist, mm, plot=FALSE, block=subset_block, correlation=dupcor$consensus)
-                        dupcor <- duplicateCorrelation(vobj, mm, block=subset_block)
-                        lmFit(vobj, mm, block=subset_block, correlation=dupcor$consensus)
-                    }
+                            lmFit(voomfit, mm)
+                        } else {
+                            # With explanations on 
+                            # https://bioconductor.riken.jp/packages/3.9/bioc/vignettes/variancePartition/inst/doc/dream.html
+                            subset_block <- block[rownames(DGE_LIST_Norm$samples) %in% rownames(mm)]
+                            dupcor <- duplicateCorrelation(voomfit,mm,block=subset_block)
+                            vobj = voom( subset_dgelist, mm, plot=FALSE, block=subset_block, correlation=dupcor$consensus)
+                            dupcor <- duplicateCorrelation(vobj, mm, block=subset_block)
+                            lmFit(vobj, mm, block=subset_block, correlation=dupcor$consensus)
+                        }
                     eBayes( fit )
                    } )
 

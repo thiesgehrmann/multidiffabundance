@@ -1,4 +1,3 @@
 ~ ReportedAntibioticUsage + (1|Subject)
 ~ DaysSinceExperimentStart + ReportedAntibioticUsage
 ~ DaysSinceExperimentStart * ReportedAntibioticUsage + (1|Subject)
-~ log(DaysSinceExperimentStart) + (ReportedAntibioticUsage|Subject)
