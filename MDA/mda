@@ -320,16 +320,6 @@ EOF
                 "$runfile_container_bindm"
 
         else
-            echo "$docker_tag"
-            
-            echo "
-            docker run \
-                --mount type=bind,source="$bindm_source/",target="$bindm_target" \
-                -u $(id -u):$(id -g) \
-                "$docker_tag" \
-                "$runfile_container_bindm"
-            
-            "
             
             docker run \
                 --mount type=bind,source="$bindm_source/",target="$bindm_target" \
@@ -361,58 +351,58 @@ EOF
     
 }
 
-declare -a result_files
+declare -a result_methods
 
 if [ $aldex2 -eq 1 ] ; then
-    run_one_mda aldex2 && result_files+=("$outprefix/aldex2/results.rds")
+    run_one_mda aldex2 && result_methods+=("aldex2")
 fi
 
 if [ $ancombc2 -eq 1 ] ; then
-    run_one_mda ancombc2 && result_files+=("$outprefix/ancombc2/results.rds")
+    run_one_mda ancombc2 && result_methods+=("ancombc2")
 fi
 
 if [ $corncob -eq 1 ] ; then
-    run_one_mda corncob && result_files+=("$outprefix/corncob/results.rds")
+    run_one_mda corncob && result_methods+=("corncob")
 fi
     
 if [ $deseq2 -eq 1 ] ; then
-    run_one_mda deseq2 && result_files+=("$outprefix/deseq2/results.rds")
+    run_one_mda deseq2 && result_methods+=("deseq2")
 fi
 
 if [ $limma -eq 1 ] ; then
-    run_one_mda limma && result_files+=("$outprefix/limma/results.rds")
+    run_one_mda limma && result_methods+=("limma")
 fi
 
 if [ $lmclr -eq 1 ] ; then
-    run_one_mda lmclr && result_files+=("$outprefix/lmclr/results.rds")
+    run_one_mda lmclr && result_methods+=("lmclr")
 fi
 
 if [ $maaslin2 -eq 1 ] ; then
-    run_one_mda maaslin2 && result_files+=("$outprefix/maaslin2/results.rds")
+    run_one_mda maaslin2 && result_methods+=("maaslin2")
 fi
 
 if [ $zicoseq -eq 1 ] ; then
-    run_one_mda zicoseq && result_files+=("$outprefix/zicoseq/results.rds")
+    run_one_mda zicoseq && result_methods+=("zicoseq")
 fi
 
 if [ $alpha -eq 1 ] ; then
-    run_one_mda alpha && result_files+=("$outprefix/alpha/results.rds")
+    run_one_mda alpha && result_methods+=("alpha")
 fi
 
 if [ $beta -eq 1 ] ; then
-    run_one_mda beta && result_files+=("$outprefix/beta/results.rds")
+    run_one_mda beta && result_methods+=("beta")
 fi
 
 if [ $group -eq 1 ] ; then
-    run_one_mda group && result_files+=("$outprefix/group/results.rds")
+    run_one_mda group && result_methods+=("group")
 fi
 
 if [ $continuous -eq 1 ] ; then
-    run_one_mda continuous && result_files+=("$outprefix/continuous/results.rds")
+    run_one_mda continuous && result_methods+=("continuous")
 fi
 
 if [ $custom -eq 1 ] ; then
-    run_one_mda custom && result_files+=("$outprefix/custom/results.rds")
+    run_one_mda custom && result_methods+=("custom")
 fi
 
 
@@ -421,25 +411,73 @@ fi
 
 if [ $nomerge -eq 0 ]; then
 
-    if [ "${#result_files[@]}" -gt 0 ]; then
+    if [ "${#result_methods[@]}" -gt 0 ]; then
+    
         out_file="$outprefix/results"
-        results=`for value in ${result_files[@]}; do echo $value; done | awk '{print "\"" $0 "\","}' | tr '\n' ' '`
-        results=${results::-2}
+    
+        if [ $((docker + singularity)) -gt 0 ]; then
+            bindm_source="$outprefix"
+            bindm_target="/mda"
+            source_rscript="$outprefix/merge_results.R"
+            bindm_rscript="$bindm_target/merge_results.R"
+            
+            bindm_out_file="$bindm_target/results"
+            results=`for value in ${result_methods[@]}; do echo "${bindm_target}/${value}/results.rds"; done | awk '{print "\"" $0 "\","}' | tr '\n' ' '`
+            results=${results::-2}
 
-        rcode="
-            library('dplyr')
-            library($mdapackage)
-            library(readr)
+            cat << EOF >> "$source_rscript"
+                library('dplyr')
+                library($mdapackage)
+                library(readr)
 
-            rf <- c($results)
-            rs <- lapply(rf, readRDS)
-            comb <- mda.merge_results(rs)
+                rf <- c($results)
+                rs <- lapply(rf, readRDS)
+                comb <- mda.merge_results(rs)
 
-            saveRDS(comb,        file='${out_file}.rds')
-            write_tsv(comb\$res,      '${out_file}.tsv')
-            write_tsv(comb\$res.full, '${out_file}.full.tsv')
-        "
-        Rscript <(echo "$rcode")
+                saveRDS(comb,        file='${bindm_out_file}.rds')
+                write_tsv(comb\$res,      '${bindm_out_file}.tsv')
+                write_tsv(comb\$res.full, '${bindm_out_file}.full.tsv')
+EOF
+            if [ $singularity -eq 1 ]; then
+
+                 singularity exec \
+                    --bind "$bindm_source/":"$bindm_target" \
+                    --containall \
+                    docker://"${docker_tag}" \
+                    Rscript "$bindm_rscript"
+
+            else
+            
+                echo "Running docker to merge..."
+
+                docker run \
+                    --mount type=bind,source="$bindm_source/",target="$bindm_target" \
+                    -u $(id -u):$(id -g) \
+                    "$docker_tag" \
+                    Rscript "$bindm_rscript"
+
+            fi
+        
+        
+        else 
+            results=`for value in ${result_methods[@]}; do echo "${outprefix}/${value}/results.rds"; done | awk '{print "\"" $0 "\","}' | tr '\n' ' '`
+            results=${results::-2}
+
+            rcode="
+                library('dplyr')
+                library($mdapackage)
+                library(readr)
+
+                rf <- c($results)
+                rs <- lapply(rf, readRDS)
+                comb <- mda.merge_results(rs)
+
+                saveRDS(comb,        file='${out_file}.rds')
+                write_tsv(comb\$res,      '${out_file}.tsv')
+                write_tsv(comb\$res.full, '${out_file}.full.tsv')
+            "
+            Rscript <(echo "$rcode")
+        fi
 
 
         echo "[MDA] (`date`) MERGED OUTPUT '$out_file'"
