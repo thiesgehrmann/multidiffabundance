@@ -1,6 +1,3 @@
-###############################################################################
-# ALDEx2
-
 mda.aldex2 <- function(mda.D, ...){
     D <- mda.D
     suppressPackageStartupMessages({
@@ -26,7 +23,7 @@ mda.aldex2 <- function(mda.D, ...){
         })
 
         res.full <- tidyr::gather(as.data.frame(out) %>% rownames_to_column('taxa'), "measure", "value", 2:(dim(as.data.frame(out))[2]+1))
-
+        r <<- res.full
         clean.feature.1 <- function(v){
             ret <- if (endsWith(v, ".Estimate")) {
                         "effectsize"
@@ -52,6 +49,8 @@ mda.aldex2 <- function(mda.D, ...){
                     } else if (endsWith(v, ".pval")) {
                         "pvalue"
                     } else if (endsWith(v, ".pval.holm")) {
+                        "qvalue"
+                    } else if (endsWith(v, ".pval.padj")) {
                         "qvalue"
                     }
             ret

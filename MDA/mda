@@ -223,7 +223,7 @@ mkdir -p "$outprefix"
 
 ###############################################################################
 
-declar -A docker_tags
+declare -A docker_tags
 docker_tags["mda"]="thiesgehrmann/multidiffabundance_mda:1"
 docker_tags["alpha"]="thiesgehrmann/multidiffabundance_mda:1"
 docker_tags["beta"]="thiesgehrmann/multidiffabundance_mda:1"
@@ -235,8 +235,9 @@ docker_tags["aldex2"]="thiesgehrmann/multidiffabundance_aldex2:1"
 docker_tags["ancombc2"]="thiesgehrmann/multidiffabundance_ancombc2:1"
 docker_tags["deseq2"]="thiesgehrmann/multidiffabundance_deseq2:1"
 docker_tags["limma"]="thiesgehrmann/multidiffabundance_limma:1"
+docker_tags["lmclr"]="thiesgehrmann/multidiffabundance_mda:1"
 docker_tags["maaslin2"]="thiesgehrmann/multidiffabundance_maaslin2:1"
-docker_tags["zicoseq"]="thiesgehrmann/multidiffabundance_zicoseq:1"
+docker_tags["zicoseq"]="thiesgehrmann/multidiffabundance_mda:1"
 
 
 
@@ -274,10 +275,10 @@ EOF
         mkdir -p "$bindm_source/$method/inputs_container"
         
 
-        runfile_container="$outputprefix/$method/mda_run_container.sh"
+        runfile_container="$outprefix/$method/mda_run_container.sh"
         
         rfile_container_bindm="$bindm_target/$method/mda_script.R"
-        runfile_container_bindm="$bindm_target/$method/mda_container_run.sh"
+        runfile_container_bindm="$bindm_target/$method/mda_run_container.sh"
         stdlog_bindm="$bindm_target/$method/stdout"
         errlog_bindm="$bindm_target/$method/stderr"
         retlog_bindm="$bindm_target/$method/retval"
@@ -294,32 +295,47 @@ EOF
         
         rm -f $meta_data_container $count_data_container $formula_container
         
-        ln -s "$meta_data" "$meta_data_container"
-        ln -s "$count_data" "$count_data_container"
-        ln -s "$formula" "$formula_container"
+        cp "$meta_data" "$meta_data_container"
+        cp "$count_data" "$count_data_container"
+        cp "$formula" "$formula_container"
         
 
         rm -f "$runfile_container"
         cat <<EOF >> "$runfile_container"
+#!/usr/bin/env bash
             rm -f "$stdlog_container_bindm" "$errlog_container_bindm" "$retlog_container_bindm"
             ((Rscript "$rfile_container_bindm" "$bindm_count_data" "$bindm_meta_data" "$bindm_formula" "$bindm_outprefix/" | sed -e "s%$bindm_target%$bindm_source/%g" ; echo >"$retlog_bindm" "$?") \\
             | tee "$stdlog_bindm") 3>&1 1>&2 2>&3 \\
             | tee "$errlog_bindm"
 EOF
+
+        chmod +x "$runfile_container"
         
         if [ $singularity -eq 1 ]; then
     
-             echo "singularity exec \
+             singularity exec \
                 --bind "$bindm_source/":"$bindm_target" \
                 --containall \
                 docker://"${docker_tag}" \
-                "$runfile_container_bindm""
+                "$runfile_container_bindm"
 
-        else 
-            echo "docker run \
+        else
+            echo "$docker_tag"
+            
+            echo "
+            docker run \
                 --mount type=bind,source="$bindm_source/",target="$bindm_target" \
+                -u $(id -u):$(id -g) \
                 "$docker_tag" \
-                "$runfile_container_bindm""
+                "$runfile_container_bindm"
+            
+            "
+            
+            docker run \
+                --mount type=bind,source="$bindm_source/",target="$bindm_target" \
+                -u $(id -u):$(id -g) \
+                "$docker_tag" \
+                "$runfile_container_bindm"
 
         fi
     

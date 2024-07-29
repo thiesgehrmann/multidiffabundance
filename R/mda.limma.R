@@ -1,6 +1,3 @@
-###############################################################################
-# RUN LIMMA
-
 mda.limma <- function(mda.D, ...){
     D <- mda.D
     suppressPackageStartupMessages({
@@ -30,7 +27,7 @@ mda.limma <- function(mda.D, ...){
     
 
     do <- function(f_idx){
-
+        message(f_idx)
         fdata <- D$formula[[f_idx]]
         f <- fdata$fn
         
@@ -54,8 +51,8 @@ mda.limma <- function(mda.D, ...){
         fit <- mda.cache_load_or_run_save(D, f_idx, "limma", 
                    {
                     mm <- fdata$data[,fdata$parts.fixed,drop=FALSE]
-                    mm <- mm[complete.cases(mm), ] # Remove rows with NA... (Note: Do this in the formulas prep, or here? all tools should drop the NA rows anyway, right? Look into this...)
-                       
+                    mm <- mm[complete.cases(mm), ,drop=FALSE] # Remove rows with NA... (Note: Do this in the formulas prep, or here? all tools should drop the NA rows anyway, right? Look into this...)
+
                     subset_dgelist <- DGE_LIST_Norm[, rownames(DGE_LIST_Norm$samples) %in% rownames(mm)]
                     voomfit <- voom(subset_dgelist, mm, plot=FALSE)
                     fit <- if (is.null(block)) {
