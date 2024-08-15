@@ -304,7 +304,7 @@ EOF
         cat <<EOF >> "$runfile_container"
 #!/usr/bin/env bash
             rm -f "$stdlog_container_bindm" "$errlog_container_bindm" "$retlog_container_bindm"
-            ((Rscript "$rfile_container_bindm" "$bindm_count_data" "$bindm_meta_data" "$bindm_formula" "$bindm_outprefix/" | sed -e "s%$bindm_target%$bindm_source/%g" ; echo >"$retlog_bindm" "$?") \\
+            ((Rscript "$rfile_container_bindm" "$bindm_count_data" "$bindm_meta_data" "$bindm_formula" "$bindm_outprefix/" | sed -e "s%$bindm_target%$bindm_source/%g" ; echo "\$?" > "$retlog_bindm") \\
             | tee "$stdlog_bindm") 3>&1 1>&2 2>&3 \\
             | tee "$errlog_bindm"
 EOF
@@ -421,10 +421,12 @@ if [ $nomerge -eq 0 ]; then
             source_rscript="$outprefix/merge_results.R"
             bindm_rscript="$bindm_target/merge_results.R"
             
+            echo ${result_methods[@]}
             bindm_out_file="$bindm_target/results"
             results=`for value in ${result_methods[@]}; do echo "${bindm_target}/${value}/results.rds"; done | awk '{print "\"" $0 "\","}' | tr '\n' ' '`
             results=${results::-2}
 
+            rm -rf "$source_rscript"
             cat << EOF >> "$source_rscript"
                 library('dplyr')
                 library($mdapackage)

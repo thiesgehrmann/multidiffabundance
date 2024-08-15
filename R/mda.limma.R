@@ -27,7 +27,6 @@ mda.limma <- function(mda.D, ...){
     
 
     do <- function(f_idx){
-        message(f_idx)
         fdata <- D$formula[[f_idx]]
         f <- fdata$fn
         

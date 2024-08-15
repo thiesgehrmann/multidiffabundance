@@ -41,6 +41,7 @@ mda.group <- function(mda.D, group.cols=NULL, ...){
 
                 
                 s <- as.data.frame(coefficients(summary(fit)))
+                s[,"comment"] <- NA
                 if (mda.isSingular(fit)){
                     s[,"Pr(>|z|)"] <- NA
                     s[,"comment"] <- paste0(c("Rank deficient: singular.", r$message), collapse='\n')
