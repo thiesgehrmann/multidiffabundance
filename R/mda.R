@@ -470,13 +470,17 @@ mda.common_do <- function(D, f_idx, res.full, method, skip_taxa_sel=FALSE){
     res.full <- if(skip_taxa_sel){
         res.full 
     } else {
-        # Come back to this - fill in taxa that were not tested by a method.
-        missing <- mda.empty_output(D, f_idx, comment="This method did not test this taxa.", taxa=setdiff(D$nonrare, res.full$taxa))
-        missing$formula <- rep(mda.deparse(fdata$fn.orig), dim(missing)[1])
-        missing$method <- method
-        missing <- dplyr::left_join(missing, fdata$nfreq, by="variable.mda")
+        missing <- if (length(setdiff(D$nonrare, res.full$taxa)) == 0){
+                NA
+            } else {
+                m <- mda.empty_output(D, f_idx, comment="This method did not test this taxa.", taxa=setdiff(D$nonrare, res.full$taxa))
+                m$formula <- rep(mda.deparse(fdata$fn.orig), dim(m)[1])
+                m$method <- method
+                dplyr::left_join(m, fdata$nfreq, by="variable.mda")
+            }
+        
         res.full <- res.full[res.full$taxa %in% D$nonrare,]
-        bind_rows(res.full, missing)
+        if (is.na(missing)){ res.full } else { bind_rows(res.full, missing) }
     }
     
     res.full$comment <- lapply(res.full$comment, function(x){str_replace(x, '\n', '')})
