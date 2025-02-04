@@ -62,7 +62,7 @@ However, it is also possible to install MDA without all the dependencies, and on
  For this, you do not need to install anything (other than docker or singularity).
  
 ```shell
-    wget https://raw.githubusercontent.com/thiesgehrmann/multidiffabundance/main/MDA/docker_mda.sh
+    wget https://raw.githubusercontent.com/thiesgehrmann/multidiffabundance/main/MDA/container_mda.sh
     chmod +x ./container_mda.sh
     sudo mv ./container_mda.sh /usr/bin # not necessary
 ```
