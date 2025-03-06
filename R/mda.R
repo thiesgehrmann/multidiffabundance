@@ -458,8 +458,9 @@ mda.isSingular <- function(fit){
 
 ###############################################################################
 # Common post-do formatting
-                                 
+
 mda.common_do <- function(D, f_idx, res.full, method, skip_taxa_sel=FALSE){
+    print(1)
     fdata <- D$formula[[f_idx]]
     
     res.full$formula <- rep(mda.deparse(fdata$fn.orig), dim(res.full)[1])
@@ -483,7 +484,11 @@ mda.common_do <- function(D, f_idx, res.full, method, skip_taxa_sel=FALSE){
         if (is.na(missing)){ res.full } else { bind_rows(res.full, missing) }
     }
     
-    res.full$comment <- lapply(res.full$comment, function(x){str_replace(x, '\n', '')})
+    if (is.null(res.full$comment)){
+        res.full$comment <- ""
+    } else {
+        res.full$comment <- lapply(res.full$comment, function(x){str_replace(x, '\n', '')})
+    }
 
     # Select only the first variable in the original function
     first_var <- formula.parts(fdata$fn.orig)[1]
