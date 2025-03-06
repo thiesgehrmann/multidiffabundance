@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-for env in mda aldex2 ancombc2 deseq2 limma maaslin2; do
+for env in mda; do # aldex2 ancombc2 deseq2 limma maaslin2; do
     echo ""
     echo "#######################################################"
     echo "#  BUILDING $env"

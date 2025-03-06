@@ -22,7 +22,7 @@ mda.alpha <- function(mda.D, alpha.index=c("shannon"), ...){
         f <- fdata$fn
 
         method <- if ( formula.ismixed(f) ){
-            lmer
+            lmerTest::lmer
         } else { lm }
         
         meta_data <- data.frame(fdata$data)
