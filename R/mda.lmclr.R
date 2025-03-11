@@ -35,7 +35,7 @@ mda.lmclr <- function(mda.D, ...){
             fit <- r$response
             
             s <- as.data.frame(coefficients(summary(fit)))
-            s[,"comment"] <- NA
+            s[,"comment"] <- ""
             if (mda.isSingular(fit)){
                 s[,"Pr(>|t|)"] <- NA
                 s[,"comment"] <- "Rank deficient: singular"

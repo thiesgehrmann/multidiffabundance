@@ -326,6 +326,12 @@ EOF
                 -u $(id -u):$(id -g) \
                 "$docker_tag" \
                 "$runfile_container_bindm"
+                
+            echo docker run \
+                --mount type=bind,source="$bindm_source/",target="$bindm_target" \
+                -u $(id -u):$(id -g) \
+                "$docker_tag" \
+                "$runfile_container_bindm"
 
         fi
     
@@ -453,6 +459,12 @@ EOF
                 echo "Running docker to merge..."
 
                 docker run \
+                    --mount type=bind,source="$bindm_source/",target="$bindm_target" \
+                    -u $(id -u):$(id -g) \
+                    "$docker_tag" \
+                    Rscript "$bindm_rscript"
+                    
+                echo docker run \
                     --mount type=bind,source="$bindm_source/",target="$bindm_target" \
                     -u $(id -u):$(id -g) \
                     "$docker_tag" \

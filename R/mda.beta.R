@@ -253,7 +253,7 @@ mda.beta <- function(mda.D, beta.permutations=999, beta.parallel=8, beta.hack=TR
         }
         
         block <- NULL
-        comment <- NULL
+        comment <- ""
         if ( length(fdata$parts.random.intercept) == 1 ){
             rblock <- fdata$parts.random.intercept[1]
             block <- trimws(gsub(")", "", unlist(strsplit(rblock, split="\\|"))[[2]]))
