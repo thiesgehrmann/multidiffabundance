@@ -12,8 +12,7 @@ mda.alpha <- function(mda.D, alpha.index=c("shannon"), ...){
     index <- intersect(alpha.index, c("shannon", "simpson", "invsimpson"))
     
     if(length(index) == 0){
-        message("[MDA] mda.alpha: No valid index value(s) defined. Options must be [shannon, simpson, invsimpson].")
-        exit(0)
+        stop("[MDA] mda.alpha: No valid index value(s) defined. Options must be [shannon, simpson, invsimpson].")
     }
     
     alpha_indices <- as.data.frame(lapply(index, function(i){scale(diversity(D$count_data, index=i))}))
