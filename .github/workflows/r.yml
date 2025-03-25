@@ -46,7 +46,7 @@ jobs:
         with:
           extra-packages: |
             any::rcmdcheck
-            github::LebeerLab/tidytacos=?ignore
+            github::LebeerLab/tidytacos, alto=?ignore, SpiecEasi=?ignore
           needs: |
            check
            biocViews
