@@ -1,11 +1,13 @@
+#' @importFrom lmerTest lmer
+#' @importFrom stringr str_replace_all
+#' @export
 mda.alpha <- function(mda.D, alpha.index=c("shannon"), ...){
     D <- mda.D
     
     suppressPackageStartupMessages({
         require(dplyr)
         require(tibble)
-        require(vegan)
-        require(lmerTest)})
+        require(vegan)})
     
     index <- intersect(alpha.index, c("shannon", "simpson", "invsimpson"))
     
@@ -22,7 +24,7 @@ mda.alpha <- function(mda.D, alpha.index=c("shannon"), ...){
         f <- fdata$fn
 
         method <- if ( formula.ismixed(f) ){
-            lmerTest::lmer
+            lmer
         } else { lm }
         
         meta_data <- data.frame(fdata$data)

@@ -1,3 +1,7 @@
+#' @importFrom stringr str_replace
+#' @importFrom dplyr rename
+#' @importFrom tidyr gather
+#' @export
 mda.ancombc2 <- function(mda.D, ...){
     suppressPackageStartupMessages({
         require("ANCOMBC")

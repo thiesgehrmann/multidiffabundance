@@ -1,6 +1,8 @@
 ###############################################################################
-# Continuous value analysis
-
+#' Continuous value analysis
+#' @param continuous.cols list of columns with continuous variables
+#' @param continuous.scale wether to scale the variables or not
+#' @export
 mda.continuous <- function(mda.D, continuous.cols=NULL, continuous.scale=TRUE, ...){
     D <- mda.D
     

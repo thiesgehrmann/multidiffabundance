@@ -4,7 +4,7 @@
                                                       
 ###############################################################################
 # Input loading functions
-
+#' @export
 mda.from_cmdargs <- function(args, ...){
     suppressPackageStartupMessages({
         require(tools)
@@ -22,7 +22,8 @@ mda.from_cmdargs <- function(args, ...){
 
     mda.from_files(abundance, meta, formula.data, outprefix, ...)
 }
-                                                      
+        
+#' @export                                              
 mda.from_files <- function(abundance, meta, formula.data, outprefix=tempdir(), ...){
     # Prepare formula
     suppressPackageStartupMessages(require(tidyverse))
@@ -53,7 +54,8 @@ mda.from_files <- function(abundance, meta, formula.data, outprefix=tempdir(), .
     
     return(dat)
 }
-
+#' Create an mda object from a tidytacos object and a formula
+#' @export
 mda.from_tidytacos <- function(ta, formulas, output_dir=tempdir(), ...){
     suppressPackageStartupMessages({
         require(dplyr)
@@ -84,10 +86,11 @@ mda.from_tidytacos <- function(ta, formulas, output_dir=tempdir(), ...){
     return(dat)
 }
 
+#' @export
 mda.from_phyloseq <- function(phys, formulas, output_dir=tempdir(), ...){
     mda.message("UNIMPLEMENTED", type="error")
 }
-                                                      
+#' @export                                            
 mda.create <- function(count_data, meta_data, formulas, output_dir=tempdir(), usecache=TRUE, recache=FALSE, nonrare.pct=0.1, ...){
     suppressPackageStartupMessages(require(digest))
     
@@ -148,7 +151,8 @@ mda.mkdirp <- function(dir){
 
 ###############################################################################
 # Formula processing functions
-                                                      
+
+#' @export                                                      
 mda.load_formula_input <- function(formula_input){
   raw <- if (inherits(formula_input, "formula")) {
       mda.deparse(formula_input)
@@ -159,7 +163,7 @@ mda.load_formula_input <- function(formula_input){
   }
   raw
 }
-
+#' @export
 mda.verify_formula_input <- function(raw_formula){
   
   valids <- lapply(raw_formula, function(rs){
@@ -387,8 +391,8 @@ mda.deparse <- function(form){
 }
                                                       
 ###############################################################################
-# Summary function
-
+#' Summary function
+#' @export
 mda.summary <- function(res, id_cols = "taxa", names_from = "variable", method_from = "method",
     pvalue_from = "pvalue", qvalue_from = "qvalue", effectsize_from = "effectsize", 
     values_fn = list, pvalue_threshold = 0.05, qvalue_threshold = 0.05,
@@ -425,8 +429,8 @@ mda.summary <- function(res, id_cols = "taxa", names_from = "variable", method_f
 }
                   
 ###############################################################################
-# A function to merge the outputs of several mda runs
-
+#' A function to merge the outputs of several mda runs
+#' @export
 mda.merge_results <- function(res.list){
 
     comb <- list()
@@ -458,30 +462,31 @@ mda.isSingular <- function(fit){
 
 ###############################################################################
 # Common post-do formatting
-
+#' @importFrom stringr str_replace
+#' @importFrom dplyr left_join
 mda.common_do <- function(D, f_idx, res.full, method, skip_taxa_sel=FALSE){
     print(1)
     fdata <- D$formula[[f_idx]]
     
     res.full$formula <- rep(mda.deparse(fdata$fn.orig), dim(res.full)[1])
     res.full$method <- rep(method, dim(res.full)[1])
-    res.full <- dplyr::left_join(res.full, fdata$nfreq, by="variable.mda")
+    res.full <- left_join(res.full, fdata$nfreq, by="variable.mda")
 
     # Select only the relevant taxa ( taxa are selected already in some methods, but we repeat it here for safety )
     res.full <- if(skip_taxa_sel){
         res.full 
     } else {
         missing <- if (length(setdiff(D$nonrare, res.full$taxa)) == 0){
-                NA
+                NULL
             } else {
                 m <- mda.empty_output(D, f_idx, comment="This method did not test this taxa.", taxa=setdiff(D$nonrare, res.full$taxa))
                 m$formula <- rep(mda.deparse(fdata$fn.orig), dim(m)[1])
                 m$method <- method
-                dplyr::left_join(m, fdata$nfreq, by="variable.mda")
+                left_join(m, fdata$nfreq, by="variable.mda")
             }
         
         res.full <- res.full[res.full$taxa %in% D$nonrare,]
-        if (is.na(missing)){ res.full } else { bind_rows(res.full, missing) }
+        if (is.null(missing)){ res.full } else { bind_rows(res.full, missing) }
     }
     
     if (is.null(res.full$comment)){

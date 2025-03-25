@@ -1,9 +1,11 @@
 ###############################################################################
 # Run BETA
+#
 # Code from Vegan is modified to allow scope to be passed to the internal anova,
 #   such that we can control that only 2 permutations are performed for the
 #   selected variable, and the full permutations are performed for all others.
-
+#' @inheritDotParams vegan::vegdist 
+#' @export
 `mda.adonis2` <- function(formula, data, permutations = 999, method = "bray",
                           sqrt.dist = FALSE, add = FALSE, by = "terms",
                           parallel = getOption("mc.cores"), na.action = na.fail,
@@ -67,6 +69,7 @@
     out
 }
 
+#' @export
 `mda.anova.cca` <- function(object, ..., permutations = how(nperm=999), by = NULL,
                             model = c("reduced", "direct", "full"),
                             parallel = getOption("mc.cores"), strata = NULL,
@@ -230,7 +233,8 @@
 }
                    
 ###############################################################################
-rf <- NULL        
+rf <- NULL
+#' @export
 mda.beta <- function(mda.D, beta.permutations=999, beta.parallel=8, beta.hack=TRUE, ...){
     
     suppressPackageStartupMessages(require(vegan))

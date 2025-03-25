@@ -1,6 +1,6 @@
 ###############################################################################
-# Maaslin2
-
+#' Maaslin2
+#' @export
 mda.maaslin2 <- function(mda.D, ...){
     D <- mda.D
     suppressPackageStartupMessages({
