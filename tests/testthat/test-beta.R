@@ -4,7 +4,7 @@ chk <- Sys.getenv("_R_CHECK_LIMIT_CORES_", "")
 
 if (nzchar(chk) && chk == "TRUE") {
     # use 2 cores in CRAN/Travis/AppVeyor
-    num_workers <- 2L
+    num_workers <- 4L
 } else {
     # use all cores in devtools::test()
     num_workers <- parallel::detectCores()
@@ -12,6 +12,6 @@ if (nzchar(chk) && chk == "TRUE") {
 
 test_that("mda.beta works", {
   expect_no_error({
-    suppressMessages(mda.beta(D, parallel=num_workers))
+    suppressMessages(mda.beta(D, beta.parallel = num_workers))
     })
 })
