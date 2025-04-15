@@ -373,8 +373,8 @@ mda.empty_output <- function(D, f_idx, comment=NA, taxa=NA){
                            pvalue = as.numeric(pvalue),
                            effectsize = as.numeric(effectsize),
                            df = as.numeric(df),
-                           stat = as.numeric(stat))
-    empty.res$comment <- comment
+                           stat = as.numeric(stat),
+                           comment = comment)
     empty.res
 }
 ###############################################################################
@@ -465,7 +465,6 @@ mda.isSingular <- function(fit){
 #' @importFrom stringr str_replace
 #' @importFrom dplyr left_join
 mda.common_do <- function(D, f_idx, res.full, method, skip_taxa_sel=FALSE){
-    print(1)
     fdata <- D$formula[[f_idx]]
     
     res.full$formula <- rep(mda.deparse(fdata$fn.orig), dim(res.full)[1])
@@ -490,7 +489,7 @@ mda.common_do <- function(D, f_idx, res.full, method, skip_taxa_sel=FALSE){
     }
     
     if (is.null(res.full$comment)){
-        res.full$comment <- ""
+        res.full$comment <- list("")
     } else {
         res.full$comment <- lapply(res.full$comment, function(x){str_replace(x, '\n', '')})
     }
