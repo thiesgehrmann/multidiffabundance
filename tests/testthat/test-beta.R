@@ -3,8 +3,8 @@
 chk <- Sys.getenv("_R_CHECK_LIMIT_CORES_", "")
 
 if (nzchar(chk) && chk == "TRUE") {
-    # use 2 cores in CRAN/Travis/AppVeyor
-    num_workers <- 4L
+    # use 1 core, we can't have nice things here
+    num_workers <- 1L
 } else {
     # use all cores in devtools::test()
     num_workers <- parallel::detectCores()
