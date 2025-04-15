@@ -24,8 +24,14 @@ mda.zicoseq <- function(mda.D, ...){
         response <- mda.trycatchempty(D, f_idx, {
             mda.cache_load_or_run_save(D, f_idx, "zicoseq", {
                 mda.empty_output(D, 1, taxa=D$nonrare, comment="zicoseq has a stupid behaviour")
+
+                if (length(fdata$parts.fixed) == 1) {
+                    adjust <- NULL
+                } else {
+                    adjust <- fdata$parts.fixed[-1]
+                }
                 results <- ZicoSeq(meta.dat = fdata$data, feature.dat = t(D$count_data[,sel_taxa]),
-                                   grp.name = fdata$parts.fixed[1], adj.name = fdata$parts.fixed[-1], feature.dat.type = "count",
+                                   grp.name = fdata$parts.fixed[1], adj.name = adjust, feature.dat.type = "count",
                                    # Filter to remove rare taxa
                                    prev.filter = 0.0, mean.abund.filter = 0,  
                                    max.abund.filter = 0.000, min.prop = D$nonrare.pct, 
