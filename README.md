@@ -63,7 +63,7 @@ However, it is also possible to install MDA without all the dependencies, and on
  For this, you do not need to install anything (other than docker or singularity).
  
 ```shell
-    wget https://raw.githubusercontent.com/thiesgehrmann/multidiffabundance/main/MDA/docker_mda.sh
+    wget https://raw.githubusercontent.com/thiesgehrmann/multidiffabundance/main/MDA/container_mda.sh
     chmod +x ./container_mda.sh
     sudo mv ./container_mda.sh /usr/bin # not necessary
 ```
@@ -106,11 +106,11 @@ Functions to run the differential abundance tests are:
  2. `mda.aldex2`: Run ALDEx2 only
  3. `mda.ancom`: Run ANCOMBC only
  4. `mda.corncob`: Run Corncob only
- 5. `mra.deseq2`: Run DESeq2 online
- 6. `mra.limma`: Run Limma only
- 7. `mra.lmclr`: Run clr(abundance) ~ model only
- 8. `mra.maaslin2`: Run Maaslin2 only
- 9. `mra.zicoseq`: Run Zicoseq only
+ 5. `mda.deseq2`: Run DESeq2 online
+ 6. `mda.limma`: Run Limma only
+ 7. `mda.lmclr`: Run clr(abundance) ~ model only
+ 8. `mda.maaslin2`: Run Maaslin2 only
+ 9. `mda.zicoseq`: Run Zicoseq only
 
 ## Running via the command line
 
@@ -238,3 +238,6 @@ Maybe. Send me a message.
 ## How do I deal with all the results?
 
 Good question! Our current approach is to count the number of tools that report a significant result. This gives an indication of the consensus of the tools. For example, when 5/6 tools agree on a significant effect, I am more confident in the result than if only 2/6 tools agree. Our threshold for reporting is at least 3/6 tools.
+
+## Can you include method `xxx`?
+Maybe. Send me a message.
