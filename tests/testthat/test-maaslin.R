@@ -7,7 +7,6 @@ test_that("mda.maaslin2 works", {
 
 # edgecase where maaslin2 fails when only testing one variable
 test_that("mda.maaslin2 works for single covariate", {
-  Ds <- mda.create(mda.example$count_data, mda.example$meta_data, "~ ReportedAntibioticUsage")
   expect_no_error({
     res = mda.maaslin2(Ds)
   })

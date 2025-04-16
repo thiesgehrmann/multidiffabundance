@@ -108,6 +108,7 @@ mda.create <- function(count_data, meta_data, formulas, output_dir=tempdir(), us
                                                       
     
     dat <- c()
+    dat$args        <- mda.args
     dat$count_data  <- count_data
     dat$nonrare     <- nonrare
     dat$nonrare.pct <- nonrare.pct

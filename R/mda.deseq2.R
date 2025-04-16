@@ -29,7 +29,7 @@ mda.deseq2 <- function(mda.D, ...){
                         dds <- DESeq2::DESeqDataSetFromMatrix(countData = t(count_data.nona),
                                                               colData = meta_data.nona,
                                                               design = f)
-                        DESeq2::DESeq(dds, sfType = "poscounts")
+                        rlang::exec(DESeq2::DESeq, dds, !!!D$args$deseq2)
                         })
             }, taxa=D$nonrare)
             
