@@ -20,7 +20,11 @@ mda.aldex2 <- function(mda.D, ...){
         out <- mda.cache_load_or_run_save(D, f_idx, "aldex2", {
             mm <- model.matrix(f, fdata$data)
             counts <- t(D$count_data[rownames(mm),]) # Remove the NAs that have been removed by model.matrix
-            ALDEx2::aldex(counts, mm, denom = "all", test="glm")
+            rlang::exec(
+                ALDEx2::aldex,
+                counts, mm, 
+                !!!D$args$aldex2,
+                ...)
         })
 
         res.full <- tidyr::gather(
