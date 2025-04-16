@@ -40,23 +40,16 @@ mda.maaslin2 <- function(mda.D, ...){
         maaslin2.reference <- paste0(unlist(lapply(possible_factors, dumb_masslin_factor_crap)), collapse=";")
         
         mas <- mda.cache_load_or_run_save(D, f_idx, "maaslin2",
-                    Maaslin2(input_data = nn.counts,
-                             input_metadata = nn.metadata,
-                             output = paste0(c(D$outprefix, "/maaslin2.output.folder"), collapse=""),
-                             min_abundance = 0.0,
-                             min_prevalence = 0.0,
-                             normalization = "TSS",
-                             transform = "LOG",
-                             analysis_method = "LM",
-                             max_significance = 0.05,
-                             fixed_effects = fdata$parts.fixed,
-                             random_effects = random_effects,
-                             correction = "BH",
-                             standardize = FALSE,
-                             plot_heatmap = FALSE,
-                             plot_scatter = FALSE,
-                             cores = 1,
-                             reference = maaslin2.reference))
+            rlang::exec(
+                Maaslin2,
+                input_data = nn.counts,
+                input_metadata = nn.metadata,
+                output = paste0(c(D$outprefix, "/maaslin2.output.folder"), collapse=""),
+                fixed_effects = fdata$parts.fixed,
+                random_effects = random_effects,
+                reference = maaslin2.reference,
+                !!!D$args$maaslin2
+            ))
         
 
 
