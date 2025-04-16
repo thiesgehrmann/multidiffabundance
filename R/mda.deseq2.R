@@ -24,12 +24,14 @@ mda.deseq2 <- function(mda.D, ...){
         count_data.nona <- D$count_data[rownames(meta_data.nona),]
 
         r <- mda.trycatchempty(D, f_idx, {
-                mda.cache_load_or_run_save(D, f_idx, "deseq2", 
+                mda.cache_load_or_run_save(D, f_idx, "deseq2",
                         {
-                        dds <- DESeq2::DESeqDataSetFromMatrix(countData = t(count_data.nona),
-                                                              colData = meta_data.nona,
-                                                              design = f)
-                        rlang::exec(DESeq2::DESeq, dds, !!!D$args$deseq2)
+                        dds <- DESeq2::DESeqDataSetFromMatrix(
+                            countData = t(count_data.nona),
+                            colData = meta_data.nona,
+                            design = f
+                        )
+                        rlang::exec(DESeq2::DESeq, dds, !!!D$args$deseq2, ...)
                         })
             }, taxa=D$nonrare)
             
