@@ -30,23 +30,23 @@ mda.zicoseq <- function(mda.D, ...){
                 } else {
                     adjust <- fdata$parts.fixed[-1]
                 }
-                results <- ZicoSeq(meta.dat = fdata$data, feature.dat = t(D$count_data[,sel_taxa]),
-                                   grp.name = fdata$parts.fixed[1], adj.name = adjust, feature.dat.type = "count",
-                                   # Filter to remove rare taxa
-                                   prev.filter = 0.0, mean.abund.filter = 0,  
-                                   max.abund.filter = 0.000, min.prop = D$nonrare.pct, 
-                                   # Winsorization to replace outliers
-                                   is.winsor = TRUE, outlier.pct = 0.00, winsor.end = 'top',
-                                   # Posterior sampling 
-                                   is.post.sample = TRUE, post.sample.no = 25, 
-                                   # Use the square-root transformation
-                                   link.func = list(function (x) x^0.5), stats.combine.func = max,
-                                   # Permutation-based multiple testing correction
-                                   perm.no = 99,  strata = NULL, 
-                                   # Reference-based multiple stage normalization
-                                   ref.pct = 0.5, stage.no = 6, excl.pct = 0.0,
-                                   # Family-wise error rate control
-                                   is.fwer = TRUE, verbose = TRUE, return.feature.dat = TRUE)
+                results <- rlang::exec(ZicoSeq,
+                    meta.dat = fdata$data,
+                    feature.dat = t(D$count_data[, sel_taxa]),
+                    grp.name = fdata$parts.fixed[1],
+                    adj.name = adjust,
+                    feature.dat.type = "count",
+                    # Filter to remove rare taxa
+                    min.prop = D$nonrare.pct,
+                    # Winsorization to replace outliers
+                    # Posterior sampling
+                    # Use the square-root transformation
+                    # Permutation-based multiple testing correction
+                    # Reference-based multiple stage normalization
+                    # Family-wise error rate control
+                    !!!D$args$zicoseq,
+                    ...
+                    )
 
                 res <- melt(as.data.frame(t(results$coef.list[[1]])) %>% rownames_to_column('taxa'), variable.name="variable.mda", value.name="effectsize", id.vars="taxa")
 
