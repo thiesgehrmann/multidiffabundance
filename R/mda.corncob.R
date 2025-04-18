@@ -1,6 +1,7 @@
 ###############################################################################
 # Run CORNCOB
-
+#' @inheritDotParams corncob::differentialTest
+#' @export
 mda.corncob <- function(mda.D, ...){
     D <- mda.D
     
@@ -26,14 +27,16 @@ mda.corncob <- function(mda.D, ...){
                        OTU <- phyloseq::otu_table(t(count_data.nona), taxa_are_rows = T)
                        sampledata <- phyloseq::sample_data(meta_data.nona, errorIfNULL = F)
                        phylo <- phyloseq::merge_phyloseq(OTU, sampledata)
-            
-                       corncob::differentialTest(formula= f,
-                                                 phi.formula = f,
-                                                 phi.formula_null = f,
-                                                 formula_null = ~ 1,
-                                                 test="Wald", data=phylo,
-                                                 boot=F,
-                                                 fdr_cutoff = 0.05) })
+                       rlang::exec(
+                        corncob::differentialTest,
+                        formula = f,
+                        phi.formula = f,
+                        phi.formula_null = f,
+                        data = phylo,
+                        !!!D$args$corncob,
+                        ...
+                       )
+                    })
 
         ram <- results$all_models
         ram <- lapply(1:length(ram), function(t_idx){

@@ -7,3 +7,9 @@ D <- mda.create(
   usecache = FALSE,
   recache = FALSE
 )
+
+Ds <- mda.create(
+  mda.example$count_data,
+  mda.example$meta_data,
+  "~ ReportedAntibioticUsage"
+)

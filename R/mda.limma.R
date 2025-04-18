@@ -1,3 +1,6 @@
+#' Limma Differential Abundance analysis
+#' @param mda.D MDA object
+#' @inheritDotParams limma::eBayes
 #' @export
 mda.limma <- function(mda.D, ...){
     D <- mda.D
@@ -66,8 +69,13 @@ mda.limma <- function(mda.D, ...){
                             dupcor <- duplicateCorrelation(vobj, mm, block=subset_block)
                             lmFit(vobj, mm, block=subset_block, correlation=dupcor$consensus)
                         }
-                    eBayes( fit )
-                   } )
+                    rlang::exec(
+                        eBayes,
+                        fit,
+                        !!!D$args$limma,
+                        ...
+                    )
+                   })
 
         # Gather output
 
