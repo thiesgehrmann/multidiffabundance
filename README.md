@@ -29,7 +29,7 @@ out$res           # Relevant output data here
  However, you can also install the dependencies with conda:
  
 ```bash
-wget https://github.com/thiesgehrmann/multidiffabundance/blob/main/MDA/mda_conda_deps.yml ./mda_conda_deps.yml
+wget https://raw.githubusercontent.com/thiesgehrmann/multidiffabundance/refs/heads/main/MDA/mda_conda_deps.yml
 conda env create -n mda --file ./mda_conda_deps.yml
 ```
 
