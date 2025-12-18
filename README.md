@@ -192,7 +192,7 @@ mda.permute_formula(~a+b+c) # results in ~a+b+c, ~b+a+c, ~c+a+b
 This should not result in increased computational overhead as the fitted models are cached with an formula-term-order-invariant hash (i.e. `~a+b` will be stored in the same cache as `~b+a`)
 
 ```R
-    form <- ~ ReportedAntibioticUsage + DaysSinceExperimentStart + (1|Subject))
+    form <- ~ ReportedAntibioticUsage + DaysSinceExperimentStart + (1|Subject)
     D <- mda.create(
              mda.example$count_data,
              mda.example$meta_data,
