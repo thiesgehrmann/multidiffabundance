@@ -15,6 +15,7 @@ RUN micromamba install \
       r-GUniFrac \
       r-lme4 \
       r-matrix \
+      bioconductor-microbiome \
       bioconductor-phyloseq \
       bioconductor-ancombc && \
       eval "$(micromamba shell hook --shell bash)" && \

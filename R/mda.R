@@ -317,7 +317,13 @@ mda.cache_load_or_run_save <- function(mda.D, f_idx, method, expr, order_invaria
     } else{
         data <- expr
         if (D$usecache){
+
+            if (!dir.exists(dirname(cache.file))){
+                dir.create(dirname(cache.file), recursive=TRUE)
+            }
+            
             message(paste0(c("[MDA] CacheStore: ", method, ", ", mainvar, " (", basename(cache.file), ")"), collapse=""))
+            
             saveRDS(data, cache.file)
         }
         data
