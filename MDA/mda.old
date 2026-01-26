@@ -14,7 +14,7 @@ function usage(){
     echo "    -L|--lmclr          : Run lm CLR"
     echo "    -m|--maaslin2       : Run Maaslin2"
     echo "    -z|--zicoseq        : Run ZicoSeq"
-    echo "    -w|--wilcoxon       : Run Wilcoxon rank sum test"
+    echo "    -w|--wilcoxon"      : Run Wilcoxon rank sum test"
     echo "    --alpha             : Run alpha diversity test"
     echo "    --beta              : Run beta diversity test (permanova/adonis2)"
     echo "    --group             : Run an analysis on meta data a group variable (i.e. logistic regression) (e.g. CST/enterotypes etc.)"
@@ -56,10 +56,25 @@ function usage(){
 ###############################################################################
 # PROCESS INPUTS
 
-ARGS=$(getopt -o 'aAcdlLmMwzo:' --long 'alpha,beta,group,continuous,aldex2,aldex3,ancombc2,corncob,deseq2,limma,lmclr,maaslin2,maaslin3,zicoseq,wilcoxon,custom:,options:,recache,nocache,docker,singularity,nocheck,nomerge,help' -- "$@") || exit
+ARGS=$(getopt -o 'aAcdlLmzwo:' --long 'alpha,beta,group,continuous,aldex2,ancombc2,corncob,deseq2,limma,lmclr,maaslin2,zicoseq,wilcoxon,custom:,options:,recache,nocache,docker,singularity,nocheck,nomerge,help' -- "$@") || exit
 eval "set -- $ARGS"
 
+wilcoxon=0
+aldex2=0
+ancombc2=0
+corncob=0
+deseq2=0
+limma=0
+lmclr=0
+maaslin2=0
+zicoseq=0
+alpha=0
+beta=0
+group=0
+continuous=0
+custom=0
 custom_file=""
+complement=0
 usecache="TRUE"
 recache="FALSE"
 docker=0
@@ -69,42 +84,36 @@ nomerge=0
 fn_arguments=""
 mdapackage="multidiffabundance"
 
-declare -a methods
-
 while true; do
     case $1 in
-      (-a|--aldex2)
-            methods+=("aldex2"); shift;;
-         (--aldex3)
-            methods+=("aldex3"); shift;;
-      (-A|--ancombc2)
-            methods+=("ancombc2"); shift;;
-      (-c|--corncob)
-            methods+=("corncob"); shift;;
-      (-d|--deseq2)
-            methods+=("deseq2"); shift;;
-      (-l|--limma)
-            methods+=("limma"); shift;;
-      (-L|--lmclr)
-            methods+=("lmcle"); shift;;
-      (-m|--maaslin2)
-            methods+=("maaslin2"); shift;;
-      (-M|--maaslin3)
-            methods+=("maaslin3"); shift;;
       (-w|--wilcoxon)
-            methods+=("wilcoxon"); shift;;
+            all=0; wilcoxon=1; shift;;
+      (-a|--aldex2)
+            all=0; aldex2=1; shift;;
+      (-A|--ancombc2)
+            all=0; ancombc2=1; shift;;
+      (-c|--corncob)
+            all=0; corncob=1; shift;;
+      (-d|--deseq2)
+            all=0; deseq2=1; shift;;
+      (-l|--limma)
+            all=0; limma=1; shift;;
+      (-L|--lmclr)
+            all=0; lmclr=1; shift;;
+      (-m|--maaslin2)
+            all=0; maaslin2=1; shift;;
       (-z|--zicoseq)
-            methods+=("zicoseq"); shift;;
+            all=0; zicoseq=1; shift;;
       (--alpha)
-            methods+=("alpha"); shift;;
+            all=0; alpha=1; shift;;
       (--beta)
-            methods+=("beta"); shift;;
+            all=0; beta=1; shift;;
       (--group)
-            methods+=("group"); shift;;
+            all=0; group=1; shift;;
       (--continuous)
-            methods+=("continuous"); shift;;
+            all=0; continuous=1; shift;;
       (--custom)
-            methods+=("custom"); fn_arguments="$fn_arguments, custom.file='$2'"; shift 2;;
+            custom=1; fn_arguments="$fn_arguments, custom.file='$2'"; shift 2;;
       (-o|--options)
             fn_arguments="$fn_arguments, $2"; shift 2;;
       (--nocache)
@@ -127,6 +136,33 @@ while true; do
           usage $0; exit 1;;           # error
     esac
 done
+
+if [ $complement -eq 1 ]; then
+    aldex2=$((1-aldex2))
+    ancombc2=$((1-ancombc))
+    corncob=$((1-corncob))
+    deseq2=$((1-deseq2))
+    limma=$((1-limma))
+    lmclr=$((1-lmclr))
+    maaslin2=$((1-maaslin2))
+    zicoseq=$((1-maaslin2))
+fi
+
+if [ $all -eq 1 ] ; then
+    wilcoxon=1
+    aldex2=1
+    ancombc2=1
+    corncob=0
+    deseq2=1
+    limma=1
+    lmclr=1
+    maaslin2=1
+    zicoseq=1
+    alpha=0
+    beta=0
+    group=0
+    continuous=0
+fi
 
 #############################
 # Deal with file inputs
@@ -198,13 +234,11 @@ docker_tags["continuous"]="thiesgehrmann/multidiffabundance_mda:1"
 docker_tags["custom"]="thiesgehrmann/multidiffabundance_mda:1"
 
 docker_tags["aldex2"]="thiesgehrmann/multidiffabundance_aldex2:1"
-docker_tags["aldex3"]="thiesgehrmann/multidiffabundance_aldex2:1"
 docker_tags["ancombc2"]="thiesgehrmann/multidiffabundance_ancombc2:1"
 docker_tags["deseq2"]="thiesgehrmann/multidiffabundance_deseq2:1"
 docker_tags["limma"]="thiesgehrmann/multidiffabundance_limma:1"
 docker_tags["lmclr"]="thiesgehrmann/multidiffabundance_mda:1"
 docker_tags["maaslin2"]="thiesgehrmann/multidiffabundance_maaslin2:1"
-docker_tags["maaslin3"]="thiesgehrmann/multidiffabundance_maaslin3:1"
 docker_tags["wilcoxon"]="thiesgehrmann/multidiffabundance_mda:1"
 docker_tags["zicoseq"]="thiesgehrmann/multidiffabundance_zicoseq:1"
 
@@ -321,9 +355,62 @@ EOF
 
 declare -a result_methods
 
-for m in "${methods[@]}"; do
-    run_one_mda "$m" && result_methods+=("$m")
-done
+if [ $wilcoxon -eq 1 ] ; then
+    run_one_mda wilcoxon && result_methods+=("wilcoxon")
+fi
+
+if [ $aldex2 -eq 1 ] ; then
+    run_one_mda aldex2 && result_methods+=("aldex2")
+fi
+
+if [ $ancombc2 -eq 1 ] ; then
+    run_one_mda ancombc2 && result_methods+=("ancombc2")
+fi
+
+if [ $corncob -eq 1 ] ; then
+    run_one_mda corncob && result_methods+=("corncob")
+fi
+    
+if [ $deseq2 -eq 1 ] ; then
+    run_one_mda deseq2 && result_methods+=("deseq2")
+fi
+
+if [ $limma -eq 1 ] ; then
+    run_one_mda limma && result_methods+=("limma")
+fi
+
+if [ $lmclr -eq 1 ] ; then
+    run_one_mda lmclr && result_methods+=("lmclr")
+fi
+
+if [ $maaslin2 -eq 1 ] ; then
+    run_one_mda maaslin2 && result_methods+=("maaslin2")
+fi
+
+if [ $zicoseq -eq 1 ] ; then
+    run_one_mda zicoseq && result_methods+=("zicoseq")
+fi
+
+if [ $alpha -eq 1 ] ; then
+    run_one_mda alpha && result_methods+=("alpha")
+fi
+
+if [ $beta -eq 1 ] ; then
+    run_one_mda beta && result_methods+=("beta")
+fi
+
+if [ $group -eq 1 ] ; then
+    run_one_mda group && result_methods+=("group")
+fi
+
+if [ $continuous -eq 1 ] ; then
+    run_one_mda continuous && result_methods+=("continuous")
+fi
+
+if [ $custom -eq 1 ] ; then
+    run_one_mda custom && result_methods+=("custom")
+fi
+
 
 ###############################################################################
 # Combine all the outputs into one single output
@@ -353,13 +440,17 @@ if [ $nomerge -eq 0 ]; then
 
                 rf <- c($results)
                 rs <- lapply(rf, readRDS)
+                rs <- lapply(rs, function(r){
+                    r\$res\$comment <- unlist(r\$res\$comment)
+                    r\$res.full\$comment <- unlist(r\$res.full\$comment)
+                    r
+                })
                 comb <- mda.merge_results(rs)
 
                 saveRDS(comb,        file='${bindm_out_file}.rds')
                 write_tsv(comb\$res,      '${bindm_out_file}.tsv')
                 write_tsv(comb\$res.full, '${bindm_out_file}.full.tsv')
 EOF
-            cat "$source_rscript"
             if [ $singularity -eq 1 ]; then
 
                  singularity exec \
@@ -386,13 +477,17 @@ EOF
             results=${results::-2}
 
             rcode="
-                library(dplyr)
+                library('dplyr')
                 library($mdapackage)
                 library(readr)
 
                 rf <- c($results)
                 rs <- lapply(rf, readRDS)
-
+                rs <- lapply(rs, function(r){
+                    r\$res\$comment <- unlist(r\$res\$comment)
+                    r\$res.full\$comment <- unlist(r\$res.full\$comment)
+                    r
+                })
                 comb <- mda.merge_results(rs)
 
                 saveRDS(comb,        file='${out_file}.rds')
