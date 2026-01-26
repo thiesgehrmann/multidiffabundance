@@ -35,7 +35,9 @@ mda.maaslin3 <- function(mda.D, ...){
                         max_significance = 0.1,
                         median_comparison_abundance = TRUE,
                         median_comparison_prevalence = FALSE,
-                        max_pngs = 100,
+                        max_pngs = 1,
+                        plot_summary_plot = FALSE,
+                        plot_associations = FALSE,
                         cores = 1,
                         save_models = TRUE))
 
