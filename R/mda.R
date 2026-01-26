@@ -430,6 +430,12 @@ mda.summary <- function(res, id_cols = "taxa", names_from = "variable", method_f
 mda.merge_results <- function(res.list){
 
     comb <- list()
+    
+    res.list <- lapply(res.list, function(r){
+        r$res$comment <- unlist(r$res$comment)
+        r$res.full$comment <- unlist(r$res.full$comment)
+        r
+    })
 
     comb$res      <- bind_rows(lapply(res.list, function(x){x$res}))
     comb$res.full <- bind_rows(lapply(res.list, function(x){x$res.full}))
@@ -460,7 +466,6 @@ mda.isSingular <- function(fit){
 # Common post-do formatting
 
 mda.common_do <- function(D, f_idx, res.full, method, skip_taxa_sel=FALSE){
-    print(1)
     fdata <- D$formula[[f_idx]]
     
     res.full$formula <- rep(mda.deparse(fdata$fn.orig), dim(res.full)[1])
@@ -472,16 +477,15 @@ mda.common_do <- function(D, f_idx, res.full, method, skip_taxa_sel=FALSE){
         res.full 
     } else {
         missing <- if (length(setdiff(D$nonrare, res.full$taxa)) == 0){
-                NA
+                NULL
             } else {
                 m <- mda.empty_output(D, f_idx, comment="This method did not test this taxa.", taxa=setdiff(D$nonrare, res.full$taxa))
                 m$formula <- rep(mda.deparse(fdata$fn.orig), dim(m)[1])
                 m$method <- method
                 dplyr::left_join(m, fdata$nfreq, by="variable.mda")
             }
-        
         res.full <- res.full[res.full$taxa %in% D$nonrare,]
-        if (is.na(missing)){ res.full } else { bind_rows(res.full, missing) }
+        if (is.null(missing)){ res.full } else { bind_rows(res.full, missing) }
     }
     
     if (is.null(res.full$comment)){

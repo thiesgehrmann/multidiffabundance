@@ -13,7 +13,8 @@ function usage(){
     echo "    -l|--limma          : Run limma"
     echo "    -L|--lmclr          : Run lm CLR"
     echo "    -m|--maaslin2       : Run Maaslin2"
-    echo "    -z|zicoseq          : Run ZicoSeq"
+    echo "    -z|--zicoseq        : Run ZicoSeq"
+    echo "    -w|--wilcoxon"      : Run Wilcoxon rank sum test"
     echo "    --alpha             : Run alpha diversity test"
     echo "    --beta              : Run beta diversity test (permanova/adonis2)"
     echo "    --group             : Run an analysis on meta data a group variable (i.e. logistic regression) (e.g. CST/enterotypes etc.)"
@@ -55,9 +56,10 @@ function usage(){
 ###############################################################################
 # PROCESS INPUTS
 
-ARGS=$(getopt -o 'aAcdlLmzo:' --long 'alpha,beta,group,continuous,aldex2,ancombc2,corncob,deseq2,limma,lmclr,maaslin2,zicoseq,custom:,options:,complement,recache,nocache,docker,singularity,nocheck,nomerge,help' -- "$@") || exit
+ARGS=$(getopt -o 'aAcdlLmzwo:' --long 'alpha,beta,group,continuous,aldex2,ancombc2,corncob,deseq2,limma,lmclr,maaslin2,zicoseq,wilcoxon,custom:,options:,recache,nocache,docker,singularity,nocheck,nomerge,help' -- "$@") || exit
 eval "set -- $ARGS"
 
+wilcoxon=0
 aldex2=0
 ancombc2=0
 corncob=0
@@ -72,7 +74,6 @@ group=0
 continuous=0
 custom=0
 custom_file=""
-all=1
 complement=0
 usecache="TRUE"
 recache="FALSE"
@@ -85,6 +86,8 @@ mdapackage="multidiffabundance"
 
 while true; do
     case $1 in
+      (-w|--wilcoxon)
+            all=0; wilcoxon=1; shift;;
       (-a|--aldex2)
             all=0; aldex2=1; shift;;
       (-A|--ancombc2)
@@ -113,8 +116,6 @@ while true; do
             custom=1; fn_arguments="$fn_arguments, custom.file='$2'"; shift 2;;
       (-o|--options)
             fn_arguments="$fn_arguments, $2"; shift 2;;
-      (--complement)
-            complement=1; shift;;
       (--nocache)
             usecache="FALSE"; shift;;
       (--recache)
@@ -148,6 +149,7 @@ if [ $complement -eq 1 ]; then
 fi
 
 if [ $all -eq 1 ] ; then
+    wilcoxon=1
     aldex2=1
     ancombc2=1
     corncob=0
@@ -237,7 +239,8 @@ docker_tags["deseq2"]="thiesgehrmann/multidiffabundance_deseq2:1"
 docker_tags["limma"]="thiesgehrmann/multidiffabundance_limma:1"
 docker_tags["lmclr"]="thiesgehrmann/multidiffabundance_mda:1"
 docker_tags["maaslin2"]="thiesgehrmann/multidiffabundance_maaslin2:1"
-docker_tags["zicoseq"]="thiesgehrmann/multidiffabundance_mda:1"
+docker_tags["wilcoxon"]="thiesgehrmann/multidiffabundance_mda:1"
+docker_tags["zicoseq"]="thiesgehrmann/multidiffabundance_zicoseq:1"
 
 
 
@@ -326,12 +329,6 @@ EOF
                 -u $(id -u):$(id -g) \
                 "$docker_tag" \
                 "$runfile_container_bindm"
-                
-            echo docker run \
-                --mount type=bind,source="$bindm_source/",target="$bindm_target" \
-                -u $(id -u):$(id -g) \
-                "$docker_tag" \
-                "$runfile_container_bindm"
 
         fi
     
@@ -347,7 +344,6 @@ EOF
     fi
     
     result=`cat "$retlog"`
-    echo $result
     if [ "$result" -eq 0 ]; then
         echo "[MDA] (`date`) COMPLETED $method. '$outprefix/$method/results.rds'"
     else
@@ -358,6 +354,10 @@ EOF
 }
 
 declare -a result_methods
+
+if [ $wilcoxon -eq 1 ] ; then
+    run_one_mda wilcoxon && result_methods+=("wilcoxon")
+fi
 
 if [ $aldex2 -eq 1 ] ; then
     run_one_mda aldex2 && result_methods+=("aldex2")
@@ -440,6 +440,11 @@ if [ $nomerge -eq 0 ]; then
 
                 rf <- c($results)
                 rs <- lapply(rf, readRDS)
+                rs <- lapply(rs, function(r){
+                    r\$res\$comment <- unlist(r\$res\$comment)
+                    r\$res.full\$comment <- unlist(r\$res.full\$comment)
+                    r
+                })
                 comb <- mda.merge_results(rs)
 
                 saveRDS(comb,        file='${bindm_out_file}.rds')
@@ -463,12 +468,6 @@ EOF
                     -u $(id -u):$(id -g) \
                     "$docker_tag" \
                     Rscript "$bindm_rscript"
-                    
-                echo docker run \
-                    --mount type=bind,source="$bindm_source/",target="$bindm_target" \
-                    -u $(id -u):$(id -g) \
-                    "$docker_tag" \
-                    Rscript "$bindm_rscript"
 
             fi
         
@@ -484,6 +483,11 @@ EOF
 
                 rf <- c($results)
                 rs <- lapply(rf, readRDS)
+                rs <- lapply(rs, function(r){
+                    r\$res\$comment <- unlist(r\$res\$comment)
+                    r\$res.full\$comment <- unlist(r\$res.full\$comment)
+                    r
+                })
                 comb <- mda.merge_results(rs)
 
                 saveRDS(comb,        file='${out_file}.rds')
