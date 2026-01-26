@@ -1,3 +1,4 @@
+#' @export
 mda.aldex2 <- function(mda.D, ...){
     D <- mda.D
     suppressPackageStartupMessages({
@@ -22,7 +23,10 @@ mda.aldex2 <- function(mda.D, ...){
             ALDEx2::aldex(counts, mm, denom = "all", test="glm")
         })
 
-        res.full <- tidyr::gather(as.data.frame(out) %>% rownames_to_column('taxa'), "measure", "value", 2:(dim(as.data.frame(out))[2]+1))
+        res.full <- tidyr::gather(
+            as.data.frame(out) %>% 
+            rownames_to_column('taxa'), 
+            "measure", "value", 2:(dim(as.data.frame(out))[2]+1))
         r <<- res.full
         clean.feature.1 <- function(v){
             ret <- if (endsWith(v, ".Estimate")) {
@@ -55,18 +59,34 @@ mda.aldex2 <- function(mda.D, ...){
                     }
             ret
         }
-        clean.feature <- if (package_version(installed.packages()["ALDEx2", "Version"]) >= package_version("1.3")) {clean.feature.2} else {clean.feature.1}
+        clean.feature <- if (
+            package_version(installed.packages()["ALDEx2", "Version"]) >= package_version("1.3")) {
+                clean.feature.2
+        } else {clean.feature.1}
         res.full$feature <- unlist(lapply(res.full$measure, clean.feature))
         
 
         clean.variable.1 <- function(v){
-            gsub("^model.", "", gsub(".Estimate", "", gsub(".Pr...t..", "", gsub(".Pr...t...BH", "", gsub(".t.value", "", gsub(".Std..Error", "", v))))))
+            gsub("^model.", "", 
+            gsub(".Estimate", "", 
+            gsub(".Pr...t..", "", 
+            gsub(".Pr...t...BH", "", 
+            gsub(".t.value", "", 
+            gsub(".Std..Error", "", v))))))
         }
         
         clean.variable.2 <- function(v){
-            gsub("^model.", "", gsub(".Est", "", gsub(".pval", "", gsub(".pval.holm", "", gsub(".t.val", "", gsub(".SE", "", v))))))
+            gsub("^model.", "", 
+            gsub(".Est", "", 
+            gsub(".pval", "", 
+            gsub(".pval.holm", "", 
+            gsub(".t.val", "", 
+            gsub(".SE", "", v))))))
         }
-        clean.variable <- if (package_version(installed.packages()["ALDEx2", "Version"]) >= package_version("1.3")) {clean.variable.2} else {clean.variable.1}
+        clean.variable <- if (
+            package_version(installed.packages()["ALDEx2", "Version"]) >= package_version("1.3")) {
+                clean.variable.2
+        } else {clean.variable.1}
         res.full$variable.mda <- unlist(lapply(res.full$measure, clean.variable))
         
         res.full <- tidyr::pivot_wider(res.full, id_cols=c("taxa", "variable.mda"), names_from=feature, values_from=value)

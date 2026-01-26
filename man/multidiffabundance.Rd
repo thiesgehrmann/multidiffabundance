@@ -2,14 +2,22 @@
 % Please edit documentation in R/multidiffabundance.R
 \docType{package}
 \name{multidiffabundance}
+\alias{multidiffabundance-package}
 \alias{multidiffabundance}
 \title{multidiffabundance: A toolkit for the testing of differential abundance with many different tools, each provided wit>#'
 multidiffabundance (MDA) is an R package for differnetial abundance testing with many different tools.
 The following packages are currently supported
 (Only tools that allow for adjustment with other variables are selected):
 ALDEx2, ANCOMBC, Corncob, DESeq2, Limma(voom), lm/lmer CLR, and Maaslin2.}
+\description{
+Tools to perform differential abundance testing with many different tools, resulting in a compatible output format.
+}
 \section{Author(s)}{
 
 Thies Gehrmann \email{thies.gehrman@uantwerpen.be}
 }
 
+\author{
+\strong{Maintainer}: Thies Gehrmann \email{thies.gehrmann@uantwerpen.be}
+
+}

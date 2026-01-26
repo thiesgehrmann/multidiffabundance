@@ -11,7 +11,7 @@ mda.all(
   group = FALSE,
   continuous = FALSE,
   aldex2 = TRUE,
-  ancombc = TRUE,
+  ancombc2 = TRUE,
   corncob = FALSE,
   deseq2 = TRUE,
   limma = TRUE,
@@ -32,8 +32,6 @@ mda.all(
 
 \item{aldex2}{if the aldex2 mda pipeline is to be performed. Defaults to true.}
 
-\item{ancombc}{if the ancombc mda pipeline is to be performed. Defaults to true.}
-
 \item{corncob}{if the corncob mda pipeline is to be performed. Defaults to false, due to long runtime of the analysis.}
 
 \item{deseq2}{if the deseq2 mda pipeline is to be performed. Defaults to true.}
@@ -53,6 +51,8 @@ mda.all(
 \item{continuous.cols}{column names of the continuous values to be analyzed. Required if continuous is true.}
 
 \item{continuous.scale}{if the continuous values should be scaled. Defaults to true.}
+
+\item{ancombc}{if the ancombc mda pipeline is to be performed. Defaults to true.}
 }
 \description{
 Return all multidiffabundance tools or a selection on an mda object.

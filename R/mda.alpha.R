@@ -1,17 +1,18 @@
+#' @importFrom lmerTest lmer
+#' @importFrom stringr str_replace_all
+#' @export
 mda.alpha <- function(mda.D, alpha.index=c("shannon"), ...){
     D <- mda.D
     
     suppressPackageStartupMessages({
         require(dplyr)
         require(tibble)
-        require(vegan)
-        require(lmerTest)})
+        require(vegan)})
     
     index <- intersect(alpha.index, c("shannon", "simpson", "invsimpson"))
     
     if(length(index) == 0){
-        message("[MDA] mda.alpha: No valid index value(s) defined. Options must be [shannon, simpson, invsimpson].")
-        exit(0)
+        stop("[MDA] mda.alpha: No valid index value(s) defined. Options must be [shannon, simpson, invsimpson].")
     }
     
     alpha_indices <- as.data.frame(lapply(index, function(i){scale(diversity(D$count_data, index=i))}))
@@ -22,7 +23,7 @@ mda.alpha <- function(mda.D, alpha.index=c("shannon"), ...){
         f <- fdata$fn
 
         method <- if ( formula.ismixed(f) ){
-            lmerTest::lmer
+            lmer
         } else { lm }
         
         meta_data <- data.frame(fdata$data)

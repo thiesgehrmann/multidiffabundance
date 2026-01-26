@@ -1,6 +1,6 @@
 ###############################################################################
-# Run DESEQ2
-
+#' Run DESEQ2
+#' @export
 mda.deseq2 <- function(mda.D, ...){
     D <- mda.D
     suppressPackageStartupMessages({

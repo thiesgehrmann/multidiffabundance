@@ -1,3 +1,4 @@
+#' @export
 mda.limma <- function(mda.D, ...){
     D <- mda.D
     suppressPackageStartupMessages({

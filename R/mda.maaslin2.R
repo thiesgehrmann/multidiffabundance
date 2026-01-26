@@ -1,6 +1,6 @@
 ###############################################################################
-# Maaslin2
-
+#' Maaslin2
+#' @export
 mda.maaslin2 <- function(mda.D, ...){
     D <- mda.D
     suppressPackageStartupMessages({
@@ -34,7 +34,7 @@ mda.maaslin2 <- function(mda.D, ...){
             }
         }
         
-        nn.metadata <- fdata$data[!apply(is.na(fdata$data), 1, any),]
+        nn.metadata <- tidyr::drop_na(fdata$data)
         nn.counts   <- D$count_data[rownames(nn.metadata),]
         
         maaslin2.reference <- paste0(unlist(lapply(possible_factors, dumb_masslin_factor_crap)), collapse=";")

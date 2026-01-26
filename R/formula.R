@@ -1,21 +1,27 @@
+#' @keywords internal
 formula.rhs <- function(fn){
     fn.char <- as.character(fn)
     rhs <- paste0(c('~', fn.char[if (length(fn.char) == 3){3} else {2}]), collapse=' ')
     as.formula(rhs)
 }
 
+#' @keywords internal
 formula.ismixed <- function(fn){
     any(grepl('[|]', as.character(fn)))
 }
 
+#' @keywords internal
 formula.ismixed.intercept <- function(fn){
     length(formula.parts.random.intercept(fn)) > 0
 }
+
+#' @keywords internal
 
 formula.ismixed.slope <- function(fn){
     length(formula.parts.random.slope(fn)) > 0
 }
 
+#' @keywords internal
 formula.norand <- function(fn){
     if (!formula.ismixed(fn)){
         return(fn)
@@ -26,10 +32,12 @@ formula.norand <- function(fn){
     return(as.formula(fn.fixed))
 }
 
+#' @keywords internal
 formula.parts <- function(fn){
     attributes(terms(formula.rhs(fn), keep.order=TRUE))$term.labels
 }
 
+#' @keywords internal
 formula.parts.fixed <- function(fn){
     parts <- formula.parts(fn)
     
@@ -42,11 +50,13 @@ formula.parts.fixed <- function(fn){
     fe.parts
 }
 
+#' @keywords internal
 formula.parts.random <- function(fn){
     parts <- formula.parts(fn)
     parts[grepl('[|]', parts)]
 }
 
+#' @keywords internal
 formula.parts.random.slope <- function(fn){
     parts <- formula.parts.random(fn)
     if (length(parts) == 0){
@@ -59,6 +69,7 @@ formula.parts.random.slope <- function(fn){
         })]
 }
 
+#' @keywords internal
 formula.parts.random.intercept <- function(fn){
     parts <- formula.parts.random(fn)
     if (length(parts) == 0){
@@ -71,6 +82,7 @@ formula.parts.random.intercept <- function(fn){
         })]
 }
 
+#' @keywords internal
 formula.parts_as_formula <- function(p){
     as.formula(paste0(c('~', paste0(p, collapse='+')), collapse=''))
 }
@@ -78,6 +90,7 @@ formula.parts_as_formula <- function(p){
 ###############################################################################
 
 
+#' @keywords internal
 formula.determine_nonnumeric_vars <- function(fn,data){
     introduce_spacers <- function(f, d, spacer='._m_._d_._a_.'){
 
@@ -119,12 +132,14 @@ formula.determine_nonnumeric_vars <- function(fn,data){
 
 ###############################################################################
 
+#' @keywords internal
 formula.model.matrix <- function(fn, data){
     data.new <- model.matrix(terms(fn, keep.order=TRUE), data)
     return(data.new)
 }
 
 
+#' @keywords internal
 formula.reformulate <- function(fn, data){
     f <- if (formula.ismixed(fn)) {formula.reformulate.mixed} else {formula.reformulate.fixed}
     new <- f(fn, data)
@@ -162,6 +177,7 @@ formula.reformulate <- function(fn, data){
         )
 }
 
+#' @keywords internal
 formula.reformulate.fixed <- function(fn, data){
     intercept <- attributes(terms(formula.rhs(fn)))$intercept
     
@@ -188,6 +204,7 @@ formula.reformulate.fixed <- function(fn, data){
         ))
 }
 
+#' @keywords internal
 formula.reformulate.mixed <- function(fn, data){
 
     parts <- formula.parts(fn)
@@ -276,6 +293,7 @@ formula.reformulate.mixed <- function(fn, data){
 
 ###############################################################################
 
+#' @keywords internal
 mda.nfreq <- function(data, nonnumeric=c()){
     n <- function(var){
         sum(unlist(lapply(data[,var],function(x){!(is.na(x))})))
