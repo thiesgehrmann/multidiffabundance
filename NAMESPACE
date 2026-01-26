@@ -3,6 +3,7 @@
 export("%>%")
 export(mda.adonis2)
 export(mda.aldex2)
+export(mda.aldex3)
 export(mda.all)
 export(mda.alpha)
 export(mda.ancombc2)

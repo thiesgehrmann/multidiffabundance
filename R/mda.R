@@ -363,7 +363,7 @@ mda.empty_output <- function(D, f_idx, comment=NA, taxa=NA){
 
     empty.res[,c('se','taxa','pvalue','effectsize','df','stat')] <- NA
     
-    empty.res <- if ((length(taxa) == 0) | all(is.na(taxa)) ) {
+    empty.res <- if ((length(taxa) == 0) | all(is.na(taxa))) {
         empty.res
     } else {
         bind_rows(lapply(taxa, function(t){
