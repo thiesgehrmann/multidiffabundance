@@ -20,11 +20,11 @@ function usage(){
     echo "    --alpha             : Run alpha diversity test"
     echo "    --beta              : Run beta diversity test (permanova/adonis2)"
     echo "    --group             : Run an analysis on meta data a group variable (i.e. logistic regression) (e.g. CST/enterotypes etc.)"
-    echo "                            Define the relevant column with: --options \"group.col='groupcol'\" "
+    echo "                          Define the relevant column with: --options \"group.col='groupcol'\" "
     echo "    --continuous        : Run an analysis on meta data for a continuous variable (e.g. a score etc.)"
-    echo "                            Define the relevant column with: --options \"continuous.cols=c('score1','score2')\" "
+    echo "                          Define the relevant column with: --options \"continuous.cols=c('score1','score2')\" "
     echo "    --custom <str>      : Run a custom analysis. <str> refers to the file path."
-    echo "                            Provide the function name with: --options \"custom.fn=myfunc\". (Default is custom.function)"
+    echo "                          Provide the function name with: --options \"custom.name=myfunc\". (Default is custom.method)"
     echo ""
     echo "    -o|--options <str>  : Arguments to the mda functions. Comma seperated."
     echo "                          (e.g. -o 'beta.permutations=10000')"
@@ -358,7 +358,7 @@ if [ $nomerge -eq 0 ]; then
                 write_tsv(comb\$res,      '${bindm_out_file}.tsv')
                 write_tsv(comb\$res.full, '${bindm_out_file}.full.tsv')
 EOF
-            cat "$source_rscript"
+
             if [ $singularity -eq 1 ]; then
 
                  singularity exec \

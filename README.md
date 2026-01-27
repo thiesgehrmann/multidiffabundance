@@ -1,13 +1,13 @@
 # MDA: multidiffabundance
 A toolkit for the testing of differential abundance with many different tools, each provided with a similar interface and a compatible output format.
-The following packages are currently supported (Only tools that allow for adjustment with other variables are selected): ALDEx2, ANCOMBC, Corncob (optionally), DESeq2, Limma(voom), lm/lmer CLR, Maaslin2 and ZicoSeq.
-We also provide functionality to perform alpha and beta diversity tests, and meta-data associations to categorical and continuous variables (typical extracted from the microbiome data)
+The following packages are currently supported (Only tools that allow for adjustment with other variables are selected): ALDEx2, ALDEx3, ANCOMBC, Corncob (optionally), DESeq2, Limma(voom), lm/lmer CLR, Maaslin2, Maaslin3 and ZicoSeq.
+We also provide functionality to perform alpha and beta diversity tests, and meta-data associations to categorical and continuous variables (typical extracted from the microbiome data).
 
 # Quickstart
 
 ```R
 # install.packages("devtools")
-devtools::install_github("thiesgehrmann/multidiffabundance", dependencies=TRUE)
+devtools::install_github("thiesgehrmann/multidiffabundance", dependencies=FALSE)
 
 library(multidiffabundance)
 data("mda.example", package="multidiffabundance")
@@ -16,7 +16,10 @@ D <- mda.create(mda.example$count_data, # A dataframe of sample taxa counts (sam
                 mda.example$formulas,   # A list of formulas (or a single formula)
                 usecache=TRUE,          # Cache computationally expensive steps (default behaviour)
                 recache=FALSE)          # Do not overwrite existing cache files (default behaviour)
-out <- mda.all(D) # Runs all methods (you can specify which you want to run)
+out <- mda.all(D,              # Runs all methods you specify
+               alpha=TRUE,     # Do an alpha diversity analysis
+               lmclr=TRUE,     # Do the LMCLR method
+               wilcoxon=TRUE)  # Do a wilcoxon rank sum test
 out$res           # Relevant output data here
 ```
 
@@ -24,6 +27,8 @@ out$res           # Relevant output data here
 # Installation
 
 ## Installation of dependencies
+
+  **NOTE: This section is out of date, as many dependencies have contradictory dependencies. Therefore, it is better to install the methods you wish to use individually, or make use of the docker/singularity options provided below**
 
  MDA has many dependencies (as it is a collection of so many tools).
  They (SHOULD BE) automatically installed when installing the package via github as in the section below.
@@ -43,29 +48,6 @@ However, it is also possible to install MDA without all the dependencies, and on
 ```R
     # install.packages("devtools")
     devtools::install_github("thiesgehrmann/multidiffabundance", dependencies=TRUE)
-```
- 
-## Installation of the command line tool
-
- To use the command line tool, you should have the R package installed.
- Then run the following commands:
- 
-```shell
-    wget https://raw.githubusercontent.com/thiesgehrmann/multidiffabundance/main/MDA/mda ./
-    chmod +x ./mda
-    sudo mv ./mda /usr/bin # not necessary
-    mda 
-```
-
-## Installation of the Docker/Singularity image
-
- We provide a wrapper for the docker image, in which all necessary dependencies are installed
- For this, you do not need to install anything (other than docker or singularity).
- 
-```shell
-    wget https://raw.githubusercontent.com/thiesgehrmann/multidiffabundance/main/MDA/container_mda.sh
-    chmod +x ./container_mda.sh
-    sudo mv ./container_mda.sh /usr/bin # not necessary
 ```
 
 # Running the tool
@@ -112,6 +94,17 @@ Functions to run the differential abundance tests are:
  8. `mda.maaslin2`: Run Maaslin2 only
  9. `mda.zicoseq`: Run Zicoseq only
 
+## Installation of the command line tool
+
+ To use the command line tool, you should have the R package installed.
+ Then run the following commands:
+ 
+```shell
+    wget https://raw.githubusercontent.com/thiesgehrmann/multidiffabundance/main/MDA/mda ./
+    chmod +x ./mda
+    sudo mv ./mda /usr/bin # not necessary
+```
+
 ## Running via the command line
 
 ```shell
@@ -129,9 +122,9 @@ Functions to run the differential abundance tests are:
 
 ## Running via docker/singularity image
 
-A docker image is [provided on dockerhub](https://hub.docker.com/repository/docker/thiesgehrmann/multidiffabundance), as defined by the [Dockerfile](https://raw.githubusercontent.com/thiesgehrmann/multidiffabundance/main/MDA/Dockerfile).
+Docker images are provided for each individual method as defined by the [Dockerfiles](https://raw.githubusercontent.com/thiesgehrmann/multidiffabundance/main/MDA/dockerfiles).
 
-A wrapper script `container_mda.sh` allows you to run the docker image with the same interface as the standalone script above. The script uses singularity by default, but you can also specify to use docker with the --docker argument.
+The command line script `mda` allows you to run the docker images with the `--docker` or `--singularity` parameters.
 
 ```shell
     # Assumes Docker or singularity is installed
@@ -141,14 +134,14 @@ A wrapper script `container_mda.sh` allows you to run the docker image with the 
     outdir="output_folder"
     
     # Runs with singularity
-    container_mda.sh \
+    mda --singularity --maaslin3\
         "$abundance" \
         "$meta_data" \
         "$functions" \
         "$outdir" # Produces output in $outdir/results.tsv
     
     # Runs with docker
-    container_mda.sh --docker \
+    mda --docker --maaslin3 \
         "$abundance" \
         "$meta_data" \
         "$functions" \
@@ -167,31 +160,36 @@ Some tools are parallelized and use all the CPUs available - even not making it 
 Run the mda command as so:
 
 ```shell
-    taskset -c 0-8 ./mda blah blah blah
+    taskset -c 0-8 ./mda ...
 ```
 
 ## Which tools are able to adjust for covariates, and which are able to accept random effects?
 
 While all models can accept adjustment terms ala a linear model, only some tools can accept random intercept effects or random slopes. If you attempt to evaluate a formula with random effects using a tool that cannot handle it, MDA returns a dummy output. For these tools, if you want to adjust for a repeated measures, you may need to encode it as a fixed effect in order to make use of all the tools (or better: don't use the tools).
 
-| Tool          | Covariates             | Random intercepts      | Random slopes          | Effects reported       |
-| ------------- |:----------------------:|:----------------------:|:----------------------:|:----------------------:|
-| ALDEx2        | ✓                      |                        |                        | All                    |
-| ANCOM-BC      | ✓                      | ✓ (many)               | ✓ (many)               | All                    |
-| Corncob       | ✓                      |                        |                        | All                    |
-| DESeq2        | ✓                      |                        |                        | All                    |
-| limma         | ✓                      | ✓ (one)                |                        | All                    |
-| lmCLR         | ✓                      | ✓ (many)               | ✓ (many)               | All                    |
-| Maaslin2      | ✓                      | ✓ (many)               |                        | All                    |
-| Zicoseq       | ✓                      |                        |                        | First                  |
-| alpha         | ✓                      | ✓ (many)               | ✓ (many)               | All                    |
-| beta          | ✓                      | ✓ (one) \*see note     |                        | First \*\*see note     |
-| continuous    | ✓                      | ✓ (many)               | ✓ (many)               | All                    |
-| group         | ✓                      | ✓ (many)               | ✓ (many)               | All                    |
+| Tool          | Function         | Covariates             | Random intercepts      | Random slopes          | Effects reported       |
+| ------------- | ---------------- |:----------------------:|:----------------------:|:----------------------:|:----------------------:|
+| ALDEx2        | `mda.aldex2`     | ✓                      |                        |                        | All                    |
+| ALDEx3        | `mda.aldex3`     | ✓                      | ✓ (many)               | ✓ (many)               | All                    |
+| ANCOM-BC      | `mda.ancombc2`   | ✓                      | ✓ (many)               | ✓ (many)               | All                    |
+| Corncob       | `mda.corncob`    | ✓                      |                        |                        | All                    |
+| DESeq2        | `mda.deseq2`     | ✓                      |                        |                        | All                    |
+| limma         | `mda.limma`      | ✓                      | ✓ (one)                |                        | All                    |
+| lmCLR         | `mda.lmclr`      | ✓                      | ✓ (many)               | ✓ (many)               | All                    |
+| Maaslin2      | `mda.maaslin2`   | ✓                      | ✓ (many)               |                        | All                    |
+| Maaslin3      | `mda.maaslin3`   | ✓                      | ✓ (many)               | ✓ (many)               | All                    |
+| Wilcoxon\*    | `mda.wilcoxon`   | ✓                      | ✓ (many)               | ✓ (many)               | First                  |
+| Zicoseq       | `mda.ziocoseq`   | ✓                      |                        |                        | First                  |
+| alpha         | `mda.alpha`      | ✓                      | ✓ (many)               | ✓ (many)               | All                    |
+| beta          | `mda.beta`       | ✓                      | ✓ (one) \*\*see note   |                        | First \*\*\*see note   |
+| continuous    | `mda.continuous` | ✓                      | ✓ (many)               | ✓ (many)               | All                    |
+| group         | `mda.group`      | ✓                      | ✓ (many)               | ✓ (many)               | All                    |
 
-\* In adonis2, this is not a real random intercept. It merely performs permutations within a certain grouping as defined by a categorical variable. This can be interpreted as considering this grouping as a random effect.
+\* The wilcoxon rank sum test works on the CLR transformed data. It only works for binary variables. If the model contains covariates or random effects, the se are regressed out with a linear model, and the wilcoxon rank sum test is performed on the residuals
 
-\*\* This is due to a hack implemented to speed up the test. If, when running mda.beta, you set `beta.hack=FALSE`, then it will take longer but return all tested effects.
+\*\* In adonis2, this is not a real random intercept. It merely performs permutations within a certain grouping as defined by a categorical variable. This can be interpreted as considering this grouping as a random effect.
+
+\*\*\* This is due to a hack implemented to speed up the test. If, when running mda.beta, you set `beta.hack=FALSE`, then it will take longer but return all tested effects.
 
 
 In the future, I am hoping also to include `dream` in this list, which is essentially limma, but allows multiple random intercepts.
@@ -212,7 +210,7 @@ mda returns a list with two dataframes:
  
 If, for example, you use a function like: `~ a*b`, this is expanded to `~ a + b + a:b`, in this order.
 (Internally, these are then renamed to ` mda_00001 + mda_00002 + mda_00003`)
-If your effect of interest is `a:b`, then this effect will not be reported in `res`
+If your effect of interest is `a:b`, then this effect will not be reported in `res`.
 Therefore, the `res` results may not be what you are looking for. Inspect the `res.full` dataframe.
 Alternatively, you can specify the order manually, by specifying this in the formula: `~ a:b + a + b`.
 
@@ -223,7 +221,7 @@ By default, the computationally expensive model runs are cached in a way that is
 You can also overwrite existing cache files with `--recache` option on the commandline, or by setting `recache=TRUE` in the `mda.create` functions.
 
 ## I'd like to modify the default parameters to some of the tools used - how can I do that.
-Currently this is not implemented. At some point I want to store the default parameters in an R object that can be modified in the mda data object, but not yet. For now you will need to modify the source code. This is easily done (though I agree it is a pain):
+Currently this is not implemented. At some point we want to store the default parameters in an R object that can be modified in the mda data object, but not yet. For now you will need to modify the source code. This is easily done (though I agree it is a pain):
 
 ```bash
 git clone https://github.com/thiesgehrmann/multidiffabundance.git
@@ -232,6 +230,31 @@ cd multidiffabundance
 echo "devtools:install_local(force=TRUE, dependencies=FALSE)" | R --no-save
 ```
 
+## Can I add a new method?
+
+Yes, there are two ways:
+
+1. Make a new method. Using the [`mda.prototype.R`](https://github.com/thiesgehrmann/multidiffabundance/blob/devel/R/mda.prototype.R) file, introduce a new method.
+   You will need to source two additional files to provide the required functions:
+   ```R
+   source("https://raw.githubusercontent.com/thiesgehrmann/multidiffabundance/refs/heads/devel/R/formula.R")
+   source("https://raw.githubusercontent.com/thiesgehrmann/multidiffabundance/refs/heads/devel/R/mda.R")
+   mymethod <- function(mda.D, ...){
+       ...
+   }
+
+   r <- mymethod(D)
+   ```
+2. Make the same method as in part 1, and provide it to the command line code as follows:
+   ```bash
+   mda  --custom mymethod.R \
+        -o "custom.name='mymethod'" \
+        "$abundance" \
+        "$meta_data" \
+        "$functions" \
+        "$outdir"
+   ```
+
 ## Can you include my favourite method `xxx`?
 Maybe. Send me a message.
 
@@ -239,5 +262,3 @@ Maybe. Send me a message.
 
 Good question! Our current approach is to count the number of tools that report a significant result. This gives an indication of the consensus of the tools. For example, when 5/6 tools agree on a significant effect, I am more confident in the result than if only 2/6 tools agree. Our threshold for reporting is at least 3/6 tools.
 
-## Can you include method `xxx`?
-Maybe. Send me a message.

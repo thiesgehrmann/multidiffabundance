@@ -17,7 +17,7 @@ RUN micromamba install \
       r-matrix  && \
       eval "$(micromamba shell hook --shell bash)" && \
       micromamba activate base && \
-    (echo "library(devtools); devtools::install_github("jsilve24/ALDEx3"); devtools::install_github('thiesgehrmann/multidiffabundance@devel', dependencies=FALSE)" | R --no-save) && \
+    (echo "library(devtools); devtools::install_github('jsilve24/ALDEx3'); devtools::install_github('thiesgehrmann/multidiffabundance@devel', dependencies=FALSE)" | R --no-save) && \
     micromamba clean --all --yes
     
 LABEL maintainer="Thies Gehrmann"

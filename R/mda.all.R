@@ -18,14 +18,27 @@
 #' @param zicoseq if the zicoseq mda pipeline is to be performed. Defaults to true.
 #'
 #' @export
-mda.all <- function(mda.D, alpha=FALSE, beta=FALSE, group=FALSE, continuous=FALSE,
-                    aldex2=TRUE, ancombc2=TRUE, corncob=FALSE, deseq2=TRUE,
-                    limma=TRUE, lmclr=TRUE, maaslin2=TRUE, zicoseq=TRUE, ...){
+mda.all <- function(mda.D,
+                    alpha=FALSE,
+                    beta=FALSE, 
+                    group=FALSE, 
+                    continuous=FALSE,
+                    aldex2=TRUE, 
+                    aldex3=TRUE, 
+                    ancombc2=TRUE, 
+                    corncob=FALSE, 
+                    deseq2=TRUE,
+                    limma=TRUE, 
+                    lmclr=TRUE, 
+                    maaslin2=TRUE,
+                    maaslin3=TRUE,
+                    wilcoxon=TRUE,
+                    zicoseq=TRUE, ...){
     suppressPackageStartupMessages(require(dplyr))
     D <- mda.D
     
-    functions <- c(mda.alpha, mda.beta, mda.group, mda.continuous, mda.aldex2, mda.ancombc2, mda.corncob, mda.deseq2, mda.limma, mda.lmclr, mda.maaslin2, mda.zicoseq)
-    selected <-  c(    alpha,     beta,     group,     continuous,     aldex2,     ancombc2,      corncob,     deseq2,     limma,     lmclr,     maaslin2,     zicoseq)
+    functions <- c(mda.alpha, mda.beta, mda.group, mda.continuous, mda.aldex2, mda.aldex3, mda.ancombc2, mda.corncob, mda.deseq2, mda.limma, mda.lmclr, mda.maaslin2, mda.maaslin3, mda.wilcoxon, mda.zicoseq)
+    selected <-  c(    alpha,     beta,     group,     continuous,     aldex2,     aldex3,     ancombc2,     corncob,     deseq2,     limma,     lmclr,     maaslin2,     maaslin3,     wilcoxon,     zicoseq)
     
     R <- lapply(functions[selected], function(x){ x(D, ...) })
     comb <- mda.merge_results(R)
