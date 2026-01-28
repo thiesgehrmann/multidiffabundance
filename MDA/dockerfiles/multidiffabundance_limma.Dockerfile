@@ -15,11 +15,10 @@ RUN micromamba install \
       r-GUniFrac \
       r-lme4 \
       r-matrix \
-      bioconductor-edger \
-      bioconductor-limma  && \
+      r-biocmanager && \
       eval "$(micromamba shell hook --shell bash)" && \
       micromamba activate base && \
-    (echo "library(devtools); devtools::install_github('thiesgehrmann/multidiffabundance@devel', dependencies=FALSE)" | R --no-save) && \
+    (echo "library(devtools); BiocManager::install(c('edgeR','limma')); devtools::install_github('thiesgehrmann/multidiffabundance@devel', dependencies=FALSE)" | R --no-save) && \
     micromamba clean --all --yes
     
 LABEL maintainer="Thies Gehrmann"

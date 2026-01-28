@@ -8,6 +8,7 @@ mda.ancombc2 <- function(mda.D, ...){
         require(tidyr)
         require(dplyr)
         require(tibble)
+        require(phyloseq)
         require(stringr)})
     
     D <- mda.D
@@ -18,19 +19,32 @@ mda.ancombc2 <- function(mda.D, ...){
         fdata <- D$formula[[f_idx]]
 
         f.fixed <- paste0(fdata$parts.fixed, collapse=' + ')
-        f.rand  <- if (formula.ismixed(fdata$fn)) { paste0(lapply(fdata$parts.random, function(v){paste0(c('(',v,')'), collapse='')}), collapse='+') } else { NULL }
-
-        sampledata <- phyloseq::sample_data(fdata$data, errorIfNULL = F)
-        phylo <- phyloseq::merge_phyloseq(OTU, sampledata)
+        f.rand <- if (formula.ismixed(fdata$fn)) { paste0(lapply(fdata$parts.random, function(v){paste0(c('(',v,')'), collapse='')}), collapse='+') } else { NULL }
+        metadata <- drop_na(fdata$data)
+        metadata[] <- lapply(metadata, function(x) {
+          if (is.character(x)) {
+              droplevels(factor(x))
+          } else if (is.factor(x)) {
+              droplevels(x)
+          } else {
+              x
+          }
+        })
+        
+        sampledata <- phyloseq::sample_data(metadata, errorIfNULL = F)
+        this.OTU <- OTU[, colnames(OTU) %in% rownames(sample_data(sampledata))]
+        phylo <- phyloseq::merge_phyloseq(this.OTU, sampledata)
 
         r <- mda.trycatchempty(D, f_idx, {
             mda.cache_load_or_run_save(D, f_idx, "ancombc2", 
                     ANCOMBC::ancombc2(data = phylo, fix_formula = f.fixed, rand_formula = f.rand, 
-                            p_adj_method = "holm", prv_cut=0, lib_cut = 1000, 
+                            p_adj_method = "holm", prv_cut=0, lib_cut = 1000,
                             struc_zero = FALSE, global = FALSE, alpha = 0.05, ...) )
         }, taxa=D$nonrare)
             
         if (r$error){
+            mda.message(r$message, type="error")
+            mda.message("NOTE: Errors in ANCOM-BC2 related to lmerTest and groups/levels may be related to NAs introduced in the transformed counts that result in some random effect groups not being represented in the resulting abundance data. There is no good solution to this that is ideal according to ancombc2. Introduce a pseudocount at your own risk.", type="warning")
             return(mda.common_do(D, f_idx, r$response, "ancombc2", skip_taxa_sel = FALSE))
         }
 
