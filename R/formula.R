@@ -145,7 +145,7 @@ formula.reformulate <- function(fn, data){
     new <- f(fn, data)
 
     # Check variation per variable
-    nona <- drop_na(new$data)
+    nona <- drop_na(as.data.frame(new$data))
     lapply(colnames(nona), function(x){
     if(length(unique(nona[,x])) < 2){
         mda.message(paste0(c("Within the formula `", 
