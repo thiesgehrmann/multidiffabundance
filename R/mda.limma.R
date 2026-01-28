@@ -48,8 +48,8 @@ mda.limma <- function(mda.D, ...){
             block <- fdata$data[,block]
         }
 
-        fit <- mda.cache_load_or_run_save(D, f_idx, "limma", 
-                   {
+        r <- mda.trycatchempty(D, f_idx,
+              mda.cache_load_or_run_save(D, f_idx, "limma", {
                     mm <- fdata$data[,fdata$parts.fixed,drop=FALSE]
                     mm <- mm[complete.cases(mm), ,drop=FALSE] # Remove rows with NA... (Note: Do this in the formulas prep, or here? all tools should drop the NA rows anyway, right? Look into this...)
 
@@ -67,22 +67,30 @@ mda.limma <- function(mda.D, ...){
                             lmFit(vobj, mm, block=subset_block, correlation=dupcor$consensus)
                         }
                     eBayes( fit )
-                   } )
+                    }),
+                    taxa=D$nonrare)
+        res.full <- if (r$error){
+            mda.message(r$message, type="error")
+            r$response
+        } else {
+            # Gather output
 
-        # Gather output
+            fit <- r$response
+    
+            coeff <- gather(as.data.frame(fit$coefficients) %>% rownames_to_column('taxa'), "variable", "coefficient", 2:(dim(as.data.frame(fit$coefficients))[2]+1))
+            stdev <- gather(as.data.frame(fit$stdev.unscaled) %>% rownames_to_column('taxa'), "variable", "stdev", 2:(dim(as.data.frame(fit$stdev.unscaled))[2]+1))
+            p.val <- gather(as.data.frame(fit$p.value) %>% rownames_to_column('taxa'), "variable", "pvalue", 2:(dim(as.data.frame(fit$p.value))[2]+1))
+            stat <- gather(as.data.frame(fit$t) %>% rownames_to_column('taxa'), "variable", "stat", 2:(dim(as.data.frame(fit$t))[2]+1))
+    
+            res.full <- merge(merge(merge(coeff, stdev, by=c("taxa","variable")), p.val, by=c("taxa","variable")), stat, by=c("taxa","variable"))
+            names(res.full)[names(res.full)=="coefficient"] <- "effectsize"
+            names(res.full)[names(res.full)=="stdev"] <- "se"
+            names(res.full)[names(res.full)=="variable"] <- "variable.mda"
 
-        coeff <- gather(as.data.frame(fit$coefficients) %>% rownames_to_column('taxa'), "variable", "coefficient", 2:(dim(as.data.frame(fit$coefficients))[2]+1))
-        stdev <- gather(as.data.frame(fit$stdev.unscaled) %>% rownames_to_column('taxa'), "variable", "stdev", 2:(dim(as.data.frame(fit$stdev.unscaled))[2]+1))
-        p.val <- gather(as.data.frame(fit$p.value) %>% rownames_to_column('taxa'), "variable", "pvalue", 2:(dim(as.data.frame(fit$p.value))[2]+1))
-        stat <- gather(as.data.frame(fit$t) %>% rownames_to_column('taxa'), "variable", "stat", 2:(dim(as.data.frame(fit$t))[2]+1))
-
-        res.full <- merge(merge(merge(coeff, stdev, by=c("taxa","variable")), p.val, by=c("taxa","variable")), stat, by=c("taxa","variable"))
-        names(res.full)[names(res.full)=="coefficient"] <- "effectsize"
-        names(res.full)[names(res.full)=="stdev"] <- "se"
-        names(res.full)[names(res.full)=="variable"] <- "variable.mda"
-        
+            #
+            res.full
+        }
         res <- mda.common_do(D, f_idx, res.full, "limma", skip_taxa_sel=FALSE)
-
         res$res.full$se <- res$res.full$se / sqrt(as.numeric(res$res.full$n))
         res$res$se <- res$res$se / sqrt(as.numeric(res$res$n))
         res

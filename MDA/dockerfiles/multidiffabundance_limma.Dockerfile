@@ -16,7 +16,7 @@ RUN micromamba install \
       r-lme4 \
       r-matrix \
       bioconductor-edger \
-      bioconductor-limma && \
+      bioconductor-limma  && \
       eval "$(micromamba shell hook --shell bash)" && \
       micromamba activate base && \
     (echo "library(devtools); devtools::install_github('thiesgehrmann/multidiffabundance@devel', dependencies=FALSE)" | R --no-save) && \
