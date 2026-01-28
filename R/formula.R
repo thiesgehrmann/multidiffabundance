@@ -133,8 +133,8 @@ formula.determine_nonnumeric_vars <- function(fn,data){
 ###############################################################################
 
 #' @keywords internal
-formula.model.matrix <- function(fn, data){
-    data.new <- model.matrix(terms(fn, keep.order=TRUE), data)
+formula.model.matrix <- function(fn, data, ...){
+    data.new <- model.matrix(terms(fn, keep.order=TRUE, ...), data)
     return(data.new)
 }
 
@@ -206,7 +206,6 @@ formula.reformulate.fixed <- function(fn, data){
 
 #' @keywords internal
 formula.reformulate.mixed <- function(fn, data){
-
     parts <- formula.parts(fn)
     
     intercept <- attributes(terms(formula.rhs(fn)))$intercept
@@ -214,9 +213,13 @@ formula.reformulate.mixed <- function(fn, data){
     re.parts <- parts[grepl('[|]', parts)]
 
     fn.fixed <- as.formula(paste0(c('~', paste0(unlist(fe.parts), collapse=' + ')), collapse=' '))
-    fe.data <- subset(formula.model.matrix(fn.fixed, data), select=-`(Intercept)`)
+    fe.data <- formula.model.matrix(fn.fixed, data)
 
+    if( dim(fe.data)[1] < 1){
+        mda.message(paste0(c("For formula `", mda.deparse(fn), "`, there are no rows without NAs. Impossible to continue. Remove formula or adapt input data."), collapse=""), type="error" )
+    }
 
+    fe.data <- subset(fe.data, select=-`(Intercept)`)
     fe.data.missing_rows <- setdiff(rownames(data), rownames(fe.data))
     fe.data.missing_data <- as.data.frame(matrix(nrow=length(fe.data.missing_rows), ncol=length(colnames(fe.data))), rownames=fe.data.missing_rows)
     colnames(fe.data.missing_data) <- colnames(fe.data)
@@ -249,6 +252,7 @@ formula.reformulate.mixed <- function(fn, data){
             colnames(bound) <- c(colnames(x), newcols)
             bound
         }, re.data)
+    
     
     # Add back rows that were missing
     re.data.missing_rows <- setdiff(rownames(data), rownames(re.data))

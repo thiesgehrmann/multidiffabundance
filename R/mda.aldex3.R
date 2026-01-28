@@ -20,12 +20,16 @@ mda.aldex3 <- function(mda.D, ...){
 
         data.in <- as.data.frame(t(nonrare))
 
+        # OK so this is some strange behaviour of aldex3, apparently it can't handle NAs in the metadata
+        # So cleaning this up:
+        meta.nona <- drop_na(meta)
+        data.in.nona <- data.in[,rownames(meta.nona)]
 
         r <- mda.trycatchempty(D, f_idx, {
             mda.cache_load_or_run_save(D, f_idx, "aldex3", {
-                aldex.fit <- aldex(data.in,
+                aldex.fit <- aldex(data.in.nona,
                                    form,
-                                   meta,
+                                   meta.nona,
                                    nsample=2000,
                                    scale=clr.sm,   # CLR assumption
                                    gamma=0,        # Gamma=0 no scale uncertainty
@@ -36,6 +40,7 @@ mda.aldex3 <- function(mda.D, ...){
             }, taxa=D$nonrare)
             
         res <- if (r$error){
+            mda.message(r$message, type="error")
             r$response
         } else {
             aldex.fit <- r$response
