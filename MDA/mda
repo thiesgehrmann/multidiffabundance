@@ -85,7 +85,7 @@ while true; do
       (-l|--limma)
             methods+=("limma"); shift;;
       (-L|--lmclr)
-            methods+=("lmcle"); shift;;
+            methods+=("lmclr"); shift;;
       (-m|--maaslin2)
             methods+=("maaslin2"); shift;;
       (-M|--maaslin3)

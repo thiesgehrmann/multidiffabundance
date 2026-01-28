@@ -76,14 +76,12 @@ mda.wilcoxon <- function(mda.D, wilcoxon.norm="clr", wilcoxon.resid=TRUE, ...){
     
     do <- function(f_idx){
         fdata <- D$formula[[f_idx]]
-        print(fdata$fn.orig)
 
         var1 <- formula.parts(fdata$fn)[1]
         X <- drop_na(fdata$data)
         Y <- norm_data[rownames(X),]
 
         res.full <- if (length(unique(X[,var1])) != 2){
-            print(unique(X[,var1]))
             mda.message("mda.wilcoxon: This variable is not binary.", type="error")
             mda.empty_output(D, f_idx, comment="This variable is not binary", taxa=D$nonrare)
         } else {
