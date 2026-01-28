@@ -35,7 +35,6 @@ mda.wilcoxon <- function(mda.D, wilcoxon.norm="clr", wilcoxon.resid=TRUE, ...){
 
         taxa <- if (is.null(taxa)) colnames(count_data) else taxa
 
-        
         var1 <- formula.parts(formula)[1]
 
         input_data <- if ((length(formula.parts(formula)) > 1) & wilcoxon.resid){
@@ -74,19 +73,21 @@ mda.wilcoxon <- function(mda.D, wilcoxon.norm="clr", wilcoxon.resid=TRUE, ...){
 
         res
     }
-
-    #return(norm_data)
     
     do <- function(f_idx){
         fdata <- D$formula[[f_idx]]
+        print(fdata$fn.orig)
 
         var1 <- formula.parts(fdata$fn)[1]
+        X <- drop_na(fdata$data)
+        Y <- norm_data[rownames(X),]
 
-        res.full <- if (length(unique(fdata$data[,var1])) != 2){
+        res.full <- if (length(unique(X[,var1])) != 2){
+            print(unique(X[,var1]))
             mda.message("mda.wilcoxon: This variable is not binary.", type="error")
             mda.empty_output(D, f_idx, comment="This variable is not binary", taxa=D$nonrare)
         } else {
-            mda.cache_load_or_run_save(D, f_idx, "wilcoxon", wilcoxon(norm_data, fdata$data, fdata$fn, D$nonrare), order_invariant=FALSE)
+            mda.cache_load_or_run_save(D, f_idx, "wilcoxon", wilcoxon(Y, X, fdata$fn, D$nonrare), order_invariant=FALSE)
         }
         
         res.full$formula <- rep(mda.deparse(fdata$fn.orig), dim(res.full)[1])
@@ -97,8 +98,7 @@ mda.wilcoxon <- function(mda.D, wilcoxon.norm="clr", wilcoxon.resid=TRUE, ...){
         res.full <- res.full[res.full$taxa %in% D$nonrare,]
 
         # Select only the relevant variable 
-        first_var <- formula.parts(fdata$fn.orig)[1]
-        res <- res.full[res.full$variable == first_var,]
+        res <- res.full[res.full$variable == var1,]
         res$qvalue.withinformula <- p.adjust(res$pvalue, "fdr")
         
         res.full$qvalue.withinformula <- p.adjust(res.full$pvalue, "fdr")

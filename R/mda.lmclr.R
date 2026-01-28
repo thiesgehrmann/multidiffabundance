@@ -30,15 +30,16 @@ mda.lmclr <- function(mda.D, ...){
             r <- mda.trycatchempty(D, f_idx, method(f, data=data, na.action = 'na.exclude'), taxa=t)
             
             if (r$error){
+                mda.message(r$message, type="error")
                 return(r$response)
             }
             fit <- r$response
             
             s <- as.data.frame(coefficients(summary(fit)))
-            s[,"comment"] <- ""
+            s$comment <- ""
             if (mda.isSingular(fit)){
                 s[,"Pr(>|t|)"] <- NA
-                s[,"comment"] <- "Rank deficient: singular"
+                s$comment <- "Rank deficient: singular"
                 }
             
             s$taxa <- rep(t, dim(s)[1])

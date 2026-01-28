@@ -143,6 +143,17 @@ formula.model.matrix <- function(fn, data, ...){
 formula.reformulate <- function(fn, data){
     f <- if (formula.ismixed(fn)) {formula.reformulate.mixed} else {formula.reformulate.fixed}
     new <- f(fn, data)
+
+    # Check variation per variable
+    nona <- drop_na(new$data)
+    lapply(colnames(nona), function(x){
+    if(length(unique(nona[,x])) < 2){
+        mda.message(paste0(c("Within the formula `", 
+                             mda.deparse(fn),
+                             "`, the variable `", 
+                             new$map[x], 
+                             "`, consists of identical non-NA values. This may cause later steps to fail. Verify this.", type="warning"), collapse=""))
+    }})
     
     pam <- setNames(names(new$map), new$map)
     
