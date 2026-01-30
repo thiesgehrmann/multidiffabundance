@@ -16,8 +16,7 @@ RUN micromamba install \
       r-vegan \
       r-GUniFrac \
       r-lme4 \
-      r-matrix \
-      maaslin3 && \
+      r-matrix && \
       eval "$(micromamba shell hook --shell bash)" && \
       micromamba activate base && \
     (echo "library(devtools); devtools::install_local('/multidiffabundance', dependencies=FALSE)" | R --no-save) && \

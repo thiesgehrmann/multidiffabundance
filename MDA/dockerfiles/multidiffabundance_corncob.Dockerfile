@@ -4,26 +4,28 @@ FROM mambaorg/micromamba
 COPY ./ /multidiffabundance
 COPY ./MDA/mda /use/bin/mda
 
+
 RUN micromamba install \
       -y -n base \
       -c bioconda -c conda-forge \
+      cmake \
       r-base \
       r-devtools \
       r-tidyverse \
       r-digest \
-      r-lmerTest \
       r-reshape2  \
       r-vegan \
-      r-GUniFrac \
-      r-lme4 \
-      r-matrix \
-      bioconductor-microbiome \
-      bioconductor-phyloseq \
-      bioconductor-ancombc && \
+      r-corncob \
+      bioconductor-phyloseq && \
       eval "$(micromamba shell hook --shell bash)" && \
       micromamba activate base && \
-    (echo "library(devtools); devtools::install_local('/multidiffabundance', dependencies=FALSE)" | R --no-save) && \
-    micromamba clean --all --yes
+      micromamba clean --all --yes
+
+RUN eval "$(micromamba shell hook --shell bash)" && \
+    micromamba activate base && \
+    Rscript -e 'install.packages(c("Matrix", "lme4", "lmerTest"), repos="https://cloud.r-project.org")' && \
+    Rscript -e 'devtools::install_local("/multidiffabundance", dependencies=FALSE)'
+# Rscript -e 'devtools::install_github("thiesgehrmann/multidiffabundance@devel", dependencies=FALSE)
     
 LABEL maintainer="Thies Gehrmann"
 

@@ -195,6 +195,7 @@ docker_tags["beta"]="thiesgehrmann/multidiffabundance_mda:1"
 docker_tags["group"]="thiesgehrmann/multidiffabundance_mda:1"
 docker_tags["continuous"]="thiesgehrmann/multidiffabundance_mda:1"
 docker_tags["custom"]="thiesgehrmann/multidiffabundance_mda:1"
+docker_tags["corncob"]="thiesgehrmann/multidiffabundance_corncob:1"
 
 docker_tags["aldex2"]="thiesgehrmann/multidiffabundance_aldex2:1"
 docker_tags["aldex3"]="thiesgehrmann/multidiffabundance_aldex3:1"

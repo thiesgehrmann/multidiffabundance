@@ -1,6 +1,8 @@
 FROM mambaorg/micromamba
 
-COPY mda /usr/bin/mda
+# Assumes that build environment is in /home/thies/repos/devel/multidiffabundance
+COPY ./ /multidiffabundance
+COPY ./MDA/mda /use/bin/mda
 
 RUN micromamba install \
       -y -n base \
@@ -18,7 +20,7 @@ RUN micromamba install \
       r-biocmanager && \
       eval "$(micromamba shell hook --shell bash)" && \
       micromamba activate base && \
-    (echo "library(devtools); BiocManager::install(c('edgeR','limma')); devtools::install_github('thiesgehrmann/multidiffabundance@devel', dependencies=FALSE)" | R --no-save) && \
+    (echo "library(devtools); BiocManager::install(c('edgeR','limma')); devtools::install_local('/multidiffabundance', dependencies=FALSE)" | R --no-save) && \
     micromamba clean --all --yes
     
 LABEL maintainer="Thies Gehrmann"

@@ -1,6 +1,9 @@
 FROM mambaorg/micromamba
 
-COPY mda /usr/bin/mda
+# Assumes that build environment is in /home/thies/repos/devel/multidiffabundance
+COPY ./ /multidiffabundance
+COPY ./MDA/mda /use/bin/mda
+
 
 RUN micromamba install \
       -y -n base \
@@ -20,7 +23,8 @@ RUN micromamba install \
 RUN eval "$(micromamba shell hook --shell bash)" && \
     micromamba activate base && \
     Rscript -e 'install.packages(c("Matrix", "lme4", "lmerTest"), repos="https://cloud.r-project.org")' && \
-    Rscript -e 'devtools::install_github("thiesgehrmann/multidiffabundance@devel", dependencies=FALSE)'
+    Rscript -e 'devtools::install_local("/multidiffabundance", dependencies=FALSE)'
+# Rscript -e 'devtools::install_github("thiesgehrmann/multidiffabundance@devel", dependencies=FALSE)
     
 LABEL maintainer="Thies Gehrmann"
 
