@@ -12,7 +12,7 @@ mda.from_cmdargs <- function(args, ...){
     
     if (length(args) != 4){
         mda.message("Too few arguments. There should be 4!", type="error")
-        quit(1)
+        quit(status=1)
     }
     
     abundance <- args[1]
@@ -31,7 +31,7 @@ mda.from_files <- function(abundance, meta, formula.data, outprefix=tempdir(), .
     raw.formula.data <- mda.load_formula_input(formula.data)
     if (!mda.verify_formula_input(raw.formula.data)){
         mda.message("Errors in processing formula input.", type="error")
-        quit(1)
+        quit(status=1)
     }
 
     ###############################################################################
