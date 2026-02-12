@@ -20,7 +20,7 @@ mda.ancombc2 <- function(mda.D, ...){
 
         f.fixed <- paste0(fdata$parts.fixed, collapse=' + ')
         f.rand <- if (formula.ismixed(fdata$fn)) { paste0(lapply(fdata$parts.random, function(v){paste0(c('(',v,')'), collapse='')}), collapse='+') } else { NULL }
-        metadata <- drop_na(fdata$data)
+        metadata <- tidyr::drop_na(fdata$data)
         metadata[] <- lapply(metadata, function(x) {
           if (is.character(x)) {
               droplevels(factor(x))

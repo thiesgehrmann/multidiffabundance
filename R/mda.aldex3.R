@@ -22,7 +22,7 @@ mda.aldex3 <- function(mda.D, ...){
 
         # OK so this is some strange behaviour of aldex3, apparently it can't handle NAs in the metadata
         # So cleaning this up:
-        meta.nona <- drop_na(meta)
+        meta.nona <- tidyr::drop_na(meta)
         data.in.nona <- data.in[,rownames(meta.nona)]
 
         r <- mda.trycatchempty(D, f_idx, {
@@ -45,8 +45,8 @@ mda.aldex3 <- function(mda.D, ...){
         } else {
             aldex.fit <- r$response
             
-            effectsize <- reshape2::melt(aldex.fit$p.val, value.name="estimate")
-            se         <- reshape2::melt(aldex.fit$p.val, value.name="se")
+            effectsize <- reshape2::melt(aldex.fit$estimate, value.name="estimate")
+            se         <- reshape2::melt(aldex.fit$std.error, value.name="se")
             pvalue     <- reshape2::melt(aldex.fit$p.val, value.name="pvalue")
             
             merged <- merge(effectsize, merge(se, pvalue, by=c("Var1",'Var2')), by=c("Var1",'Var2'))

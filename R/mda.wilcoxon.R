@@ -78,7 +78,7 @@ mda.wilcoxon <- function(mda.D, wilcoxon.norm="clr", wilcoxon.resid=TRUE, ...){
         fdata <- D$formula[[f_idx]]
 
         var1 <- formula.parts(fdata$fn)[1]
-        X <- drop_na(fdata$data)
+        X <- tidyr::drop_na(fdata$data)
         Y <- norm_data[rownames(X),]
 
         res.full <- if (length(unique(X[,var1])) != 2){
