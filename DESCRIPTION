@@ -31,10 +31,12 @@ Suggests:
     BiocManager,
     testthat (>= 3.0.0),
     ALDEx2,
+    ALDEx3,
     ANCOMBC,
     phyloseq,
     DESeq2,
     edgeR,
     Maaslin2,
+    Maaslin3,
     GUniFrac
 Config/testthat/edition: 3
