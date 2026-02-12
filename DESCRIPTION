@@ -37,6 +37,6 @@ Suggests:
     DESeq2,
     edgeR,
     Maaslin2,
-    Maaslin3,
+    biobakery/maaslin3,
     GUniFrac
 Config/testthat/edition: 3
