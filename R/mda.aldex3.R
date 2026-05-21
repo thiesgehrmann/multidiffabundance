@@ -48,8 +48,17 @@ mda.aldex3 <- function(mda.D, ...){
             effectsize <- reshape2::melt(aldex.fit$estimate, value.name="estimate")
             se         <- reshape2::melt(aldex.fit$std.error, value.name="se")
             pvalue     <- reshape2::melt(aldex.fit$p.val, value.name="pvalue")
+
+            if (all(effectsize$Var2 == pvalue$Var2)) {
+              merged <- effectsize
+              merged$se <- se$se
+              merged$pvalue <- pvalue$pvalue
+                
+            } else {
+              merged <- merge(effectsize, merge(se, pvalue, by=c("Var1",'Var2')), by=c("Var1",'Var2'))
+            }
             
-            merged <- merge(effectsize, merge(se, pvalue, by=c("Var1",'Var2')), by=c("Var1",'Var2'))
+            
             colnames(merged) <- c("variable.mda", 'taxa', "effectsize", 'se', 'pvalue')
             merged
         }
