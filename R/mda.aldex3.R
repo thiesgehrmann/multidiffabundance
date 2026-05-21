@@ -50,7 +50,7 @@ mda.aldex3 <- function(mda.D, ...){
             pvalue     <- reshape2::melt(aldex.fit$p.val, value.name="pvalue")
 
             if (all(effectsize$Var2 == pvalue$Var2)) {
-              merged <- effectsize
+              merged <- dplyr::select(effectsize, Var1, Var2)
               merged$se <- se$se
               merged$pvalue <- pvalue$pvalue
                 
