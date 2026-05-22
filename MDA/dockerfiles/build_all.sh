@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 
-for env in maaslin3; do # aldex2 aldex3 ancombc2 corncob deseq2 limma maaslin2 maaslin3 zicoseq mda; do
+envs=("mda" "aldex2" "aldex3" "ancombc2" "corncob" "deseq2" "limma" "maaslin2" "maaslin3" "zicoseq")
+envs=("ancombc2")
+for env in "${envs[@]}"; do #aldex2 aldex3 ancombc2 corncob deseq2 limma maaslin2 maaslin3 zicoseq mda; do
     echo ""
     echo "#######################################################"
     echo "#  BUILDING $env"

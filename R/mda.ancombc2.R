@@ -39,7 +39,7 @@ mda.ancombc2 <- function(mda.D, ...){
             mda.cache_load_or_run_save(D, f_idx, "ancombc2", 
                     ANCOMBC::ancombc2(data = phylo, fix_formula = f.fixed, rand_formula = f.rand, 
                             p_adj_method = "holm", prv_cut=0, lib_cut = 1000,
-                            struc_zero = FALSE, global = FALSE, alpha = 0.05, ...) )
+                            struc_zero = FALSE, global = FALSE, alpha = 0.05) )
         }, taxa=D$nonrare)
             
         if (r$error){

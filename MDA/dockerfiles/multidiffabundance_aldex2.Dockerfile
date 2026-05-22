@@ -10,7 +10,7 @@ RUN micromamba install \
       -y -n base \
       -c bioconda -c conda-forge \
       r-base \
-      r-devtools \
+      r-pak \
       r-tidyverse \
       r-digest \
       r-lmerTest \
@@ -22,7 +22,7 @@ RUN micromamba install \
       bioconductor-aldex2 && \
       eval "$(micromamba shell hook --shell bash)" && \
       micromamba activate base && \
-    (echo "library(devtools); devtools::install_local('/multidiffabundance', dependencies=FALSE)" | R --no-save) && \
+    (echo "pak::local_install('/multidiffabundance', dependencies=FALSE)" | R --no-save) && \
     micromamba clean --all --yes
     
 LABEL maintainer="Thies Gehrmann"

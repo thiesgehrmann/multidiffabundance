@@ -11,7 +11,7 @@ RUN micromamba install \
       -c bioconda -c conda-forge \
       cmake \
       r-base \
-      r-devtools \
+      r-pak \
       r-tidyverse \
       r-digest \
       r-reshape2  \
@@ -25,7 +25,7 @@ RUN micromamba install \
 RUN eval "$(micromamba shell hook --shell bash)" && \
     micromamba activate base && \
     Rscript -e 'install.packages(c("Matrix", "lme4", "lmerTest"), repos="https://cloud.r-project.org")' && \
-    Rscript -e 'devtools::install_local("/multidiffabundance", dependencies=FALSE)'
+    Rscript -e 'pak::local_install("/multidiffabundance", dependencies=FALSE)'
 # Rscript -e 'devtools::install_github("thiesgehrmann/multidiffabundance@devel", dependencies=FALSE)
     
 LABEL maintainer="Thies Gehrmann"
