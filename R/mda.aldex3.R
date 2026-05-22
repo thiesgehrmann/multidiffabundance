@@ -45,19 +45,15 @@ mda.aldex3 <- function(mda.D, ...){
         } else {
             aldex.fit <- r$response
             
-            effectsize <- reshape2::melt(aldex.fit$estimate, value.name="estimate")
-            se         <- reshape2::melt(aldex.fit$std.error, value.name="se")
+            # Aldex3 stores all the Monte-Carlo simulations in the fit; so summary needs to be called
+            aldex.fit.summary <- tibble::tibble(summary(aldex.fit, ignore.intercept=FALSE))
+            # Unfortunately this only returns the BH corrected pval...
+            # but the pvalues 
+            
             pvalue     <- reshape2::melt(aldex.fit$p.val, value.name="pvalue")
 
-            if (all(effectsize$Var2 == pvalue$Var2)) {
-              merged <- dplyr::select(effectsize, -Var3)
-              merged$se <- se$se
-              merged$pvalue <- pvalue$pvalue
-                
-            } else {
-              merged <- merge(effectsize, merge(se, pvalue, by=c("Var1",'Var2')), by=c("Var1",'Var2'))
-            }
-            
+            merged <- dplyr::select(aldex.fit.summary, -p.val.adj)
+            merged$pvalue <- pvalue$pvalue
             
             colnames(merged) <- c("variable.mda", 'taxa', "effectsize", 'se', 'pvalue')
             merged
