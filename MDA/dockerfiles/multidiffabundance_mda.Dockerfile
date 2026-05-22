@@ -4,6 +4,7 @@ FROM mambaorg/micromamba
 COPY ./ /multidiffabundance
 COPY ./MDA/mda /use/bin/mda
 
+ENV PATH="/opt/conda/bin:$PATH"
 
 RUN micromamba install \
       -y -n base \

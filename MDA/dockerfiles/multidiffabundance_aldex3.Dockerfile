@@ -4,11 +4,14 @@ FROM mambaorg/micromamba
 COPY ./ /multidiffabundance
 COPY ./MDA/mda /use/bin/mda
 
+ENV PATH="/opt/conda/bin:$PATH"
+
 RUN micromamba install \
       -y -n base \
       -c bioconda -c conda-forge \
       r-base \
-      r-devtools \
+      r-remotes \
+      r-pak \
       r-tidyverse \
       r-digest \
       r-lmerTest \
@@ -19,7 +22,7 @@ RUN micromamba install \
       r-matrix  && \
       eval "$(micromamba shell hook --shell bash)" && \
       micromamba activate base && \
-    (echo "library(devtools); devtools::install_github('jsilve24/ALDEx3'); devtools::install_local('/multidiffabundance', dependencies=FALSE)" | R --no-save) && \
+    (echo "remotes::install_github('jsilve24/ALDEx3'); pak::local_install('/multidiffabundance', dependencies=FALSE)" | R --no-save) && \
     micromamba clean --all --yes
     
 LABEL maintainer="Thies Gehrmann"
